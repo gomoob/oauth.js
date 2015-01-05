@@ -62,160 +62,7 @@ OAuth2Client.prototype = {
 
     _backupedBackboneDotAjax : null,
     
-    _refreshAccessToken : function() {
-        
-        // Try to get an OAuth 2.0 Refresh Token from the client storage
-        var refreshToken = this._accessTokenResponseStorage.getRefreshToken();
-        
-        // If a refresh token is stored on the client storage we try to refresh the access token using this refresh 
-        // token
-        if(refreshToken) {
-
-            $.ajax(
-                {
-                url : this._tokenEndpoint, 
-                data : { 'grant_type' : 'refresh_token', 'refresh_token' : refreshToken }, 
-                dataType : 'json',
-                type: 'POST',
-                error : $.proxy(this._reniewOAuth2AccessToken, this), 
-                success : function(data, textStatus, jqXHR) {
-
-                    // Store the refresed OAuth 2.0 in the local storage
-                    // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the response 
-                    //          also contain a 'user_id' field which is specific to the project and contains the 
-                    //          technical identifier of the user on the platform 
-                    localStorage.setItem('mygoodmoment.oauth2.accessTokenResponse', JSON.stringify(data));
-
-                    // Reloads the current view
-                    reloadCurrentView();
-
-                }
-
-            });
-
-        } 
-        
-        // Otherwise we try to reniew the access token
-        else {
-
-            this._reniewAccessToken();
-
-        }
-        
-    },
-                          
-    _onJQueryAjaxPromiseFail : function(jqXHR, status, errorThrown) {
-        
-        // If we are on a 401 HTTP error response (i.e Unauthorized)
-        if(jqXHR.status === 401) {
-
-            // Checks if the returned response is a JSON one and is a valid API Problem response
-            if(jqXHR.responseJSON !== null && typeof jqXHR.responseJSON !== 'undefined') {
-
-                // If their is a 'title' attached to the response this is an API Problem with a potential 
-                // OAuth 2.0 error code
-                if(jqXHR.responseJSON.title !== null && typeof jqXHR.responseJSON.title !== 'undefined') {
-                
-                    // The OAuth 2.0 Access Token which was send with the request is invalid, the 401 Status 
-                    // code with the error code 'invalid_token' can express multiple errors : 
-                    //  - The provided Access Token does not exist on server side (can be an error from the 
-                    //    client or a clear on server side)
-                    //  - The provided Access Token has expired
-                    if(jqXHR.responseJSON.title === 'invalid_token') {
-
-                        // The OAuth 2.0 Access Token is invalid, in this case we try to reniew the Access 
-                        // Token without a Refresh Token. That's to say by providing the user credentials 
-                        // and potentially open a new Login Dialog
-                        if(jqXHR.responseJSON.errorCode === 'token_invalid') {
-
-                            // Try to login again and reload the last opened page if a login is successful
-                            reniewOAuth2AccessToken();
-
-                        } 
-                        
-                        // The OAuth 2.0 Access Token has expired, in this case we first try to refresh the 
-                        // Access Token using the 'refresh_token'
-                        else if(jqXHR.responseJSON.errorCode === 'token_expired') {
-
-                            // Try to refresh the OAuth 2.0 Access Token, if not possible reniew it
-                            refreshAccessToken();
-
-                        } 
-                        
-                        // The OAuth 2.0 Access Token is Malformed (missing "expires" or "client_id"), this 
-                        // error should never appear and has to be considered a client coding error.
-                        else if(jqXHR.responseJSON.errorCode === 'token_malformed') {
-
-                            // Try to login again and reload the last opened page if a login is successful
-                            reniewOAuth2AccessToken();
-
-                        }
-                        
-                        // Unknown invalid token error, this should never appear !!!
-                        else {
-
-                            // TODO: Envoi de l'erreur vers Sentry !
-                            console.log('Invalid token !');
-                            console.log(jqXHR.responseJSON);
-
-                        }
-
-                    }
-                     
-                }
-             
-            }
-            
-        } 
-
-        // Error not manageable
-        else {
-
-            // TODO: Erreur inconnue, pas sûr on a encore des codes d'erreurs connus ?
-            console.log('Error !');
-            console.log(JSON.stringify(jqXHR));
-            console.log(errorThrown);
-
-        }
-        
-    },
     
-    _overwrittenBackboneDotAjax : function() {
-        
-        // Try to get an OAuth 2.0 Access Token from the client storage
-        var accessToken = this._accessTokenResponseStorage.getAccessToken();
-
-        // Appends the 'access_token' URL parameter
-        if(accessToken) {
-            
-            arguments[0].url += arguments[0].url.indexOf('?') === -1 ? '?' : '&';
-            arguments[0].url += 'access_token';
-            arguments[0].url += accessToken;
-
-        }
-        
-        var jQueryAjaxPromise = Backbone.$.ajax.apply(Backbone.$, arguments);
-        jQueryAjaxPromise.fail(this._jQueryAjaxPromiseFail);
-
-        return jQueryAjaxPromise;
-
-    },
-    
-    /**
-     * Function used to overwrite the `Backbone.ajax` method. After overwritting all calls to `Backbone.ajax` will 
-     * automatically manage OAuth 2.0 tokens to call your secured web services.
-     */
-    overwriteBackboneDotAjax : function() {
-        
-        // The default implementationof `Backbone.ajax` has not been backuped
-        if(!this._backupedBackboneDotAjax) {
-            
-            this._backupedBackboneDotAjax = Backbone.ajax;
-            
-        }
-
-    }
-                          
 };
 /**
  * 
@@ -310,7 +157,7 @@ StorageManager.prototype = {
         
         var accessTokenResponse = this.getAccessTokenResponse(), 
             refreshToken = accessTokenResponse !== null ? accessTokenResponse.refresh_token : null;
-        
+
         // Returns null or a valid token (undefined is always converted to null)
         return refreshToken === null || refreshToken === undefined ? null : refreshToken;
 
@@ -354,6 +201,13 @@ BackboneRequestManager = function(configuration) {
      * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
      */
     this._storageManager = null;
+    
+    /**
+     * The URL to the token endpoint used to retrieve an access and a refresh token.
+     * 
+     * @property {String}
+     */
+    this._tokenEndpoint = null;
 
     // Backup the global 'Backbone.ajax' method
     if(typeof Backbone !== 'undefined' && Backbone !== null) {
@@ -437,6 +291,35 @@ BackboneRequestManager.prototype = {
     },
     
     /**
+     * 
+     * @param jqXHR
+     * @param status
+     * @param errorThrown
+     */
+    _jQueryAjaxPromiseFail : function(jqXHR, status, errorThrown) {
+        
+        // Parse the received error to know if its a known OAuth 2.0 error
+        var action = this._errorParser.parse(jqXHR);
+        
+        // If the parse result is not 'undefined' then this is a known OAuth 2.0 error
+        if(action !== undefined) {
+            
+            switch(action) {
+                case 'refresh' :
+                    this._refreshAccessToken();
+                    break;
+                case 'reniew' :
+                    this._reniewAccessToken();
+                    break;
+                default:
+                    throw new Error('Action \'' + action + '\' is invalid !');
+            }
+
+        }
+        
+    },
+    
+    /**
      * The overwritten 'Backbone.ajax' method.
      * 
      * @returns a JQuery promise.
@@ -458,9 +341,56 @@ BackboneRequestManager.prototype = {
         
         var jQueryAjaxPromise = Backbone.$.ajax.apply(Backbone.$, arguments);
         jQueryAjaxPromise.fail(this._jQueryAjaxPromiseFail);
-    
+
         return jQueryAjaxPromise;
     
+    },
+    
+    /**
+     * Function used to refresh the Access Token using the refresh token stored in the associated storage.
+     */
+    _refreshAccessToken : function() {
+
+        // Try to get an OAuth 2.0 Refresh Token from the client storage
+        var refreshToken = this._storageManager.getRefreshToken();
+        
+        // If a refresh token is stored on the client storage we try to refresh the access token using this refresh 
+        // token
+        if(refreshToken) {
+
+            $.ajax(
+                {
+                    url : this._tokenEndpoint, 
+                    data : { 'grant_type' : 'refresh_token', 'refresh_token' : refreshToken }, 
+                    dataType : 'json',
+                    type: 'POST',
+                    error : $.proxy(this._reniewAccessToken, this), 
+                    success : $.proxy(function(data, textStatus, jqXHR) {
+
+                        // Store the refresed OAuth 2.0 in the local storage
+                        // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
+                        //          response also contain a 'user_id' field which is specific to the project and 
+                        //          contains the technical identifier of the user on the platform
+                        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+
+                        // Reloads the current view
+                        // TODO: Très bizarre, il faudrait trouver un moyen de ré-exécuter la requête qui a échoué au 
+                        //       début plutôt.
+                        // reloadCurrentView();
+
+                }, this)
+
+            });
+
+        }
+
+        // Otherwise we try to reniew the access token
+        else {
+
+            this._reniewAccessToken();
+
+        }
+
     }
 
 };

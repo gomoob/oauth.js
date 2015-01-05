@@ -2,7 +2,5 @@
   "name": "cordova.mocks",
   "version" : "0.1.0-alpha.1",
   "dependencies": {},
-  "devDependencies": {
-      "jquery" : "~2.1"
-  }
+  "devDependencies": {}
 }
