@@ -37,28 +37,3 @@ inside your `bower.json` file.
 
 ## Configuration
 
-invalid_client
- * client credentials are required
- * This client is invalid or must authenticate using a client secret
- * No client id supplied
-
-invalid_request
- * JWT is malformed
- * Missing parameter: "code" is required
- * Missing parameters: "username" and "password" required
- * The grant type was not specified in the request
- * JWT is malformed
- * Missing parameters: "username" and "password" required
- * Missing parameter: "refresh_token" is required
- * Malformed auth header
- * The content type for POST requests must be "application/x-www-form-urlencoded"
- * Only one method may be used to authenticate at a time (Auth header, GET or POST)
- * The access token provided is invalid
-
-invalid_grant
- * JWT failed signature verification
- * Authorization code doesn\'t exist or is invalid for the client
- * Invalid refresh token
-
-invalid_nonce
- * This application requires you specify a nonce parameter
