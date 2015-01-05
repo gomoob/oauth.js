@@ -112,6 +112,12 @@ BackboneRequestManager.prototype = {
 
     },
     
+    /**
+     * 
+     * @param jqXHR
+     * @param status
+     * @param errorThrown
+     */
     _jQueryAjaxPromiseFail : function(jqXHR, status, errorThrown) {
         
         // Parse the received error to know if its a known OAuth 2.0 error
@@ -187,12 +193,12 @@ BackboneRequestManager.prototype = {
                         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
                         //          response also contain a 'user_id' field which is specific to the project and 
                         //          contains the technical identifier of the user on the platform
-                    this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+                        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
 
-                    // Reloads the current view
-                    // TODO: Très bizarre, il faudrait trouver un moyen de ré-exécuter la requête qui a échoué au début 
-                    //       plutôt.
-                    // reloadCurrentView();
+                        // Reloads the current view
+                        // TODO: Très bizarre, il faudrait trouver un moyen de ré-exécuter la requête qui a échoué au 
+                        //       début plutôt.
+                        // reloadCurrentView();
 
                 }, this)
 
