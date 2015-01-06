@@ -13,6 +13,11 @@ BackboneRequestManager = function(configuration) {
      * A string which identify the type of client this request manager is overwriting.
      */
     this._clientType = 'backbone';
+    
+    /**
+     * The credentials getter used to retrieve credentials to get an OAuth 2.0 Access Token.
+     */
+    this._credentialsGetter = null;
 
     /**
      * The error parser used to manage errors returned by the Web Services.
@@ -55,16 +60,30 @@ BackboneRequestManager = function(configuration) {
     // If a specific configuration is provided
     if(typeof configuration === 'object') {
 
+        // The token endpoint is required
+        if(typeof configuration.tokenEndpoint !== 'string') {
+            
+            throw new Error('No token endpoint is provided or its valued is invalid !');
+            
+        }
+        
+        this._tokenEndpoint = configuration.tokenEndpoint;
+
+        // If a specific error parser is provided we use it
         if(typeof configuration.errorParser !== 'undefined') {
             
             this._errorParser = configuration.errorParser;
             
-        } else {
+        } 
+        
+        // Otherwise we use the default error parser
+        else {
         
             this._errorParser = new ErrorParser();
         
         }
 
+        // Instanciate the OAuth 2.0 Access Token response storage
         this._storageManager = new StorageManager({
             storage : configuration.storage,
             storageKey : configuration.storageKey
@@ -74,10 +93,9 @@ BackboneRequestManager = function(configuration) {
     
     // Otherwise the request manager uses a default configuration
     else {
-
-        this._errorParser = new ErrorParser();
-        this._storageManager = new StorageManager();
         
+        throw new Error('A configuration object is required !');
+
     }
 };
 

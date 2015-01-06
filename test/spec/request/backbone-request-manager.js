@@ -58,6 +58,32 @@ env(
         
                 });
                 
+                it('should provide a configuration object', function() {
+                    
+                    expect(
+                        function() { 
+                            return new BackboneRequestManager(); 
+                        }
+                    ).to.throw(
+                        Error, 
+                        'A configuration object is required !'
+                    );
+                    
+                });
+                
+                it('should provided a configuration object with a token endpoint', function() {
+                    
+                    expect(
+                        function() { 
+                            return new BackboneRequestManager({}); 
+                        }
+                    ).to.throw(
+                        Error, 
+                        'No token endpoint is provided or its valued is invalid !'
+                    );
+                    
+                });
+                
             });
             
             describe('after start', function() {
@@ -66,7 +92,11 @@ env(
                     
                     var backupedBackboneAjax = Backbone.ajax;
 
-                    var requestManager = new BackboneRequestManager();
+                    var requestManager = new BackboneRequestManager(
+                        {
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
                     requestManager.start();
                     
                     expect(Backbone.ajax).to.not.equal(backupedBackboneAjax);
@@ -86,7 +116,11 @@ env(
                 
                 it('should add access token parameter', function() {
 
-                    var requestManager = new BackboneRequestManager();
+                    var requestManager = new BackboneRequestManager(
+                        {
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
                     requestManager.getStorageManager().persistRawAccessTokenResponse(
                         '{"access_token" : "ACCESS_TOKEN"}'
                     );
@@ -125,7 +159,11 @@ env(
                 
                 it('should resolve the oauth promise', function(done) {
                     
-                    var requestManager = new BackboneRequestManager();
+                    var requestManager = new BackboneRequestManager(
+                        {
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
                     requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
                     requestManager.start();
                     
@@ -175,7 +213,11 @@ env(
                 
                 it('should reject the oauth promise', function(done) {
                     
-                    var requestManager = new BackboneRequestManager();
+                    var requestManager = new BackboneRequestManager(
+                        {
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
                     requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
                     requestManager.start();
                     
@@ -215,7 +257,10 @@ env(
             
             describe('on expired token OAuth 2.0 error and successful token refresh', function(done) {
                 
-                // A jQuery Deferred object used to simulate an AJAX request on a Web Service
+                // We create 3 different jQuery Deferred object for our test
+                //  - The first one is used to simulate the original Web Service request
+                //  - The second one is used to simulate the token refresh request
+                //  - The third one is used to simulate the replayed original Web Service request
                 var ajaxDeferred = $.Deferred(), 
                     ajaxDeferred2 = $.Deferred(), 
                     ajaxDeferred3 = $.Deferred();
@@ -234,7 +279,11 @@ env(
                 
                 it('should refresh the OAuth 2.0 token and retry the original request', function(done) {
                     
-                    var requestManager = new BackboneRequestManager();
+                    var requestManager = new BackboneRequestManager(
+                        {
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
                     requestManager.getStorageManager().persistRawAccessTokenResponse(
                         '{' + 
                             '"access_token":"ACCESS_TOKEN",' + 
@@ -259,8 +308,8 @@ env(
                     
                     });
                     
-                    console.log('First ajax request...');
-                    
+                    // Simulates the response of the original Web Service request, here the response indicates that the 
+                    // OAuth 2.0 Access Token is expired
                     ajaxDeferred.reject(
                         {
                             status : 401,
@@ -272,10 +321,13 @@ env(
                     
                     clock.tick(1);
                     
-                    console.log('Second ajax request...');
-                    
-                    ajaxDeferred2.resolve('a', 'b', 'c');
-                    
+                    // Simulates the response of the token refresh request
+                    ajaxDeferred2.resolve(
+                        'token_refresh_data',
+                        'token_refresh_textStatus',
+                        'token_refresh_jqXHR'
+                    );
+
                     clock.tick(1);
                     
                     ajaxDeferred3.resolve(

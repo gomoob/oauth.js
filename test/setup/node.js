@@ -20,7 +20,6 @@ if (typeof localStorage === 'undefined' || localStorage === null) {
 
 }
 
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'client');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'error-parser');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
 

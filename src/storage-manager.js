@@ -88,7 +88,7 @@ StorageManager.prototype = {
      * @return {String} The last Refresh Token stored.
      */
     getRefreshToken : function() {
-        
+
         var accessTokenResponse = this.getAccessTokenResponse(), 
             refreshToken = accessTokenResponse !== null ? accessTokenResponse.refresh_token : null;
 
@@ -104,7 +104,9 @@ StorageManager.prototype = {
      *        string.
      */
     persistRawAccessTokenResponse : function(rawAccessTokenResponse) {
-        
+
+        // TODO: Valider la réponse...
+
         this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
 
     }

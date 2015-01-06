@@ -40,3 +40,47 @@ inside your `bower.json` file.
 
 ## Configuration
 
+### Credentials getter
+
+#### Resource Owner Password Credentials
+
+```
+{
+    getCredentials : function(credentialsPromise) {
+        
+        // Open a popup and ask for user credentials...
+        
+        // Resolving the credentials promise will instruct OAuth.js to get a new OAuth 2.0 Access Token using the 
+        // configured token end point
+        credentialsPromise.resolve(
+            {
+                grant_type : 'password',
+                username : 'john',
+                password : 'doe'
+            }
+        );
+
+    }
+}
+```
+
+#### Facebook Auth Response Credentials
+
+```
+{
+    getCredentials : function(credentialsPromise) {
+    
+        // Open a popup and login the use with Facebook, the retrieve the Facebook Auth response
+        
+        // Resolving the credentials promise will instruct OAuth.js to get a new OAuth 2.0 Access Token using the 
+        // configured token end point
+        credentialsPromise.resolve(
+            {
+                grant_type : 'oauthjs_facebook',
+                facebookAuthResponse : facebookAuthResponse
+            }
+        );
+    
+    }
+}
+```
