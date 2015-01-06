@@ -291,6 +291,104 @@ BackboneRequestManager.prototype = {
     },
     
     /**
+     * Utility function used to clone arguments passed to the jQuery 'ajax' function. Here arguments 
+     * 
+     * @param ajaxArguments
+     * @returns {___anonymous3099_3100}
+     */
+    _cloneAjaxArguments : function(ajaxArguments) {
+
+        var clonedAjaxArguments = {};
+        
+        // The jQuery 'ajax' method has been called with a URL string as first argument
+        if(typeof ajaxArguments[0] === 'string') {
+            
+            clonedAjaxArguments[0] = ajaxArguments[0];
+            
+            if(clonedAjaxArguments.length === 2) {
+                
+                clonedAjaxArguments[1] = this._cloneAjaxSettings(ajaxArguments[1]);
+
+            }
+            
+        } 
+        
+        // The jQuery 'ajax' method has been called with a settings object as first argument
+        else {
+        
+            clonedAjaxArguments[0] = this._cloneAjaxSettings(ajaxArguments[0]);
+            
+        }
+            
+        return clonedAjaxArguments;
+        
+    },
+
+    /**
+     * Utility function used to clone the settings object as a parameter of the jQuery 'ajax' method. This allow to keep 
+     * an untouched settings object before modifying it to configure it with an OAuth 2.0 Access Token.
+     * 
+     * @param {Object} ajaxSettings The jQuery 'ajax' settings object to clone.
+     * 
+     * @returns {Object} The resulting clone object.
+     * 
+     * @see http://api.jquery.com/jQuery.ajax
+     */
+    _cloneAjaxSettings : function(ajaxSettings) {
+        
+        var settingsAttributes = [
+            'accepts',
+            'async',
+            'beforeSend',
+            'cache',
+            'complete',
+            'contents',
+            'contentType',
+            'context',
+            'converters',
+            'crossDomain',
+            'data',
+            'dataFilter',
+            'dataType',
+            'error',
+            'global',
+            'headers',
+            'isModified',
+            'isLocal',
+            'jsonp',
+            'jsonpCallback',
+            'mimeType',
+            'password',
+            'processData',
+            'scriptCharset',
+            'statusCode',
+            'success',
+            'timeout',
+            'traditional',
+            'type',
+            'url',
+            'username',
+            'xhr',
+            'xhrFields'
+        ];
+        
+        var clonedAjaxSettings = {};
+        
+        for(var i = 0; i < settingsAttributes.length; ++i) {
+        
+            if(typeof ajaxSettings[settingsAttributes[i]] !== 'undefined') {
+                
+                clonedAjaxSettings[settingsAttributes[i]] = ajaxSettings[settingsAttributes[i]];
+            
+            }
+        
+        }
+        
+        return clonedAjaxSettings;
+        
+    },
+    
+    /**
      * Function called when a request to a Web Service is successful.
      * 
      * @param {Object} data The data returned from the Web Service.
@@ -389,96 +487,18 @@ BackboneRequestManager.prototype = {
         }
         
     },
-    
-    _cloneAjaxSettings : function(ajaxSettings) {
-        
-        var settingsAttributes = [
-            'accepts',
-            'async',
-            'beforeSend',
-            'cache',
-            'complete',
-            'contents',
-            'contentType',
-            'context',
-            'converters',
-            'crossDomain',
-            'data',
-            'dataFilter',
-            'dataType',
-            'error',
-            'global',
-            'headers',
-            'isModified',
-            'isLocal',
-            'jsonp',
-            'jsonpCallback',
-            'mimeType',
-            'password',
-            'processData',
-            'scriptCharset',
-            'statusCode',
-            'success',
-            'timeout',
-            'traditional',
-            'type',
-            'url',
-            'username',
-            'xhr',
-            'xhrFields'
-        ];
-        
-        var clonedAjaxSettings = {};
-        
-        for(var i = 0; i < settingsAttributes.length; ++i) {
-        
-            if(typeof ajaxSettings[settingsAttributes[i]] !== 'undefined') {
-                
-                clonedAjaxSettings[settingsAttributes[i]] = ajaxSettings[settingsAttributes[i]];
-            
-            }
-        
-        }
-        
-        return clonedAjaxSettings;
-        
-    },
-    
-    _cloneAjaxArguments : function(ajaxArguments) {
-
-        var clonedAjaxArguments = {};
-        
-        // The jQuery 'ajax' method has been called with a URL string as first argument
-        if(typeof ajaxArguments[0] === 'string') {
-            
-            clonedAjaxArguments[0] = ajaxArguments[0];
-            
-            if(clonedAjaxArguments.length === 2) {
-                
-                clonedAjaxArguments[1] = this._cloneAjaxSettings(ajaxArguments[1]);
-
-            }
-            
-        } 
-        
-        // The jQuery 'ajax' method has been called with a settings object as first argument
-        else {
-        
-            clonedAjaxArguments[0] = this._cloneAjaxSettings(ajaxArguments[0]);
-            
-        }
-            
-        return clonedAjaxArguments;
-        
-    },
 
     /**
      * The overwritten 'Backbone.ajax' method.
      * 
      * @returns {$.Deferred} a JQuery promise.
      */
-    _overwrittenBackboneDotAjax : function() {
+    _overwrittenBackboneDotAjax : function(a, b, c) {
 
+        console.log(a);
+        console.log(b);
+        console.log(c);
+        
         // The original AJAX arguments describes the initial user request
         var originalAjaxArguments = this._cloneAjaxArguments(arguments);
         
@@ -516,8 +536,6 @@ BackboneRequestManager.prototype = {
     },
     
     _onRefreshAccessTokenSuccess : function(originalAjaxArgs, oauthPromise, data, textStatus, jqXHR) {
-        
-        console.log('_onRefreshAccessTokenSuccess');
         
         // Store the refresed OAuth 2.0 in the local storage
         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 

@@ -113,107 +113,57 @@ BackboneRequestManager.prototype = {
     },
     
     /**
-     * Function called when a request to a Web Service is successful.
+     * Utility function used to clone arguments passed to the jQuery 'ajax' function. Here arguments is the special 
+     * Javascript variable which corresponds to the arguments passed to the 'ajax' method inside this method.
      * 
-     * @param {Object} data The data returned from the Web Service.
-     * @param {string} textStatus The status of the HTTP request.
-     * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to do the request.
-     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when a Web Service request is successful.
+     * @param {array} ajaxArguments The jQuery 'ajax' arguments to clone.
+     * 
+     * @returns {array} The cloned jQuery 'ajax' arguments.
+     * 
+     * @see https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Fonctions/arguments
      */
-    _jQueryAjaxPromiseDone : function(originalAjaxArgs, oauthPromise, data, textStatus, jqXHR) {
+    _cloneAjaxArguments : function(ajaxArguments) {
 
-        // Resolves the OAuth promise wih exactly the same arguments as those passes to the resolve function of the 
-        // promise return by 'Backbone.ajax'
-        oauthPromise.resolve(data, textStatus, jqXHR);
+        var clonedAjaxArguments = {};
+        
+        // The jQuery 'ajax' method has been called with a URL string as first argument
+        if(typeof ajaxArguments[0] === 'string') {
+            
+            clonedAjaxArguments[0] = ajaxArguments[0];
+            
+            if(clonedAjaxArguments.length === 2) {
+                
+                clonedAjaxArguments[1] = this._cloneAjaxSettings(ajaxArguments[1]);
 
+            }
+            
+        } 
+        
+        // The jQuery 'ajax' method has been called with a settings object as first argument
+        else {
+        
+            clonedAjaxArguments[0] = this._cloneAjaxSettings(ajaxArguments[0]);
+            
+        }
+            
+        return clonedAjaxArguments;
+        
     },
 
     /**
-     * Function called when a request to a Web Service has failed. This function inspects the error response by parsing 
-     * it with an error parser. If the parser returns 'refresh' then the Access Token is refreshed, if the parser 
-     * returns 'reniew' then the Access Token is reniewed. In all other cases the wrapping Ajax promise is rejected with 
-     * the encountered error.
+     * Utility function used to clone the settings object as a parameter of the jQuery 'ajax' method. This allow to keep 
+     * an untouched settings object before modifying it to configure it with an OAuth 2.0 Access Token.
      * 
-     * @param {XMLHttpRequest} jqXHR The jQuery XML HTTP request which failed.
-     * @param {string} status The status of the error.
-     * @param {string} errorThrown The error thrown.
+     * @param {Object} ajaxSettings The jQuery 'ajax' settings object to clone.
+     * 
+     * @returns {Object} The resulting clone object.
+     * 
+     * @see http://api.jquery.com/jQuery.ajax
      */
-    _jQueryAjaxPromiseFail : function(originalAjaxArgs, oauthPromise, jqXHR, status, errorThrown) {
-
-        // Parse the received error to know if its a known OAuth 2.0 error
-        var action = this._errorParser.parse(jqXHR);
-        
-        // If the parse result is not 'undefined' then this is a known OAuth 2.0 error
-        if(action !== undefined) {
-            
-            switch(action) {
-                case 'refresh' :
-                    
-                    // Refresh the Access Token, if the refresh is successful then the promise will be resolved, 
-                    // otherwise the promise will be rejected
-                    this._refreshAccessToken(originalAjaxArgs, oauthPromise);
-                    break;
-
-                case 'reniew' :
-                
-                    // Reniew the Access Token, if the reniewal is successful then the promise will be resolved, 
-                    // otherwise the promise will be rejected
-                    this._reniewAccessToken(originalAjaxArgs, oauthPromise);
-                    break;
-
-                default:
-                    throw new Error('Action \'' + action + '\' is invalid !');
-            }
-
-        } 
-        
-        // Otherwise we are on an other kind of error
-        else {
-            
-            // Rejects the OAuth promise with exactly the same arguments as those passed to the reject method call on 
-            // the promise returned by 'Backbone.ajax' 
-            oauthPromise.reject(jqXHR, status, errorThrown);
-
-        }
-
-    },
-    
-    _updateAjaxArgumentsWithAccessToken : function(ajaxArguments) {
-        
-        // Try to get an OAuth 2.0 Access Token from the client storage
-        var accessToken = this._storageManager.getAccessToken();
-        
-        // Appends the 'access_token' URL parameter
-        if(accessToken) {
-
-            // The '$.ajax' method is called with a URL directly provided
-            if(typeof ajaxArguments[0] === 'string') {
-                
-                /* jshint ignore:start */
-                ajaxArguments[0] += ajaxArguments[0].indexOf('?') === -1 ? '?' : '&';
-                ajaxArguments[0] += 'access_token';
-                ajaxArguments[0] += '=';
-                ajaxArguments[0] += accessToken;
-                /* jshint ignore:end */
-
-            }
-            
-            // The '$.ajax' method is called with a URL inside a configuration object
-            else {
-    
-                ajaxArguments[0].url += ajaxArguments[0].url.indexOf('?') === -1 ? '?' : '&';
-                ajaxArguments[0].url += 'access_token';
-                ajaxArguments[0].url += '=';
-                ajaxArguments[0].url += accessToken;
-
-            }
-
-        }
-        
-    },
-    
     _cloneAjaxSettings : function(ajaxSettings) {
         
+        // see http://api.jquery.com/jQuery.ajax to know what are the names of the properties allowed by the jQuery 
+        // 'ajax' settings object
         var settingsAttributes = [
             'accepts',
             'async',
@@ -266,38 +216,123 @@ BackboneRequestManager.prototype = {
         
     },
     
-    _cloneAjaxArguments : function(ajaxArguments) {
+    /**
+     * Function called when a request to a Web Service is successful.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwrittent Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
+     * @param {Object} data The data returned from the Web Service.
+     * @param {string} textStatus The status of the HTTP request.
+     * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to do the request.
+     */
+    _jQueryAjaxPromiseDone : function(originalAjaxArguments, oauthPromise, data, textStatus, jqXHR) {
 
-        var clonedAjaxArguments = {};
+        // Resolves the OAuth promise wih exactly the same arguments as those passes to the resolve function of the 
+        // promise return by 'Backbone.ajax'
+        oauthPromise.resolve(data, textStatus, jqXHR);
+
+    },
+
+    /**
+     * Function called when a request to a Web Service has failed. This function inspects the error response by parsing 
+     * it with an error parser. If the parser returns 'refresh' then the Access Token is refreshed, if the parser 
+     * returns 'reniew' then the Access Token is reniewed. In all other cases the wrapping Ajax promise is rejected with 
+     * the encountered error.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwrittent Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
+     * @param {XMLHttpRequest} jqXHR The jQuery XML HTTP request which failed.
+     * @param {string} status The status of the error.
+     * @param {string} errorThrown The error thrown.
+     */
+    _jQueryAjaxPromiseFail : function(originalAjaxArguments, oauthPromise, jqXHR, status, errorThrown) {
+
+        // Parse the received error to know if its a known OAuth 2.0 error
+        var action = this._errorParser.parse(jqXHR);
         
-        // The jQuery 'ajax' method has been called with a URL string as first argument
-        if(typeof ajaxArguments[0] === 'string') {
+        // If the parse result is not 'undefined' then this is a known OAuth 2.0 error
+        if(action !== undefined) {
             
-            clonedAjaxArguments[0] = ajaxArguments[0];
-            
-            if(clonedAjaxArguments.length === 2) {
+            switch(action) {
+                case 'refresh' :
+                    
+                    // Refresh the Access Token, if the refresh is successful then the promise will be resolved, 
+                    // otherwise the promise will be rejected
+                    this._refreshAccessToken(originalAjaxArguments, oauthPromise);
+                    break;
+
+                case 'reniew' :
                 
-                clonedAjaxArguments[1] = this._cloneAjaxSettings(ajaxArguments[1]);
+                    // Reniew the Access Token, if the reniewal is successful then the promise will be resolved, 
+                    // otherwise the promise will be rejected
+                    this._reniewAccessToken(originalAjaxArguments, oauthPromise);
+                    break;
+
+                default:
+                    throw new Error('Action \'' + action + '\' is invalid !');
+            }
+
+        } 
+        
+        // Otherwise we are on an other kind of error
+        else {
+            
+            // Rejects the OAuth promise with exactly the same arguments as those passed to the reject method call on 
+            // the promise returned by 'Backbone.ajax' 
+            oauthPromise.reject(jqXHR, status, errorThrown);
+
+        }
+
+    },
+    
+    /**
+     * Utility function used to modify the settings object passed to the jQuery 'ajax' method by adding to it an OAuth 
+     * 2.0 Access Token URL parameter.
+     * 
+     * @param {array} ajaxArguments The Javascript arguments variable get inside the overwritten Backbone.ajax method.
+     */
+    _updateAjaxArgumentsWithAccessToken : function(ajaxArguments) {
+        
+        // Try to get an OAuth 2.0 Access Token from the client storage
+        var accessToken = this._storageManager.getAccessToken();
+        
+        // Appends the 'access_token' URL parameter
+        if(accessToken) {
+
+            // The '$.ajax' method is called with a URL directly provided
+            if(typeof ajaxArguments[0] === 'string') {
+                
+                /* jshint ignore:start */
+                ajaxArguments[0] += ajaxArguments[0].indexOf('?') === -1 ? '?' : '&';
+                ajaxArguments[0] += 'access_token';
+                ajaxArguments[0] += '=';
+                ajaxArguments[0] += accessToken;
+                /* jshint ignore:end */
 
             }
             
-        } 
-        
-        // The jQuery 'ajax' method has been called with a settings object as first argument
-        else {
-        
-            clonedAjaxArguments[0] = this._cloneAjaxSettings(ajaxArguments[0]);
-            
+            // The '$.ajax' method is called with a URL inside a configuration object
+            else {
+    
+                ajaxArguments[0].url += ajaxArguments[0].url.indexOf('?') === -1 ? '?' : '&';
+                ajaxArguments[0].url += 'access_token';
+                ajaxArguments[0].url += '=';
+                ajaxArguments[0].url += accessToken;
+
+            }
+
         }
-            
-        return clonedAjaxArguments;
         
     },
 
     /**
      * The overwritten 'Backbone.ajax' method.
      * 
-     * @returns {$.Deferred} a JQuery promise.
+     * @returns {$.Deferred} A JQuery promise which is resolved when the secured Web Service request has been 
+     *          successfully executed. This promise is rejected if the Web Service returns an error which does not 
+     *          corresponds to a 'refresh' or 'reniew' action.
      */
     _overwrittenBackboneDotAjax : function() {
 
@@ -325,19 +360,49 @@ BackboneRequestManager.prototype = {
     
     },
     
-    _onOriginalAjaxReplayedDone : function(oAuthPromise, data, textStatus, jqXHR) {
+    /**
+     * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the 
+     * original Web Service request has been replayed successfully.
+     * 
+     * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been 
+     *        successfully executed or rejected when the original Web Service request returns an error.
+     * @param {Object} data The data returned by the original Web Service request.
+     * @param {string} textStatus Always 'success' here because we are on the promise success callback.
+     * @param {jqXHR} jqXHR The jquery XMLHttpRequest object used to execute the request.
+     */
+    _onOriginalRequestReplayedDone : function(oAuthPromise, data, textStatus, jqXHR) {
         
         oAuthPromise.resolve(data, textStatus, jqXHR);
         
     },
     
-    _onOriginalAjaxReplayedFail : function(oAuthPromise, jqXHR, status, errorThrown) {
+    /**
+     * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the 
+     * original Web Service request has been replayed with an error.
+     * 
+     * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been 
+     *        successfully executed or rejected when the original Web Service request returns an error.
+     * @param {Object} data The data returned by the original Web Service request.
+     * @param {string} textStatus Always 'success' here because we are on the promise success callback.
+     * @param {jqXHR} jqXHR The jquery XMLHttpRequest object used to execute the request.
+     */
+    _onOriginalRequestReplayedFail : function(oAuthPromise, jqXHR, status, errorThrown) {
         
         oAuthPromise.reject(jqXHR, status, errorThrown);
         
     },
     
-    _onRefreshAccessTokenSuccess : function(originalAjaxArgs, oauthPromise, data, textStatus, jqXHR) {
+    /**
+     * Callback function called when the refresh of an OAuth 2.0 Access Token is successful.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
+     * @param {Object} data The data returned from the OAuth 2.0 token endpoint.
+     * @param {string} textStatus The status of the HTTP token refresh request.
+     * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to execute the token refresh request.
+     */
+    _onRefreshAccessTokenSuccess : function(originalAjaxArguments, oauthPromise, data, textStatus, jqXHR) {
         
         // Store the refresed OAuth 2.0 in the local storage
         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
@@ -346,16 +411,20 @@ BackboneRequestManager.prototype = {
         this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
 
         // Re-executes the orginial request
-        var ajaxPromise = $.ajax(originalAjaxArgs);
-        ajaxPromise.done($.proxy(this._onOriginalAjaxReplayedDone, this, oauthPromise));
-        ajaxPromise.fail($.proxy(this._onOriginalAjaxReplayedFail, this, oauthPromise));
+        var ajaxPromise = $.ajax(originalAjaxArguments);
+        ajaxPromise.done($.proxy(this._onOriginalRequestReplayedDone, this, oauthPromise));
+        ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oauthPromise));
 
     },
     
     /**
-     * Function used to refresh the Access Token using the refresh token stored in the associated storage.
+     * Function used to refresh the OAuth 2.0 Access Token using the refresh token stored in the associated storage.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
      */
-    _refreshAccessToken : function(originalAjaxArgs, oauthPromise) {
+    _refreshAccessToken : function(originalAjaxArguments, oauthPromise) {
         
         // Try to get an OAuth 2.0 Refresh Token from the client storage
         var refreshToken = this._storageManager.getRefreshToken();
@@ -373,20 +442,27 @@ BackboneRequestManager.prototype = {
                 }
             );
             ajaxPromise.fail($.proxy(this._reniewAccessToken, this, oauthPromise));
-            ajaxPromise.done($.proxy(this._onRefreshAccessTokenSuccess, this, originalAjaxArgs, oauthPromise));
+            ajaxPromise.done($.proxy(this._onRefreshAccessTokenSuccess, this, originalAjaxArguments, oauthPromise));
 
         }
 
         // Otherwise we try to reniew the access token
         else {
 
-            this._reniewAccessToken(originalAjaxArgs, oauthPromise);
+            this._reniewAccessToken(originalAjaxArguments, oauthPromise);
 
         }
 
     }, 
     
-    _reniewAccessToken : function(originalAjaxArgs, oauthPromise) {
+    /**
+     * Function used to reniew the OAuth 2.0 Access Token using the refresh token stored in the associated storage.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
+     */
+    _reniewAccessToken : function(originalAjaxArguments, oauthPromise) {
         
         console.log('_reniewAccessToken');
         
