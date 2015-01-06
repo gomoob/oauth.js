@@ -6,7 +6,8 @@ env(
     html, 
     function (errors, window) {
         
-        var $ = require('jquery')(window);
+        $ = require('jquery')(window);
+        jQuery = $;
 
         beforeEach(function() {
             
@@ -72,40 +73,141 @@ env(
                     
                 });
                 
+            });
+            
+            describe('on request', function() {
+                
+                before(function() {
+                    
+                    sinon.spy($, "ajax");
+                    Backbone.$ = $;
+
+                });
+                
                 it('should add access token parameter', function() {
-                    
-                    Backbone = {
-                        ajax : function() {},
-                        $ : {
-                            ajax : function(args) {
-        
-                                // Here is what we expect
-                                expect(args).to.have.a.property('url');
-                                expect(args.url).to.equal('http://test.com?access_token=ACCESS_TOKEN');
-                                
-                                return {
-                                    fail : function(callback) {},
-                                    success : function(callback) {}
-                                };
-                            }
-                        }
-                    };
-                    
+
                     var requestManager = new BackboneRequestManager();
                     requestManager.getStorageManager().persistRawAccessTokenResponse(
-                        '{' + 
-                            '"access_token" : "ACCESS_TOKEN",' +
-                            '"token_type" : "bearer",' + 
-                            '"expires_in" : "3600",' + 
-                            '"scope" : "scope1,scope2,scope3",' + 
-                            '"state" : "state"' + 
-                        '}'
+                        '{"access_token" : "ACCESS_TOKEN"}'
                     );
                     requestManager.start();
+
+                    // Test with a URL directly provided
+                    Backbone.ajax('http://test1.com');
+                    expect($.ajax.calledOnce).to.be.true();
+                    expect($.ajax.getCall(0).args[0]).to.equal('http://test1.com?access_token=ACCESS_TOKEN');
                     
-                    Backbone.ajax({
-                        url : 'http://test.com'
+                    // Test with a URL provided in a configuration object
+                    Backbone.ajax({ url : 'http://test2.com' });
+                    expect($.ajax.calledTwice).to.be.true();
+                    expect($.ajax.getCall(1).args[0].url).to.equal('http://test2.com?access_token=ACCESS_TOKEN');
+                    
+                });
+                
+                after(function() {
+                    
+                    $.ajax.restore();
+                    Backbone.$ = $;
+                    
+                });
+                
+            });
+            
+            describe('on successful request', function() {
+                
+                // A jQuery Deferred object used to simulate an AJAX request on a Web Service
+                var ajaxDeferred = $.Deferred();
+                
+                before(function() {
+                    sinon.stub($, 'ajax').returns(ajaxDeferred);
+                    Backbone.$ = $;
+                });
+                
+                it('should resolve the oauth promise', function(done) {
+                    
+                    var requestManager = new BackboneRequestManager();
+                    requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
+                    requestManager.start();
+                    
+                    var oauthPromise = Backbone.ajax('http://test1.com');
+                    oauthPromise.done(function(data, textStatus, jqXHR) {
+
+                        // The parameters passed to the done() method should be the same as the parameters passed to the 
+                        // jQuery AJAX promise done() method
+                        expect(data).to.equal('data');
+                        expect(textStatus).to.equal('textStatus');
+                        expect(jqXHR).to.equal('jqXHR');
+
+                        // Ok the test is successful
+                        done();
+                        
                     });
+                    oauthPromise.fail(function(jqXHR, textStatus, errorThrown) {
+                        
+                        expect('Should not have called fail !').to.be.false();
+                        
+                    });
+
+                    // Simulates the AJAX request server response (this should trigger an execution of the OAuth promise 
+                    // done() method).
+                    ajaxDeferred.resolve('data', 'textStatus', 'jqXHR');
+
+                });
+                
+                after(function() {
+                    
+                    $.ajax.restore();
+                    Backbone.$ = $;
+                    
+                });
+                
+            });
+            
+            describe('on not OAuth 2.0 error request', function() {
+                
+                // A jQuery Deferred object used to simulate an AJAX request on a Web Service
+                var ajaxDeferred = $.Deferred();
+                
+                before(function() {
+                    sinon.stub($, 'ajax').returns(ajaxDeferred);
+                    Backbone.$ = $;
+                });
+                
+                it('should reject the oauth promise', function(done) {
+                    
+                    var requestManager = new BackboneRequestManager();
+                    requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
+                    requestManager.start();
+                    
+                    var oauthPromise = Backbone.ajax('http://test1.com');
+                    oauthPromise.done(function(data, textStatus, jqXHR) {
+
+                        expect('Should not have called done !').to.be.false();
+                        
+                    });
+                    oauthPromise.fail(function(jqXHR, textStatus, errorThrown) {
+                        
+                        // The parameters passed to the fail() method should be the same as the parameters passed to the 
+                        // jQuery AJAX promise fail() method
+                        expect(jqXHR).to.equal('jqXHR');
+                        expect(textStatus).to.equal('textStatus');
+                        expect(errorThrown).to.equal('errorThrown');
+
+                        // Ok the test is successful
+                        done();
+                        
+                    });
+                    
+                    // Simulates the AJAX request server response (this should trigger an execution of the OAuth promise 
+                    // fail() method).
+                    ajaxDeferred.reject('jqXHR', 'textStatus', 'errorThrown');
+
+                });
+                
+                after(function() {
+                    
+                    $.ajax.restore();
+                    Backbone.$ = $;
                     
                 });
                 
