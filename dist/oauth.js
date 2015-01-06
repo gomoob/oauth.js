@@ -503,19 +503,21 @@ BackboneRequestManager.prototype = {
     
     },
     
-    _onOriginalAjaxReplayedDone : function(oauthPromise, data, textStatus, jqXHR) {
+    _onOriginalAjaxReplayedDone : function(oAuthPromise, data, textStatus, jqXHR) {
         
         oAuthPromise.resolve(data, textStatus, jqXHR);
         
     },
     
-    _onOriginalAjaxReplayedFail : function(oauthPromise, jqXHR, status, errorThrown) {
+    _onOriginalAjaxReplayedFail : function(oAuthPromise, jqXHR, status, errorThrown) {
         
         oAuthPromise.reject(jqXHR, status, errorThrown);
         
     },
     
     _onRefreshAccessTokenSuccess : function(originalAjaxArgs, oauthPromise, data, textStatus, jqXHR) {
+        
+        console.log('_onRefreshAccessTokenSuccess');
         
         // Store the refresed OAuth 2.0 in the local storage
         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
@@ -524,9 +526,9 @@ BackboneRequestManager.prototype = {
         this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
 
         // Re-executes the orginial request
-        $.ajax(originalAjaxArgs)
-        .done($.proxy(this._onOriginalAjaxReplayedDone, this, oauthPromise))
-        .fail($.proxy(this._onOriginalAjaxReplayedFail, this, oauthPromise));
+        var ajaxPromise = $.ajax(originalAjaxArgs);
+        ajaxPromise.done($.proxy(this._onOriginalAjaxReplayedDone, this, oauthPromise));
+        ajaxPromise.fail($.proxy(this._onOriginalAjaxReplayedFail, this, oauthPromise));
 
     },
     
@@ -534,7 +536,7 @@ BackboneRequestManager.prototype = {
      * Function used to refresh the Access Token using the refresh token stored in the associated storage.
      */
     _refreshAccessToken : function(originalAjaxArgs, oauthPromise) {
-
+        
         // Try to get an OAuth 2.0 Refresh Token from the client storage
         var refreshToken = this._storageManager.getRefreshToken();
         
@@ -542,16 +544,16 @@ BackboneRequestManager.prototype = {
         // token
         if(refreshToken) {
 
-            $.ajax(
+            var ajaxPromise = $.ajax(
                 {
                     url : this._tokenEndpoint, 
                     data : { 'grant_type' : 'refresh_token', 'refresh_token' : refreshToken }, 
                     dataType : 'json',
-                    type: 'POST',
-                    error : $.proxy(this._reniewAccessToken, this, oauthPromise), 
-                    success : $.proxy(this_onRefreshAccessTokenSuccess, this, originalAjaxArgs, oauthPromise)
+                    type: 'POST'
                 }
             );
+            ajaxPromise.fail($.proxy(this._reniewAccessToken, this, oauthPromise));
+            ajaxPromise.done($.proxy(this._onRefreshAccessTokenSuccess, this, originalAjaxArgs, oauthPromise));
 
         }
 
@@ -565,6 +567,8 @@ BackboneRequestManager.prototype = {
     }, 
     
     _reniewAccessToken : function(originalAjaxArgs, oauthPromise) {
+        
+        console.log('_reniewAccessToken');
         
         // TODO: Créer un modèle de récupération de login / mdp ou credentials
 

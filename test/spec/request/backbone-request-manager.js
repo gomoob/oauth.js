@@ -213,6 +213,90 @@ env(
                 
             });
             
+            describe('on expired token OAuth 2.0 error and successful token refresh', function(done) {
+                
+                // A jQuery Deferred object used to simulate an AJAX request on a Web Service
+                var ajaxDeferred = $.Deferred(), 
+                    ajaxDeferred2 = $.Deferred(), 
+                    ajaxDeferred3 = $.Deferred();
+                var clock = null;
+                
+                before(function() {
+                    
+                    var ajaxStub = sinon.stub($, 'ajax');
+                    ajaxStub.onCall(0).returns(ajaxDeferred);
+                    ajaxStub.onCall(1).returns(ajaxDeferred2);
+                    ajaxStub.onCall(2).returns(ajaxDeferred3);
+                    Backbone.$ = $;
+                    
+                    clock = sinon.useFakeTimers();
+                });
+                
+                it('should refresh the OAuth 2.0 token and retry the original request', function(done) {
+                    
+                    var requestManager = new BackboneRequestManager();
+                    requestManager.getStorageManager().persistRawAccessTokenResponse(
+                        '{' + 
+                            '"access_token":"ACCESS_TOKEN",' + 
+                            '"refresh_token":"REFRESH_TOKEN"' + 
+                        '}'
+                    );
+                    requestManager.start();
+                    
+                    var oauthPromise = Backbone.ajax('http://test1.com');
+                    oauthPromise.done(function(data, textStatus, jqXHR) {
+                        
+                        expect(data).to.equal('ws_data');
+                        expect(textStatus).to.equal('ws_textStatus');
+                        expect(jqXHR).to.equal('ws_jqXHR');
+                        
+                        done();
+                        
+                    });
+                    oauthPromise.fail(function() {
+                        
+                        expect('Should not have called fail !').to.be.false();
+                    
+                    });
+                    
+                    console.log('First ajax request...');
+                    
+                    ajaxDeferred.reject(
+                        {
+                            status : 401,
+                            responseText : 'token_expired'
+                        },
+                        'textStatus', 
+                        'errorThrown'
+                    );
+                    
+                    clock.tick(1);
+                    
+                    console.log('Second ajax request...');
+                    
+                    ajaxDeferred2.resolve('a', 'b', 'c');
+                    
+                    clock.tick(1);
+                    
+                    ajaxDeferred3.resolve(
+                        'ws_data', 
+                        'ws_textStatus', 
+                        'ws_jqXHR'
+                    );
+
+                });
+                
+                after(function() {
+                    
+                    $.ajax.restore();
+                    Backbone.$ = $;
+                    
+                    clock.restore();
+                    
+                });
+                
+            });
+            
         });
 
     }
