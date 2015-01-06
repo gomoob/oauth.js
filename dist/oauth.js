@@ -194,6 +194,15 @@ BackboneRequestManager = function(configuration) {
     // If a specific configuration is provided
     if(typeof configuration === 'object') {
 
+        // The credentials getter is required
+        if(typeof configuration.credentialsGetter === 'undefined') {
+            
+            throw new Error('No credentials getter is provided !');
+            
+        }
+        
+        this._credentialsGetter = configuration.credentialsGetter;
+        
         // The token endpoint is required
         if(typeof configuration.tokenEndpoint !== 'string') {
             

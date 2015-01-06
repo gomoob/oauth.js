@@ -26,7 +26,7 @@ The following grant types are supported :
 The easiest way to use the library is to pull it with [Bower](http://bower.io/) by adding the following dependency 
 inside your `bower.json` file.
 
-```
+```json
 {
     ...
     "devDependencies": {
@@ -44,7 +44,7 @@ inside your `bower.json` file.
 
 #### Resource Owner Password Credentials
 
-```
+```javascript
 {
     getCredentials : function(credentialsPromise) {
         
@@ -66,7 +66,7 @@ inside your `bower.json` file.
 
 #### Facebook Auth Response Credentials
 
-```
+```javascript
 {
     getCredentials : function(credentialsPromise) {
     

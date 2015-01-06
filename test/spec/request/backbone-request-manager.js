@@ -6,11 +6,12 @@ env(
     html, 
     function (errors, window) {
         
+        // Initialize jQuery for the tests
         $ = require('jquery')(window);
         jQuery = $;
 
         beforeEach(function() {
-            
+
             Backbone = require('backbone');
             
         });
@@ -71,11 +72,28 @@ env(
                     
                 });
                 
-                it('should provided a configuration object with a token endpoint', function() {
+                if('should provide a configuration object with a credentials getter', function() {
+                    
+                    expect(
+                        function() {
+                            return new BackboneRequestManager(
+                                {
+                                    tokenEndpoint : 'http://test.com/token'
+                                }
+                            );
+                        }
+                    ).to.throw(
+                        Error, 
+                        'No credentials getter is provided !'
+                    );
+                    
+                });
+                
+                it('should provide a configuration object with a token endpoint', function() {
                     
                     expect(
                         function() { 
-                            return new BackboneRequestManager({}); 
+                            return new BackboneRequestManager({ credentialsGetter : {} }); 
                         }
                     ).to.throw(
                         Error, 
@@ -94,6 +112,7 @@ env(
 
                     var requestManager = new BackboneRequestManager(
                         {
+                            credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -118,6 +137,7 @@ env(
 
                     var requestManager = new BackboneRequestManager(
                         {
+                            credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -161,6 +181,7 @@ env(
                     
                     var requestManager = new BackboneRequestManager(
                         {
+                            credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -215,6 +236,7 @@ env(
                     
                     var requestManager = new BackboneRequestManager(
                         {
+                            credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -281,6 +303,7 @@ env(
                     
                     var requestManager = new BackboneRequestManager(
                         {
+                            credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
