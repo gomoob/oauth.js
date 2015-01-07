@@ -9,19 +9,24 @@ Services.
 OAuth.JS is specifically designed to work with RIA, SPA and HTML5 mobile applications, it provides the following 
 features : 
  * Access and refresh token retrieval
- * Automatic and transparent access and refresh token reniewals
- * Transparent URL modifications to automatically request secured OAuth 2.0 Web Services
+ * Automatic and transparent Access and Refresh token reniewal
+ * Automatic URL modifications to add an `access_token=xxxxxxxx` parameter in all your Web Service URLs
  * Access and refresh token storage on client side
  * Credentials storage on client side
- * JQuery, Backbone and Angular AJAX method overwritings to transparently request secured OAuth 2.0 Web Services
- * Mixed Facebook, Twitter, Google+ connect / OAuth 2.0 
+ * JQuery, Backbone and Angular AJAX method overwritings to transparently request our secured OAuth 2.0 Web Services 
+   using your favortite framework 
 
-The following grant types are supported : 
- * implicit
- * resource owner password credentials
- * client credentials
+The following schema shows how the library works to automatically inject an `access_token` parameter in all URLs used to 
+request your Web Services. 
 
-## Installation 
+On this schema we suppose we've initialized an OAuth.JS request manager. We want to get a protected list of users. 
+As our server also acts as an OAuth 2.0 authorization server we have to provide a valid OAuth 2.0 Access Token to 
+autorize our request. OAuth.JS allows you to request your Web Services as if they where not secured, under the cover the 
+library will automatically add whats necessary to authorize you requests.
+
+![Standard request](https://s3.amazonaws.com/gomoob-github/oauth.js/standard-request.png "Standard request")
+
+## Installation
 
 The easiest way to use the library is to pull it with [Bower](http://bower.io/) by adding the following dependency 
 inside your `bower.json` file.
@@ -37,6 +42,20 @@ inside your `bower.json` file.
     ...
 }
 ```
+
+## Supported OAuth 2.0 authorization grants
+
+OAuth.JS has been created to easily request your secured OAuth 2.0 Web Services inside RIA, SPA and mobile applications. 
+In this context we often use the 
+[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) to get an OAuth 2.0 Access 
+Token. 
+
+So for now the [Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) is the only 
+OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) supported in OAuth.JS. 
+
+## Components used in OAuth.JS
+
+
 
 ## Configuration
 
