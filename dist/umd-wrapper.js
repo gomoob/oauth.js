@@ -759,11 +759,20 @@
     
     };
 
-    OAuth.createRequestManager = function(clientType, settings) {
+    /**
+     * Function used to create an OAuth.JS request manager which will overwrite the request function associated to a 
+     * specified framework.
+     * 
+     * @param {string} framework The name of the framework for which one to overwrite the request function.
+     * @param {object} settings A settings object used to configure the associated request manager.
+     * 
+     * @return {OAuth.Request.RequestManager} The created request manager.
+     */
+    OAuth.createRequestManager = function(framework, settings) {
         
         var requestManager = null;
         
-        switch(clientType) {
+        switch(framework) {
             case 'angular':
                 requestManager = new OAuth.Request.AngularRequestManager(settings);
                 break;
@@ -771,7 +780,7 @@
                 requestManager = new OAuth.Request.BackboneRequestManager(settings);
                 break;
             default:
-                throw new Error('Unknown or unsupported client type \'' + clientType + '\' !');
+                throw new Error('Unknown or unsupported framework \'' + framework + '\' !');
         }
         
         return requestManager;
