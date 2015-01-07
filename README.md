@@ -14,7 +14,7 @@ features :
  * Access and refresh token storage on client side
  * Credentials storage on client side
  * JQuery, Backbone and Angular AJAX method overwritings to transparently request our secured OAuth 2.0 Web Services 
-   using your favortite framework 
+   using your favorite framework 
 
 The following schema shows how the library works to automatically inject an `access_token` parameter in all URLs used to 
 request your Web Services. 
@@ -49,7 +49,52 @@ Token.
 So for now the [Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) is the only 
 OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) supported in OAuth.JS. 
 
-## Configuration
+## Samples
+
+Basic OAuth.JS use is very simple, simply create a request manager which supports the framework you use and starts it. 
+Then each time you'll try to request your Web Services the library will do whats necessary to manage OAuth 2.0 secured 
+authorizations and authentications.
+
+Creating a request manager is done using the `OAuth.createRequestManager(framework, settings)` method, this method uses 2 
+parameters : 
+ * `framework` : The name of the framework you use, for now we only support Angular and Backbone
+ * `settings`  : A settings object used to configure the request manager
+
+After creating the request manager just call the `start()` method, this will overwrites the standard request management 
+function associated to the your framework. For example with Angular this will overwrites the `$http` service, with 
+Backbone it will overwrites the `Backbone.ajax` method.
+
+### Working with Angular
+
+```javascript
+var requestManager = OAuth.createRequestManager(
+    'angular',
+    {
+        credentialsGetter : new MyLoginPopup(),
+        tokenEndpoint : 'https://myserver.com/token'
+    }
+);
+requestManager.start();
+
+// All calls to the Angular $http service will automatically manage OAuth 2.0 secured accesses under the cover
+
+```
+
+### Working with Backbone
+
+```javascript
+var requestManager = OAuth.createRequestManager(
+    'backbone',
+    {
+        credentialsGetter : new MyLoginPopup(),
+        tokenEndpoint : 'https://myserver.com/token'
+    }
+);
+requestManager.start();
+
+// All calls to Bakbone.ajax will automatically manage OAuth 2.0 secured accesses under the cover
+
+```
 
 ### Credentials getter
 
