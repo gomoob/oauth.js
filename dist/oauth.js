@@ -579,6 +579,31 @@ BackboneRequestManager.prototype = {
     },
     
     /**
+     * Callback function called when the reniewal of an OAuth 2.0 Access Token is successful.
+     * 
+     * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
+     * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+     *        successful.
+     * @param {Object} data The data returned from the OAuth 2.0 token endpoint.
+     * @param {string} textStatus The status of the HTTP token refresh request.
+     * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to execute the token refresh request.
+     */
+    _onReniewAccessTokenSuccess : function(originalAjaxArguments, oauthPromise, data, textStatus, jqXHR) {
+        
+        // Store the refresed OAuth 2.0 in the local storage
+        // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
+        //          response also contain a 'user_id' field which is specific to the project and 
+        //          contains the technical identifier of the user on the platform
+        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+
+        // Re-executes the orginial request
+        var ajaxPromise = $.ajax(originalAjaxArguments);
+        ajaxPromise.done($.proxy(this._onOriginalRequestReplayedDone, this, oauthPromise));
+        ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oauthPromise));
+
+    },
+    
+    /**
      * Function used to refresh the OAuth 2.0 Access Token using the refresh token stored in the associated storage.
      * 
      * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
@@ -629,6 +654,58 @@ BackboneRequestManager.prototype = {
         
         // TODO: Créer un modèle de récupération de login / mdp ou credentials
 
+        var credentialsPromise = $.Deferred();
+
+        this._credentialsGetter.getCredentials(credentialsPromise);
+
+        credentialsPromise.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oauthPromise));
+        credentialsPromise.fail(function() {
+            
+        });
+        
+    }, 
+    
+    _onCredentialsPromiseDone : function(originalAjaxArguments, oauthPromise, credentialsSettings) {
+
+        switch(credentialsSettings.grant_type) {
+            
+            // Resource Owner Password Credentials
+            // see: http://tools.ietf.org/html/rfc6749#section-1.3.3
+            // see: http://tools.ietf.org/html/rfc6749#section-4.3
+            case 'password':
+                var ajaxPromise = $.ajax(
+                    {
+                        contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data : {
+                            grant_type : 'password',
+                            username : credentialsSettings.username,
+                            password : credentialsSettings.password
+                        },
+                        url: this._tokenEndpoint        
+                    }
+                );
+                ajaxPromise.done($.proxy(this._onReniewAccessTokenSuccess, this, originalAjaxArguments, oauthPromise));
+                
+                // TODO: Echec complet ???
+                // ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oauthPromise));
+                break;
+                
+            // Client Credentials
+            // see: http://tools.ietf.org/html/rfc6749#section-1.3.4
+            // see: http://tools.ietf.org/html/rfc6749#section-4.4
+            case 'client_credentials':
+                $.ajax(
+                    {
+                        contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data : {
+                            grant_type : 'client_credentials',
+                        },
+                        url: this._tokenEndpoint        
+                    }
+                );
+                break;
+        }
+        
     }
 
 };

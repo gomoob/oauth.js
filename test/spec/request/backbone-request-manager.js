@@ -283,7 +283,7 @@ env(
                 //  - The first one is used to simulate the original Web Service request
                 //  - The second one is used to simulate the token refresh request
                 //  - The third one is used to simulate the replayed original Web Service request
-                var ajaxDeferred = $.Deferred(), 
+                var ajaxDeferred1 = $.Deferred(), 
                     ajaxDeferred2 = $.Deferred(), 
                     ajaxDeferred3 = $.Deferred();
                 var clock = null;
@@ -291,7 +291,7 @@ env(
                 before(function() {
                     
                     var ajaxStub = sinon.stub($, 'ajax');
-                    ajaxStub.onCall(0).returns(ajaxDeferred);
+                    ajaxStub.onCall(0).returns(ajaxDeferred1);
                     ajaxStub.onCall(1).returns(ajaxDeferred2);
                     ajaxStub.onCall(2).returns(ajaxDeferred3);
                     Backbone.$ = $;
@@ -315,8 +315,18 @@ env(
                     );
                     requestManager.start();
                     
+                    // At the beginning we have specific OAuth 2.0 Access and Refresh tokens in the client storage, this 
+                    // test should change them.
+                    expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN');
+                    expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN');
+
+                    // Calls our test Web Service, this one will return to token expired error
                     var oauthPromise = Backbone.ajax('http://test1.com');
                     oauthPromise.done(function(data, textStatus, jqXHR) {
+                        
+                        // Checks that the OAuth 2.0 Access and Refresh tokens have been update in the client storage
+                        expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN_2');
+                        expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN_2');
                         
                         expect(data).to.equal('ws_data');
                         expect(textStatus).to.equal('ws_textStatus');
@@ -333,7 +343,7 @@ env(
                     
                     // Simulates the response of the original Web Service request, here the response indicates that the 
                     // OAuth 2.0 Access Token is expired
-                    ajaxDeferred.reject(
+                    ajaxDeferred1.reject(
                         {
                             status : 401,
                             responseText : 'token_expired'
@@ -346,7 +356,10 @@ env(
                     
                     // Simulates the response of the token refresh request
                     ajaxDeferred2.resolve(
-                        'token_refresh_data',
+                        {
+                            access_token : 'ACCESS_TOKEN_2', 
+                            refresh_token : 'REFRESH_TOKEN_2'
+                        },
                         'token_refresh_textStatus',
                         'token_refresh_jqXHR'
                     );
@@ -369,6 +382,142 @@ env(
                     clock.restore();
                     
                 });
+                
+            });
+            
+        });
+        
+//        describe('on expired token OAuth 2.0 error and error token refresh', function() {
+//            
+//        });
+//        
+        describe('on invalid token OAuth 2.0 error and successful token reniewal', function() {
+            
+            // We create 3 different jQuery Deferred object for our test
+            //  - The first one is used to simulate the original Web Service request
+            //  - The second one is used to simulate the token refresh request
+            //  - The third one is used to simulate the replayed original Web Service request
+            var ajaxDeferred1 = $.Deferred(), 
+                ajaxDeferred2 = $.Deferred(), 
+                ajaxDeferred3 = $.Deferred();
+            var clock = null;
+            
+            before(function() {
+                
+                var ajaxStub = sinon.stub($, 'ajax');
+                ajaxStub.onCall(0).returns(ajaxDeferred1);
+                ajaxStub.onCall(1).returns(ajaxDeferred2);
+                ajaxStub.onCall(2).returns(ajaxDeferred3);
+                Backbone.$ = $;
+
+                clock = sinon.useFakeTimers();
+
+            });
+            
+            it('should reniew the OAuth 2.0 token and retry the original request', function(done) {
+                
+                var credentialsGetterDeferred = $.Deferred();
+                
+                var requestManager = new BackboneRequestManager(
+                    {
+                        credentialsGetter : {
+                            getCredentials : function(credentialsPromise) {
+                                
+                                credentialsGetterDeferred.done(function(username, password) {
+                                    
+                                    credentialsPromise.resolve(
+                                        {
+                                            grant_type : 'password',
+                                            username : username,
+                                            password : password
+                                        }
+                                    );
+                                    
+                                });
+                                
+                            }
+                        },
+                        tokenEndpoint : 'https://test.com/token'
+                    }
+                );
+                requestManager.getStorageManager().persistRawAccessTokenResponse(
+                    '{' + 
+                        '"access_token":"ACCESS_TOKEN",' + 
+                        '"refresh_token":"REFRESH_TOKEN"' + 
+                    '}'
+                );
+                requestManager.start();
+                
+                // At the beginning we have specific OAuth 2.0 Access and Refresh tokens in the client storage, this 
+                // test should change them.
+                expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN');
+                expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN');
+                
+                // Calls our test Web Service, this one will return to token expired error
+                var oauthPromise = Backbone.ajax('http://test1.com');
+                oauthPromise.done(function(data, textStatus, jqXHR) {
+                    
+                    // Checks that the OAuth 2.0 Access and Refresh tokens have been update in the client storage
+                    expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN_2');
+                    expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN_2');
+                    
+                    expect(data).to.equal('ws_data');
+                    expect(textStatus).to.equal('ws_textStatus');
+                    expect(jqXHR).to.equal('ws_jqXHR');
+                    
+                    done();
+                    
+                });
+                oauthPromise.fail(function() {
+                    
+                    expect('Should not have called fail !').to.be.false();
+                
+                });
+                
+                // Simulates the response of the original Web Service request, here the response indicates that the 
+                // OAuth 2.0 Access Token is invalid
+                ajaxDeferred1.reject(
+                    {
+                        status : 401,
+                        responseText : 'token_invalid'
+                    },
+                    'textStatus',
+                    'errorThrown'
+                );
+                
+                clock.tick(1);
+                
+                // Simulates the username / password form fill
+                credentialsGetterDeferred.resolve('john', 'doe');
+                
+                clock.tick(1);
+                
+                // Simulates the response of the OAauth 2.0 Access Token reniewal
+                ajaxDeferred2.resolve(
+                    {
+                        access_token : 'ACCESS_TOKEN_2', 
+                        refresh_token : 'REFRESH_TOKEN_2'
+                    },
+                    'token_reniewal_textStatus',
+                    'token_reniewal_jqXHR'
+                );
+                
+                clock.tick(1);
+                
+                ajaxDeferred3.resolve(
+                    'ws_data', 
+                    'ws_textStatus', 
+                    'ws_jqXHR'
+                );
+                
+            });
+            
+            after(function() {
+                
+                $.ajax.restore();
+                Backbone.$ = $;
+                
+                clock.restore();
                 
             });
             
