@@ -55,14 +55,14 @@ Basic OAuth.JS use is very simple, simply create a request manager which support
 Then each time you'll try to request your Web Services the library will do whats necessary to manage OAuth 2.0 secured 
 authorizations and authentications.
 
-Creating a request manager is done using the `OAuth.createRequestManager(framework, settings)` method, this method uses 2 
-parameters : 
+Creating a request manager is done using the `OAuth.createRequestManager(framework, settings)` method, this method uses 
+2 parameters : 
  * `framework` : The name of the framework you use, for now we only support Angular and Backbone
  * `settings`  : A settings object used to configure the request manager
 
 After creating the request manager just call the `start()` method, this will overwrites the standard request management 
-function associated to the your framework. For example with Angular this will overwrites the `$http` service, with 
-Backbone it will overwrites the `Backbone.ajax` method.
+function associated to the your framework. For example with Angular it will overwrite the `$http` service, with Backbone 
+it will overwrite the `Backbone.ajax` method.
 
 ### Working with Angular
 
