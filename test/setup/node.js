@@ -20,7 +20,11 @@ if (typeof localStorage === 'undefined' || localStorage === null) {
 
 }
 
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'error-parser');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
+OAuth = {
+    Error : {},
+    Request : {}
+};
 
+require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
+require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'error/default-error-parser');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/backbone-request-manager');

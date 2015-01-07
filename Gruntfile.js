@@ -95,8 +95,8 @@ module.exports = function(grunt) {
          */
         preprocess : {  
             lib : {
-                src : 'src/oauth.js',
-                dest : 'dist/oauth.js'
+                src : 'src/umd-wrapper.js',
+                dest : 'dist/umd-wrapper.js'
             }
         }, 
         

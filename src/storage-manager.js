@@ -2,8 +2,8 @@
  * 
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
  */
-StorageManager = function(configuration) {
-    
+OAuth.StorageManager = function(configuration) {
+
     /**
      * The storage used to store the Access Token Response, 2 kinds of storage are supported. 
      * 
@@ -52,7 +52,7 @@ StorageManager = function(configuration) {
     
 };
 
-StorageManager.prototype = {
+OAuth.StorageManager.prototype = {
 
     /**
      * Gets the last Access Token stored.

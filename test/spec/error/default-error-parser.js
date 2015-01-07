@@ -1,10 +1,10 @@
-describe('ErrorParser : ', function() {
+describe('OAuth.Error.DefaultErrorParser : ', function() {
     
     describe('when calling parse', function() {
         
         it('should return undefined if the error is not an expected one', function() {
             
-            var errorParser = new ErrorParser();
+            var errorParser = new OAuth.Error.DefaultErrorParser();
             
             expect(errorParser.parse({
                 status: 200
@@ -14,7 +14,7 @@ describe('ErrorParser : ', function() {
         
         it('should return refresh if the token is expired', function() {
             
-            var errorParser = new ErrorParser();
+            var errorParser = new OAuth.Error.DefaultErrorParser();
             
             expect(errorParser.parse({
                 status: 401, 
@@ -25,7 +25,7 @@ describe('ErrorParser : ', function() {
         
         it('should return reniew if the token is invalid', function() {
             
-            var errorParser = new ErrorParser();
+            var errorParser = new OAuth.Error.DefaultErrorParser();
             
             expect(errorParser.parse({
                 status: 401, 

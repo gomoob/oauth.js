@@ -2,8 +2,8 @@
  *
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
  */ 
-BackboneRequestManager = function(configuration) {
-    
+OAuth.Request.BackboneRequestManager = function(configuration) {
+
     /**
      * A reference to the original `Backbone.ajax` method.
      */
@@ -88,12 +88,12 @@ BackboneRequestManager = function(configuration) {
         // Otherwise we use the default error parser
         else {
         
-            this._errorParser = new ErrorParser();
+            this._errorParser = new OAuth.Error.DefaultErrorParser();
         
         }
 
         // Instanciate the OAuth 2.0 Access Token response storage
-        this._storageManager = new StorageManager({
+        this._storageManager = new OAuth.StorageManager({
             storage : configuration.storage,
             storageKey : configuration.storageKey
         });
@@ -108,7 +108,7 @@ BackboneRequestManager = function(configuration) {
     }
 };
 
-BackboneRequestManager.prototype = {
+OAuth.Request.BackboneRequestManager.prototype = {
 
     /**
      * Gets the storage manager linked to this request manager.

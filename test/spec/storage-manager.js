@@ -12,7 +12,7 @@ describe('AccessTokenResponseStorage : ', function() {
             Storage = undefined;
             
             expect(function() {
-                return new StorageManager({});
+                return new OAuth.StorageManager({});
             }).to.throw(
                 Error, 
                 'Your browser does not support HTML5 Web Storage !'
@@ -30,7 +30,7 @@ describe('AccessTokenResponseStorage : ', function() {
 
             expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.be.null();
 
-            var storageManager = new StorageManager();
+            var storageManager = new OAuth.StorageManager();
             storageManager.persistRawAccessTokenResponse(
                 '{' + 
                     '"access_token" : "ACCESS_TOKEN",' +

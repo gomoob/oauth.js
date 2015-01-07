@@ -1,6 +1,7 @@
-ErrorParser = function() {};
-ErrorParser.prototype = {
-    
+OAuth.Error.DefaultErrorParser = function() {};
+
+OAuth.Error.DefaultErrorParser.prototype = {
+
     parse : function(xMLHttpRequest) {
 
         // If we are on a 401 HTTP error response (i.e Unauthorized)

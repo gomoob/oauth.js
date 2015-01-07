@@ -16,7 +16,7 @@ env(
             
         });
 
-        describe('BackboneRequestManager :', function() {
+        describe('OAuth.Request.BackboneRequestManager :', function() {
             
             describe('upon initialization', function() {
                
@@ -24,7 +24,7 @@ env(
                     
                     Backbone = undefined;
                     
-                    expect(BackboneRequestManager).to.throw(
+                    expect(OAuth.Request.BackboneRequestManager).to.throw(
                         Error, 
                         'Backbone is not available !'
                     );
@@ -35,7 +35,7 @@ env(
                     
                     Backbone = {};
                     
-                    expect(BackboneRequestManager).to.throw(
+                    expect(OAuth.Request.BackboneRequestManager).to.throw(
                         Error, 
                         'No valid \'Backbone.ajax\' method has been found !'
                     );
@@ -50,7 +50,7 @@ env(
                         ajax : {}
                     };
                     
-                    expect(BackboneRequestManager).to.throw(
+                    expect(OAuth.Request.BackboneRequestManager).to.throw(
                         Error, 
                         'No valid \'Backbone.ajax\' method has been found !'
                     );
@@ -63,7 +63,7 @@ env(
                     
                     expect(
                         function() { 
-                            return new BackboneRequestManager(); 
+                            return new OAuth.Request.BackboneRequestManager(); 
                         }
                     ).to.throw(
                         Error, 
@@ -76,7 +76,7 @@ env(
                     
                     expect(
                         function() {
-                            return new BackboneRequestManager(
+                            return new OAuth.Request.BackboneRequestManager(
                                 {
                                     tokenEndpoint : 'http://test.com/token'
                                 }
@@ -93,7 +93,7 @@ env(
                     
                     expect(
                         function() { 
-                            return new BackboneRequestManager({ credentialsGetter : {} }); 
+                            return new OAuth.Request.BackboneRequestManager({ credentialsGetter : {} }); 
                         }
                     ).to.throw(
                         Error, 
@@ -110,7 +110,7 @@ env(
                     
                     var backupedBackboneAjax = Backbone.ajax;
 
-                    var requestManager = new BackboneRequestManager(
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
@@ -135,7 +135,7 @@ env(
                 
                 it('should add access token parameter', function() {
 
-                    var requestManager = new BackboneRequestManager(
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
@@ -179,7 +179,7 @@ env(
                 
                 it('should resolve the oauth promise', function(done) {
                     
-                    var requestManager = new BackboneRequestManager(
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
@@ -234,7 +234,7 @@ env(
                 
                 it('should reject the oauth promise', function(done) {
                     
-                    var requestManager = new BackboneRequestManager(
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
@@ -301,7 +301,7 @@ env(
                 
                 it('should refresh the OAuth 2.0 token and retry the original request', function(done) {
                     
-                    var requestManager = new BackboneRequestManager(
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             credentialsGetter : {},
                             tokenEndpoint : 'https://test.com/token'
@@ -418,7 +418,7 @@ env(
                 
                 var credentialsGetterDeferred = $.Deferred();
                 
-                var requestManager = new BackboneRequestManager(
+                var requestManager = new OAuth.Request.BackboneRequestManager(
                     {
                         credentialsGetter : {
                             getCredentials : function(credentialsPromise) {
