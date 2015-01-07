@@ -33,13 +33,9 @@ inside your `bower.json` file.
 
 ```json
 {
-    ...
     "devDependencies": {
-        ...
         "oauth.js" : "~0.1",
-        ...
     }
-    ...
 }
 ```
 
@@ -52,10 +48,6 @@ Token.
 
 So for now the [Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) is the only 
 OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) supported in OAuth.JS. 
-
-## Components used in OAuth.JS
-
-
 
 ## Configuration
 
