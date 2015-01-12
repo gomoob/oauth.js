@@ -25,9 +25,9 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
     this._parseErrorFn = null;
 
     /**
-     * The OAuth 2.0 Grant Type used by the request manager to acquire Access Tokens.
+     * The OAuth 2.0 'client_id' to use.
      */
-    this._grantType = null;
+    this._clientId = null;
 
     /**
      * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
@@ -74,14 +74,14 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
         
         this._loginFn = configuration.loginFn;
 
-        // The grant type is required
-        if(typeof configuration.grantType === 'undefined') {
+        // The client id is required
+        if(typeof configuration.clientId === 'undefined') {
 
-            throw new Error('No grant type is provided !');
+            throw new Error('No client id is provided !');
 
         }
 
-        this._grantType = configuration.grantType;
+        this._clientId = configuration.clientId;
 
         // The token endpoint is required
         if(typeof configuration.tokenEndpoint !== 'string') {
@@ -187,7 +187,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
                     contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
                     data : {
                         grant_type : credentials.grant_type,
-                        client_id : this._grantType.client_id,
+                        client_id : this._client_id,
                         username : credentials.username,
                         password : credentials.password
                     },
@@ -203,7 +203,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
                     contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
                     data : {
                         grant_type : credentials.grant_type,
-                        client_id : this._grantType.client_id,
+                        client_id : this._client_id,
                         facebook_access_token : credentials.facebook_access_token,
                         facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
                     },
@@ -645,7 +645,11 @@ OAuth.Request.BackboneRequestManager.prototype = {
             var ajaxPromise = $.ajax(
                 {
                     url : this._tokenEndpoint, 
-                    data : { 'grant_type' : 'refresh_token', 'refresh_token' : refreshToken }, 
+                    data : {
+                        grant_type : 'refresh_token', 
+                        refresh_token : refreshToken,
+                        client_id : this._clientId
+                    }, 
                     dataType : 'json',
                     type: 'POST'
                 }

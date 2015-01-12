@@ -81,7 +81,7 @@ env(
                         function() {
                             return new OAuth.Request.BackboneRequestManager(
                                 {
-                                    grantType : {},
+                                    clientId : 'my-app',
                                     parseErrorFn : function(xmlHttpRequest) {},
                                     tokenEndpoint : 'http://test.com/token'
                                 }
@@ -94,7 +94,7 @@ env(
                     
                 });
                 
-                it('should provide a configuration object with a grant type', function() {
+                it('should provide a configuration object with a client id', function() {
                     
                     expect(
                         function() {
@@ -108,7 +108,7 @@ env(
                         }
                     ).to.throw(
                         Error, 
-                        'No grant type is provided !'
+                        'No client id is provided !'
                     );
                     
                 });
@@ -119,9 +119,9 @@ env(
                         function() { 
                             return new OAuth.Request.BackboneRequestManager(
                                 { 
+                                    clientId : 'my-app',
                                     loginFn : function(credentialsPromise) {},
-                                    parseErrorFn : function(xmlHttpRequest) {},
-                                    grantType : {}
+                                    parseErrorFn : function(xmlHttpRequest) {}
                                 }
                             ); 
                         }
@@ -142,8 +142,8 @@ env(
 
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {},
-                            grantType : {},
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
@@ -171,6 +171,7 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {
                                 
                                 credentialsPromise.resolve(
@@ -179,9 +180,6 @@ env(
                                     }
                                 );
                                 
-                            },
-                            grantType : {
-                                client_id : 'my-app'
                             },
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
@@ -230,8 +228,8 @@ env(
 
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {},
-                            grantType : {},
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
@@ -276,8 +274,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {},
-                            grantType : {},
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
@@ -333,8 +331,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {},
-                            grantType : {},
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
@@ -402,8 +400,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
+                            clientId : 'my-app',
                             loginFn : function(credentialsPromise) {},
-                            grantType : {},
                             parseErrorFn : function(xmlHttpRequest) {
                                 
                                 var action = 'reniew';
@@ -533,6 +531,7 @@ env(
                 
                 var requestManager = new OAuth.Request.BackboneRequestManager(
                     {
+                        clientId : 'my-app',
                         loginFn : function(credentialsPromise) {
                                 
                             loginFnDeferred.done(function(username, password) {
@@ -548,7 +547,6 @@ env(
                             });
                                 
                         },
-                        grantType : {},
                         parseErrorFn : function(xmlHttpRequest) {
                             
                             var action = 'reniew';

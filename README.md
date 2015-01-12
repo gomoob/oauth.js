@@ -73,9 +73,7 @@ it will overwrite the `Backbone.ajax` method.
 OAuth.init(
     'angular',
     {
-        grantType : {
-            'client_id' : 'my-app'
-        },
+        clientId : 'my-app'
         defaultLoginCb : function() {
         
             // Called just after a 'login' is successful (i.e a valid OAuth 2.0 Access Token is retrieved)
@@ -107,11 +105,9 @@ OAuth.init(
 OAuth.init(
     'backbone',
     {
-        grantType : {
-            'grant_type' : 'password',
-            'client_id' : 'my-app'
-        },
+        clientId : 'my-app',
         loginFn : function(credentialsPromise) { ... },
+        parseErrorFn : function(xmlHttpRequest) { ... },
         tokenEndpoint : 'https://myserver.com/token'
     }
 );

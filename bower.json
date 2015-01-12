@@ -1,6 +1,11 @@
 {
   "name": "cordova.mocks",
   "version" : "0.1.0-alpha.1",
+  "main" : "dist/oauth.js",
+  "ignore" : [
+    ".project",
+    "package.json"
+  ],
   "dependencies": {},
   "devDependencies": {}
 }

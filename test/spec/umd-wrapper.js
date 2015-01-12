@@ -6,8 +6,8 @@ describe('OAuth : ', function() {
             OAuth.init(
                 'unknown', 
                 {
+                    clientId : 'my-app',
                     loginFn : function(credentialsPromise) {},
-                    grantType : {},
                     parseErrorFn : function(xmlHttpRequest) {},
                     tokenEndpoint : 'https://test.com/token'
                 }
@@ -24,8 +24,8 @@ describe('OAuth : ', function() {
         OAuth.init(
             'angular', 
             {
+                clientId : 'my-app',
                 loginFn : function(credentialsPromise) {},
-                grantType : {},
                 parseErrorFn : function(xmlHttpRequest) {},
                 tokenEndpoint : 'https://test.com/token'
             }
@@ -38,8 +38,8 @@ describe('OAuth : ', function() {
         var requestManager = OAuth.init(
             'backbone', 
             {
+                clientId : 'my-app',
                 loginFn : function(credentialsPromise) {},
-                grantType : {},
                 parseErrorFn : function(xmlHttpRequest) {},
                 tokenEndpoint : 'https://test.com/token'
             }
