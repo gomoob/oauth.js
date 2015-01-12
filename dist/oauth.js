@@ -157,27 +157,6 @@
         }
         
     };
-    OAuth.Error.DefaultErrorParser = function() {};
-    
-    OAuth.Error.DefaultErrorParser.prototype = {
-    
-        parse : function(xMLHttpRequest) {
-    
-            // If we are on a 401 HTTP error response (i.e Unauthorized)
-            if(xMLHttpRequest.status === 401) {
-                
-                switch(xMLHttpRequest.responseText) {    
-                    case 'token_expired':
-                        return 'refresh';
-                    case 'token_invalid':
-                        return 'reniew';
-                }
-    
-            }
-    
-        }
-    
-    };
     OAuth.Request.AngularRequestManager = function(configuration) {};
     OAuth.Request.AngularRequestManager.prototype = {
     
@@ -207,9 +186,9 @@
         this._loginFn = null;
     
         /**
-         * The error parser used to manage errors returned by the Web Services.
+         * The function used to parse errors returned by the Web Services.
          */
-        this._errorParser = null;
+        this._parseErrorFn = null;
     
         /**
          * The OAuth 2.0 Grant Type used by the request manager to acquire Access Tokens.
@@ -279,19 +258,14 @@
             
             this._tokenEndpoint = configuration.tokenEndpoint;
     
-            // If a specific error parser is provided we use it
-            if(typeof configuration.errorParser !== 'undefined') {
-                
-                this._errorParser = configuration.errorParser;
-                
+            // The parse error function is required
+            if(typeof configuration.parseErrorFn !== 'function') {
+    
+                throw new Error('No parse error function is provided !');
+    
             } 
             
-            // Otherwise we use the default error parser
-            else {
-            
-                this._errorParser = new OAuth.Error.DefaultErrorParser();
-            
-            }
+            this._parseErrorFn = configuration.parseErrorFn;
     
             // Instanciate the OAuth 2.0 Access Token response storage
             this._storageManager = new OAuth.StorageManager({
@@ -370,19 +344,44 @@
         
         _onLoginSuccess : function(cb, credentials) {
             
-            var ajaxPromise = $.ajax(
-                {
-                    contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data : {
-                        grant_type : this._grantType.grant_type,
-                        client_id : this._grantType.client_id,
-                        username : credentials.username,
-                        password : credentials.password
-                    },
-                    type : 'POST',
-                    url: this._tokenEndpoint        
-                }
-            );
+            var ajaxPromise = null;
+            
+            if(credentials.grant_type === 'password') {
+            
+                ajaxPromise = $.ajax(
+                    {
+                        contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data : {
+                            grant_type : credentials.grant_type,
+                            client_id : this._grantType.client_id,
+                            username : credentials.username,
+                            password : credentials.password
+                        },
+                        type : 'POST',
+                        url: this._tokenEndpoint        
+                    }
+                );
+                
+            } else if(credentials.grant_type === 'gomoob_facebook_access_token') {
+                
+                ajaxPromise = $.ajax(
+                    {
+                        contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data : {
+                            grant_type : credentials.grant_type,
+                            client_id : this._grantType.client_id,
+                            facebook_access_token : credentials.facebook_access_token,
+                            facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
+                        },
+                        type : 'POST',
+                        url: this._tokenEndpoint        
+                    }
+                );
+                
+            }
+            
+            // TODO: Message d'erreur clair si 'grant_type' non supporté...
+    
             ajaxPromise.done($.proxy(function(data, textStatus, jqXHR) {
     
                 // Store the refresed OAuth 2.0 in the local storage
@@ -601,7 +600,7 @@
         _jQueryAjaxPromiseFail : function(originalAjaxArguments, oauthPromise, jqXHR, status, errorThrown) {
     
             // Parse the received error to know if its a known OAuth 2.0 error
-            var action = this._errorParser.parse(jqXHR);
+            var action = this._parseErrorFn(jqXHR);
             
             // If the parse result is not 'undefined' then this is a known OAuth 2.0 error
             if(action !== undefined) {

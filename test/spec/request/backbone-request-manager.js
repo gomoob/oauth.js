@@ -82,6 +82,7 @@ env(
                             return new OAuth.Request.BackboneRequestManager(
                                 {
                                     grantType : {},
+                                    parseErrorFn : function(xmlHttpRequest) {},
                                     tokenEndpoint : 'http://test.com/token'
                                 }
                             );
@@ -100,6 +101,7 @@ env(
                             return new OAuth.Request.BackboneRequestManager(
                                 {
                                     loginFn : function(credentialsPromise) {},
+                                    parseErrorFn : function(xmlHttpRequest) {},
                                     tokenEndpoint : 'http://test.com/token'
                                 }
                             );
@@ -118,6 +120,7 @@ env(
                             return new OAuth.Request.BackboneRequestManager(
                                 { 
                                     loginFn : function(credentialsPromise) {},
+                                    parseErrorFn : function(xmlHttpRequest) {},
                                     grantType : {}
                                 }
                             ); 
@@ -141,6 +144,7 @@ env(
                         {
                             loginFn : function(credentialsPromise) {},
                             grantType : {},
+                            parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -171,15 +175,15 @@ env(
                                 
                                 credentialsPromise.resolve(
                                     {
-                                        
+                                        grant_type : 'password'
                                     }
                                 );
                                 
                             },
                             grantType : {
-                                grant_type : 'password',
                                 client_id : 'my-app'
                             },
+                            parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -228,6 +232,7 @@ env(
                         {
                             loginFn : function(credentialsPromise) {},
                             grantType : {},
+                            parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -273,6 +278,7 @@ env(
                         {
                             loginFn : function(credentialsPromise) {},
                             grantType : {},
+                            parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -329,6 +335,7 @@ env(
                         {
                             loginFn : function(credentialsPromise) {},
                             grantType : {},
+                            parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -397,6 +404,19 @@ env(
                         {
                             loginFn : function(credentialsPromise) {},
                             grantType : {},
+                            parseErrorFn : function(xmlHttpRequest) {
+                                
+                                var action = 'reniew';
+                                
+                                if(xmlHttpRequest.responseText === 'token_expired') {
+                                    
+                                    action = 'refresh';
+                                    
+                                }
+                                
+                                return action;
+
+                            },
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -413,7 +433,7 @@ env(
                     expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN');
                     expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN');
 
-                    // Calls our test Web Service, this one will return to token expired error
+                    // Calls our test Web Service, this one will return a token expired error
                     var oauthPromise = Backbone.ajax('http://test1.com');
                     oauthPromise.done(function(data, textStatus, jqXHR) {
                         
@@ -529,6 +549,19 @@ env(
                                 
                         },
                         grantType : {},
+                        parseErrorFn : function(xmlHttpRequest) {
+                            
+                            var action = 'reniew';
+                            
+                            if(xmlHttpRequest.responseText === 'token_expired') {
+                                
+                                action = 'refresh';
+                                
+                            }
+                            
+                            return action;
+
+                        },
                         tokenEndpoint : 'https://test.com/token'
                     }
                 );

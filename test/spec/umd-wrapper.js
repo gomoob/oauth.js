@@ -8,6 +8,7 @@ describe('OAuth : ', function() {
                 {
                     loginFn : function(credentialsPromise) {},
                     grantType : {},
+                    parseErrorFn : function(xmlHttpRequest) {},
                     tokenEndpoint : 'https://test.com/token'
                 }
             );
@@ -25,6 +26,7 @@ describe('OAuth : ', function() {
             {
                 loginFn : function(credentialsPromise) {},
                 grantType : {},
+                parseErrorFn : function(xmlHttpRequest) {},
                 tokenEndpoint : 'https://test.com/token'
             }
         );
@@ -38,6 +40,7 @@ describe('OAuth : ', function() {
             {
                 loginFn : function(credentialsPromise) {},
                 grantType : {},
+                parseErrorFn : function(xmlHttpRequest) {},
                 tokenEndpoint : 'https://test.com/token'
             }
         );

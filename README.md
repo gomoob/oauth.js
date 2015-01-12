@@ -4,7 +4,10 @@
 [![Coverage Status](https://img.shields.io/coveralls/gomoob/oauth.js.svg?branch=master&style=flat)](https://coveralls.io/r/gomoob/oauth.js?branch=master)
 
 OAuth.JS is a Javascript library used to easily request secured [OAuth 2.0](http://tools.ietf.org/html/rfc6749) Web 
-Services.
+Services. 
+
+The design of the library is largely inspired by the Facebook Javascript SDK and provides you similar methods, but the 
+difference is that the called Web Services are not Facebook one's but your Web Services. 
 
 OAuth.JS is specifically designed to work with RIA, SPA and HTML5 mobile applications, it provides the following 
 features : 
@@ -71,7 +74,6 @@ OAuth.init(
     'angular',
     {
         grantType : {
-            'grant_type' : 'password',
             'client_id' : 'my-app'
         },
         defaultLoginCb : function() {
@@ -85,6 +87,12 @@ OAuth.init(
             // Then OAuth.JS will do what's necessary to get an OAuth 2.0 Access Token automatically
 
         },
+        parseErrorFn : function(xMLHttpRequest) {
+            
+            // Parse errors returned from server side to know if they must imply OAuth 2.0 Access Token reniewal or 
+            // refresh
+        
+        },
         tokenEndpoint : 'https://myserver.com/token'
     }
 );
@@ -96,24 +104,23 @@ OAuth.init(
 ### Working with Backbone
 
 ```javascript
-var requestManager = OAuth.createRequestManager(
+OAuth.init(
     'backbone',
     {
-        credentialsGetter : new MyLoginPopup(),
         grantType : {
             'grant_type' : 'password',
             'client_id' : 'my-app'
         },
+        loginFn : function(credentialsPromise) { ... },
         tokenEndpoint : 'https://myserver.com/token'
     }
 );
-requestManager.start();
 
 // All calls to Bakbone.ajax will automatically manage OAuth 2.0 secured accesses under the cover
 
 ```
 
-### Credentials getter
+### Login function
 
 #### Resource Owner Password Credentials
 

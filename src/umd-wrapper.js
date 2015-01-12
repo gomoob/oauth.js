@@ -44,7 +44,6 @@
     };
     
     // @include storage-manager.js
-    // @include error/default-error-parser.js
     // @include request/angular-request-manager.js
     // @include request/backbone-request-manager.js
 
