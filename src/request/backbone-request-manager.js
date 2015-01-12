@@ -15,14 +15,19 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
     this._clientType = 'backbone';
     
     /**
-     * The credentials getter used to retrieve credentials to get an OAuth 2.0 Access Token.
+     * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
      */
-    this._credentialsGetter = null;
+    this._loginFn = null;
 
     /**
      * The error parser used to manage errors returned by the Web Services.
      */
     this._errorParser = null;
+
+    /**
+     * The OAuth 2.0 Grant Type used by the request manager to acquire Access Tokens.
+     */
+    this._grantType = null;
 
     /**
      * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
@@ -60,15 +65,24 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
     // If a specific configuration is provided
     if(typeof configuration === 'object') {
 
-        // The credentials getter is required
-        if(typeof configuration.credentialsGetter === 'undefined') {
+        // The login function is required
+        if(typeof configuration.loginFn !== 'function') {
             
-            throw new Error('No credentials getter is provided !');
+            throw new Error('No login function is provided !');
             
         }
         
-        this._credentialsGetter = configuration.credentialsGetter;
-        
+        this._loginFn = configuration.loginFn;
+
+        // The grant type is required
+        if(typeof configuration.grantType === 'undefined') {
+
+            throw new Error('No grant type is provided !');
+
+        }
+
+        this._grantType = configuration.grantType;
+
         // The token endpoint is required
         if(typeof configuration.tokenEndpoint !== 'string') {
             
@@ -120,7 +134,130 @@ OAuth.Request.BackboneRequestManager.prototype = {
         return this._storageManager;
 
     },
-                                    
+
+    /**
+     * Function used to determine if a user is logged in to your application. 
+     * 
+     * @param {Function} cb
+     * @returns {Boolean}
+     */
+    getLoginStatus : function(cb, forceServerCall) {
+        
+        // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une 
+        //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
+        //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
+        //       on considère que le client est connecté ou non...
+        // TODO: Il faudrait également que l'on prévoit des événement Javascript de la même manière que ce que fait 
+        //       Facebook
+
+        // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
+        if(this._storageManager.getAccessTokenResponse() === null) {
+            
+            cb(
+                {
+                    status : 'disconnected'    
+                }
+            );
+            
+        } 
+        
+        // Otherwise the client is considered connected
+        else {
+        
+            cb(
+                {
+                    status : 'connected',
+                    authResponse : this._storageManager.getAccessTokenResponse()
+                }
+            );
+
+        }
+
+    },
+    
+    _onLoginError : function(options) {
+        
+        
+        
+    },
+    
+    _onLoginSuccess : function(cb, credentials) {
+        
+        var ajaxPromise = $.ajax(
+            {
+                contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+                data : {
+                    grant_type : this._grantType.grant_type,
+                    client_id : this._grantType.client_id,
+                    username : credentials.username,
+                    password : credentials.password
+                },
+                type : 'POST',
+                url: this._tokenEndpoint        
+            }
+        );
+        ajaxPromise.done($.proxy(function(data, textStatus, jqXHR) {
+
+            // Store the refresed OAuth 2.0 in the local storage
+            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
+            //          response also contain a 'user_id' field which is specific to the project and 
+            //          contains the technical identifier of the user on the platform
+            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+            
+            cb(
+                {
+                    status : 'connected',
+                    authResponse : data
+                }
+            );
+
+        }, this));
+        
+        // TODO: Gestion des erreurs...
+
+    },
+    
+    /**
+     * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
+     * configured 'loginFn' function is not called and the provided callback is directly called. Otherwise the 'loginFn' 
+     * function is called before calling the provided callback. 
+     * 
+     * @param cb A callback function to be called when a login action has been done.
+     * @param opts Options used to configure the login.
+     */
+    login : function(cb, opts) {
+
+        // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
+        // So in this case we call the 'loginFn' function
+        if(this._storageManager.getAccessTokenResponse() === null) {
+
+            var credentialsPromise = $.Deferred();
+            this._loginFn(credentialsPromise);
+            credentialsPromise.done($.proxy(this._onLoginSuccess, this, cb));
+            credentialsPromise.fail($.proxy(this._onLoginError, this, cb));
+
+        }
+        
+        // Otherwise we directly call the callback.
+        else {
+            
+            cb(
+                {
+                    status : 'connected',
+                    authResponse : this._storageManager.getAccessTokenResponse()
+                }
+            );
+            
+        }
+        
+    },
+    
+    logout : function(cb) {
+      
+
+        
+    },
+
     /**
      * Starts the request manager.
      */
@@ -522,7 +659,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
         var credentialsPromise = $.Deferred();
 
-        this._credentialsGetter.getCredentials(credentialsPromise);
+        this._loginFn(credentialsPromise);
 
         credentialsPromise.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oauthPromise));
         credentialsPromise.fail(function() {

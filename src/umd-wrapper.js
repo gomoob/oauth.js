@@ -57,25 +57,29 @@
      * 
      * @return {OAuth.Request.RequestManager} The created request manager.
      */
-    OAuth.createRequestManager = function(framework, settings) {
-        
-        var requestManager = null;
-        
+    OAuth.init = function(framework, settings) {
+
         switch(framework) {
             case 'angular':
-                requestManager = new OAuth.Request.AngularRequestManager(settings);
+                OAuth._requestManager = new OAuth.Request.AngularRequestManager(settings);
                 break;
             case 'backbone':
-                requestManager = new OAuth.Request.BackboneRequestManager(settings);
+                OAuth._requestManager = new OAuth.Request.BackboneRequestManager(settings);
                 break;
             default:
                 throw new Error('Unknown or unsupported framework \'' + framework + '\' !');
         }
-        
-        return requestManager;
+
+        OAuth._requestManager.start();
 
     };
+
+    OAuth.login = function(cb, opts) {
     
+        OAuth._requestManager.login(cb, opts);
+
+    };
+
     return OAuth;
 
 }));

@@ -14,12 +14,15 @@ env(
 
             Backbone = require('backbone');
             
+            // Clears the local storage
+            localStorage.clear();
+            
         });
 
         describe('OAuth.Request.BackboneRequestManager :', function() {
             
             describe('upon initialization', function() {
-               
+
                 it('should have Backbone defined', function() {
                     
                     Backbone = undefined;
@@ -78,6 +81,7 @@ env(
                         function() {
                             return new OAuth.Request.BackboneRequestManager(
                                 {
+                                    grantType : {},
                                     tokenEndpoint : 'http://test.com/token'
                                 }
                             );
@@ -89,11 +93,34 @@ env(
                     
                 });
                 
+                it('should provide a configuration object with a grant type', function() {
+                    
+                    expect(
+                        function() {
+                            return new OAuth.Request.BackboneRequestManager(
+                                {
+                                    loginFn : function(credentialsPromise) {},
+                                    tokenEndpoint : 'http://test.com/token'
+                                }
+                            );
+                        }
+                    ).to.throw(
+                        Error, 
+                        'No grant type is provided !'
+                    );
+                    
+                });
+                
                 it('should provide a configuration object with a token endpoint', function() {
                     
                     expect(
                         function() { 
-                            return new OAuth.Request.BackboneRequestManager({ credentialsGetter : {} }); 
+                            return new OAuth.Request.BackboneRequestManager(
+                                { 
+                                    loginFn : function(credentialsPromise) {},
+                                    grantType : {}
+                                }
+                            ); 
                         }
                     ).to.throw(
                         Error, 
@@ -112,13 +139,75 @@ env(
 
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
-                            credentialsGetter : {},
+                            loginFn : function(credentialsPromise) {},
+                            grantType : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
                     requestManager.start();
                     
                     expect(Backbone.ajax).to.not.equal(backupedBackboneAjax);
+                    
+                });
+                
+            });
+            
+            describe('on login', function() {
+               
+                var ajaxDeferred = $.Deferred();
+                
+                before(function() {
+                    
+                    sinon.stub($, 'ajax').returns(ajaxDeferred);
+                    Backbone.$ = $;
+
+                });
+                
+                it('should call \'loginFn\'', function(done) {
+                    
+                    var requestManager = new OAuth.Request.BackboneRequestManager(
+                        {
+                            loginFn : function(credentialsPromise) {
+                                
+                                credentialsPromise.resolve(
+                                    {
+                                        
+                                    }
+                                );
+                                
+                            },
+                            grantType : {
+                                grant_type : 'password',
+                                client_id : 'my-app'
+                            },
+                            tokenEndpoint : 'https://test.com/token'
+                        }
+                    );
+                    
+                    // At the begining we have no OAuth 2.0 Access Token response stored on client side
+                    expect(requestManager.getStorageManager().getAccessTokenResponse()).to.be.null();
+                    
+                    requestManager.login(function(response) {
+                        
+                        // Checks the login response
+                        expect(response.status).to.equal('connected');
+                        expect(response.authResponse).to.equal('authResponse');
+
+                        // After login the OAuth 2.0 response must have been stored on client side
+                        expect(requestManager.getStorageManager().getAccessTokenResponse()).to.not.be.null();
+                        
+                        done();
+                        
+                    });
+                    
+                    ajaxDeferred.resolve('authResponse', 'textStatus', 'jqXHR');
+                    
+                });
+                
+                after(function() {
+                    
+                    $.ajax.restore();
+                    Backbone.$ = $;
                     
                 });
                 
@@ -137,7 +226,8 @@ env(
 
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
-                            credentialsGetter : {},
+                            loginFn : function(credentialsPromise) {},
+                            grantType : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -181,7 +271,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
-                            credentialsGetter : {},
+                            loginFn : function(credentialsPromise) {},
+                            grantType : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -236,7 +327,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
-                            credentialsGetter : {},
+                            loginFn : function(credentialsPromise) {},
+                            grantType : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -303,7 +395,8 @@ env(
                     
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
-                            credentialsGetter : {},
+                            loginFn : function(credentialsPromise) {},
+                            grantType : {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
@@ -416,27 +509,26 @@ env(
             
             it('should reniew the OAuth 2.0 token and retry the original request', function(done) {
                 
-                var credentialsGetterDeferred = $.Deferred();
+                var loginFnDeferred = $.Deferred();
                 
                 var requestManager = new OAuth.Request.BackboneRequestManager(
                     {
-                        credentialsGetter : {
-                            getCredentials : function(credentialsPromise) {
+                        loginFn : function(credentialsPromise) {
                                 
-                                credentialsGetterDeferred.done(function(username, password) {
-                                    
-                                    credentialsPromise.resolve(
-                                        {
-                                            grant_type : 'password',
-                                            username : username,
-                                            password : password
-                                        }
-                                    );
-                                    
-                                });
+                            loginFnDeferred.done(function(username, password) {
                                 
-                            }
+                                credentialsPromise.resolve(
+                                    {
+                                        grant_type : 'password',
+                                        username : username,
+                                        password : password
+                                    }
+                                );
+                                
+                            });
+                                
                         },
+                        grantType : {},
                         tokenEndpoint : 'https://test.com/token'
                     }
                 );
@@ -488,7 +580,7 @@ env(
                 clock.tick(1);
                 
                 // Simulates the username / password form fill
-                credentialsGetterDeferred.resolve('john', 'doe');
+                loginFnDeferred.resolve('john', 'doe');
                 
                 clock.tick(1);
                 

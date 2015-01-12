@@ -67,14 +67,27 @@ it will overwrite the `Backbone.ajax` method.
 ### Working with Angular
 
 ```javascript
-var requestManager = OAuth.createRequestManager(
+OAuth.init(
     'angular',
     {
-        credentialsGetter : new MyLoginPopup(),
+        grantType : {
+            'grant_type' : 'password',
+            'client_id' : 'my-app'
+        },
+        defaultLoginCb : function() {
+        
+            // Called just after a 'login' is successful (i.e a valid OAuth 2.0 Access Token is retrieved)
+        
+        },
+        loginFn : function(credentialsPromise) {
+
+            // Open a login view and resolve the promise with the provided credentials
+            // Then OAuth.JS will do what's necessary to get an OAuth 2.0 Access Token automatically
+
+        },
         tokenEndpoint : 'https://myserver.com/token'
     }
 );
-requestManager.start();
 
 // All calls to the Angular $http service will automatically manage OAuth 2.0 secured accesses under the cover
 
@@ -87,6 +100,10 @@ var requestManager = OAuth.createRequestManager(
     'backbone',
     {
         credentialsGetter : new MyLoginPopup(),
+        grantType : {
+            'grant_type' : 'password',
+            'client_id' : 'my-app'
+        },
         tokenEndpoint : 'https://myserver.com/token'
     }
 );

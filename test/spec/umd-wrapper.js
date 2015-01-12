@@ -3,10 +3,11 @@ describe('OAuth : ', function() {
     it('create request manager with invalid framework', function() {
         
         expect(function() {
-            OAuth.createRequestManager(
+            OAuth.init(
                 'unknown', 
                 {
-                    credentialsGetter : {},
+                    loginFn : function(credentialsPromise) {},
+                    grantType : {},
                     tokenEndpoint : 'https://test.com/token'
                 }
             );
@@ -19,24 +20,24 @@ describe('OAuth : ', function() {
     
     it('create angular request manager', function() {
         
-        var requestManager = OAuth.createRequestManager(
+        OAuth.init(
             'angular', 
             {
-                credentialsGetter : {},
+                loginFn : function(credentialsPromise) {},
+                grantType : {},
                 tokenEndpoint : 'https://test.com/token'
             }
         );
-        
-        expect(requestManager).to.not.be.null();
-        
+
     });
     
     it('create backbone request manager', function() {
         
-        var requestManager = OAuth.createRequestManager(
+        var requestManager = OAuth.init(
             'backbone', 
             {
-                credentialsGetter : {},
+                loginFn : function(credentialsPromise) {},
+                grantType : {},
                 tokenEndpoint : 'https://test.com/token'
             }
         );
