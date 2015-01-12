@@ -113,6 +113,13 @@ OAuth.init(
 );
 
 // All calls to Bakbone.ajax will automatically manage OAuth 2.0 secured accesses under the cover
+new User({id : 1}).fetch(
+    {
+        success : function() {},
+        error : function() {},
+        secured : true
+    }
+);
 
 ```
 

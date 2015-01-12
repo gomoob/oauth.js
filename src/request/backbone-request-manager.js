@@ -483,7 +483,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         var accessToken = this._storageManager.getAccessToken();
         
         // Appends the 'access_token' URL parameter
-        if(accessToken) {
+        if(accessToken && ajaxArguments[0].secured) {
 
             // The '$.ajax' method is called with a URL directly provided
             if(typeof ajaxArguments[0] === 'string') {
