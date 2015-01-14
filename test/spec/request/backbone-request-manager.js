@@ -240,12 +240,22 @@ env(
                     requestManager.start();
 
                     // Test with a URL directly provided
-                    Backbone.ajax('http://test1.com');
+                    Backbone.ajax(
+                        {
+                            url : 'http://test1.com',
+                            secured : true
+                        }
+                    );
                     expect($.ajax.calledOnce).to.be.true();
-                    expect($.ajax.getCall(0).args[0]).to.equal('http://test1.com?access_token=ACCESS_TOKEN');
+                    expect($.ajax.getCall(0).args[0].url).to.equal('http://test1.com?access_token=ACCESS_TOKEN');
                     
                     // Test with a URL provided in a configuration object
-                    Backbone.ajax({ url : 'http://test2.com' });
+                    Backbone.ajax(
+                        { 
+                            url : 'http://test2.com',
+                            secured : true
+                        }
+                    );
                     expect($.ajax.calledTwice).to.be.true();
                     expect($.ajax.getCall(1).args[0].url).to.equal('http://test2.com?access_token=ACCESS_TOKEN');
                     

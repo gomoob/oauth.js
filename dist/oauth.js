@@ -353,7 +353,7 @@
                         contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
                         data : {
                             grant_type : credentials.grant_type,
-                            client_id : this._client_id,
+                            client_id : this._clientId,
                             username : credentials.username,
                             password : credentials.password
                         },
@@ -369,7 +369,7 @@
                         contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
                         data : {
                             grant_type : credentials.grant_type,
-                            client_id : this._client_id,
+                            client_id : this._clientId,
                             facebook_access_token : credentials.facebook_access_token,
                             facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
                         },
@@ -649,7 +649,7 @@
             var accessToken = this._storageManager.getAccessToken();
             
             // Appends the 'access_token' URL parameter
-            if(accessToken) {
+            if(accessToken && ajaxArguments[0].secured) {
     
                 // The '$.ajax' method is called with a URL directly provided
                 if(typeof ajaxArguments[0] === 'string') {
