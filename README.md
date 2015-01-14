@@ -1,5 +1,3 @@
-# OAuth.JS
-
 [![Travis Build Status](http://img.shields.io/travis/gomoob/oauth.js.svg?style=flat)](https://travis-ci.org/gomoob/oauth.js)
 [![Coverage Status](https://img.shields.io/coveralls/gomoob/oauth.js.svg?branch=master&style=flat)](https://coveralls.io/r/gomoob/oauth.js?branch=master)
 
@@ -16,20 +14,10 @@ features :
  * Automatic URL modifications to add an `access_token=xxxxxxxx` parameter in all your Web Service URLs
  * Access and refresh token storage on client side
  * Credentials storage on client side
- * JQuery, Backbone and Angular AJAX method overwritings to transparently request our secured OAuth 2.0 Web Services 
+ * JQuery, Backbone and Angular AJAX method overwritings to transparently request your secured OAuth 2.0 Web Services 
    using your favorite framework 
 
-The following schema shows how the library works to automatically inject an `access_token` parameter in all URLs used to 
-request your Web Services. 
-
-On this schema we suppose we've initialized an OAuth.JS request manager. We want to get a protected list of users. 
-As our server also acts as an OAuth 2.0 authorization server we have to provide a valid OAuth 2.0 Access Token to 
-autorize our request. OAuth.JS allows you to request your Web Services as if they where not secured, under the cover the 
-library will automatically add whats necessary to authorize you requests.
-
-![Standard request](https://s3.amazonaws.com/gomoob-github/oauth.js/standard-request.png "Standard request")
-
-## Installation
+# Installation
 
 The easiest way to use the library is to pull it with [Bower](http://bower.io/) by adding the following dependency 
 inside your `bower.json` file.
@@ -42,88 +30,194 @@ inside your `bower.json` file.
 }
 ```
 
-## Supported OAuth 2.0 authorization grants
+# Usage
 
-OAuth.JS has been created to easily request your secured OAuth 2.0 Web Services inside RIA, SPA and mobile applications. 
-In this context we often use the 
-[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) to get an OAuth 2.0 Access 
-Token. 
+Using OAuth.JS is very easy and is done in 2 steps : 
+ * First initialize the OAuth.JS client using the `OAuth.init(opts)` method (the name `init` has been choosen to be 
+   similar to Facebook's `FB.init(opts)` method). 
+ * Call your secured Web Services using the `secured` additional parameter.
 
-So for now the [Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) is the only 
-OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) supported in OAuth.JS. 
+Detailed configuration and usage is described in the following sub sections.
 
-## Samples
+## Initialize the OAuth.JS client
 
-Basic OAuth.JS use is very simple, simply create a request manager which supports the framework you use and starts it. 
-Then each time you'll try to request your Web Services the library will do whats necessary to manage OAuth 2.0 secured 
-authorizations and authentications.
-
-Creating a request manager is done using the `OAuth.createRequestManager(framework, settings)` method, this method uses 
-2 parameters : 
- * `framework` : The name of the framework you use, for now we only support Angular and Backbone
- * `settings`  : A settings object used to configure the request manager
-
-After creating the request manager just call the `start()` method, this will overwrites the standard request management 
-function associated to the your framework. For example with Angular it will overwrite the `$http` service, with Backbone 
-it will overwrite the `Backbone.ajax` method.
-
-### Working with Angular
-
-```javascript
-OAuth.init(
-    'angular',
-    {
-        clientId : 'my-app'
-        defaultLoginCb : function() {
-        
-            // Called just after a 'login' is successful (i.e a valid OAuth 2.0 Access Token is retrieved)
-        
-        },
-        loginFn : function(credentialsPromise) {
-
-            // Open a login view and resolve the promise with the provided credentials
-            // Then OAuth.JS will do what's necessary to get an OAuth 2.0 Access Token automatically
-
-        },
-        parseErrorFn : function(xMLHttpRequest) {
-            
-            // Parse errors returned from server side to know if they must imply OAuth 2.0 Access Token reniewal or 
-            // refresh
-        
-        },
-        tokenEndpoint : 'https://myserver.com/token'
-    }
-);
-
-// All calls to the Angular $http service will automatically manage OAuth 2.0 secured accesses under the cover
+When your application starts initialize the OAuth.JS client using the following peace of code. 
 
 ```
+OAuth.init(
+    {
+        clientId : 'my-app'
+        tokenEndpoint : 'https://myserver.com/token',
+        loginFn : function(credentialsPromise) { ... 
+            // Open a login view and resolve the promise with the provided credentials
+            // Then OAuth.JS will do what's necessary to get an OAuth 2.0 Access Token automatically
+        },
+        parseErrorFn : function(xMLHttpRequest) {
+            // Parse errors returned from server side to know if they must imply OAuth 2.0 Access Token reniewal or 
+            // refresh
+        },
+        defaultLoginCb : function() {   
+            // Called just after a 'login' is successful (i.e a valid OAuth 2.0 Access Token is retrieved)
+        }
+    }
+);
+```
 
-### Working with Backbone
+The OAuth.JS client requires 5 parameters described in the following sub-sections.
+
+### `clientId`
+
+The OAuth 2.0 Client Credentials `client_id` parameter to be sent by the OAuth.JS client to get new Access Tokens.
+
+### `tokenEndpoint`
+
+The absolute URL to your OAuth 2.0 token endpoint.
+
+### `loginFn`
+
+Callback function automatically called by the OAuth.JS client when a secured request returned an error which indicates a 
+new user login is required. The `loginFn` function is used to display a login dialog or page to the user. We could 
+compare this to the Facebook Javascript SDK but with Facebook the SDK is embedded in the client, in OAuth.JS your client 
+will call your own login dialog box when necessary.
+
+### `parseErrorFn`
+
+Callback function called by the OAuth.JS client when an error is returned from your Web Services. The purpose of this 
+function is to decode the error payload received and indicate to the OAuth.JS client if the error received should 
+trigger an OAuth 2.0 token refresh or reniewal.
+
+### `defaultLoginCb`
+
+Callback function to be called after a new login operation is successful.
+
+## Login your user
+
+The first time you application starts and your OAuth.JS client is configured nothing has been done on client side to 
+indicate to OAuth.JS how to request your secured Web Services. 
+
+To work correctly OAuth.JS must have an OAuth 2.0 Access Token available, to retrieve a first OAuth 2.0 Access Token you 
+have to ask your users to login into your app. After a first successful login an OAuth 2.0 Access Token is retrieved and 
+cached on client side, this cached OAuth 2.0 Access Token is then transparently used by OAuth.JS to keep a secured 
+connection opened between your app and your server (automatic Access Token refresh). 
+
+OAuth.JS provided the `OAuth.login(cb)` function to check if it has a valid OAuth 2.0 Access Token (please note thate 
+the `OAuth.login(cb)` function is very similar to the Facebook Javascript SDK `FB.login(cb)` function, but instead of 
+opening a Facebook login modal box OAuth.JS will open your own login modal or view). If the `OAuth.login(cb)` function 
+detects that no OAuth 2.0 Access Token is available or the one available is invalid then it will automatically open your 
+`loginFn` callback function. If OAuth.JS detects that a valid OAuth 2.0 Access Token is available it calls the login 
+callback directly without requesting your server.
+
+Here is a sample.
 
 ```javascript
-OAuth.init(
-    'backbone',
+OAuth.login(function(response) {
+    
+    // Here we can be sure OAuth.JS has a valid OAuth 2.0 Access Token, so we can requet a secured Web Service
+    // In general each time you plan to display a view which requires data get from a secured Web Service you have to 
+    // wrap you view opening code inside the login function
+    Backbone.Radio.channel('app-view').command('show-center-view', new MyAccountView());
+
+});
+```
+
+## Call your secured Web Services
+
+If your OAuth.JS client is correctly initialized the 
+[`XMLHttpRequest`](https://developer.mozilla.org/fr/docs/Web/API/XMLHttpRequest "XMLHttpRequest") object in use in your 
+application has been overwritten to manage OAuth 2.0 transparently.
+
+When you request your server you have now 2 choices : 
+ * You want to request a publicly available resource, in this case OAuth.JS do not have to do anything and the request 
+   should work normally.
+ * You want to request a Web Service secured using OAuth 2.0, in this case you have to provided a special `secured` 
+   parameter to your AJAX request function. 
+
+The following sub sections shows several request scenarios using multiple frameworks.
+
+### Plain Javascript
+
+```
+// Public request
+var req = new XMLHttpRequest();
+req.open('GET', 'https://myserver.com/rest/user_accounts/10', true);
+req.onreadystatechange = function (event) { ... }
+req.send(null);
+
+// Secured request
+var req = new XMLHttpRequest();
+req.openSecured('GET', 'https://myserver.com/rest/user_accounts/10', true);
+req.onreadystatechange = function (event) { ... }
+req.send(null);
+
+### JQuery
+
+```javascript
+// Public request
+$.ajax(
     {
-        clientId : 'my-app',
-        loginFn : function(credentialsPromise) { ... },
-        parseErrorFn : function(xmlHttpRequest) { ... },
-        tokenEndpoint : 'https://myserver.com/token'
+        url : 'https://myserver.com/rest/user_accounts/10',
+        success : function(data, textStatus, jqXHR) { ... },
+        error : function(jqXHR, textStatus, errorThrown) { ... }
     }
 );
 
-// All calls to Bakbone.ajax will automatically manage OAuth 2.0 secured accesses under the cover
-new User({id : 1}).fetch(
+// Secured request (add a special 'secured' parameter)
+$.ajax(
     {
-        success : function() {},
-        error : function() {},
+        url : 'https://myserver.com/rest/user_accounts/10',
+        success : function(data, textStatus, jqXHR) { ... },
+        error : function(jqXHR, textStatus, errorThrown) { ... },
+        secured : true
+    }
+);
+```
+
+### Backbone.JS
+
+```javascript
+// Public request
+new User({id : 10}).fetch(
+    {
+        success : function(model, response, options) { ... },
+        error : function(model, response, options) { ... }
+    }
+);
+
+// Secured request (add the special 'secured' parameter)
+new User({id : 10, secured : true}).fetch(
+    {
+        success : function(model, response, options) { ... },
+        error : function(model, response, options) { ... },
         secured : true
     }
 );
 
+### Angular.JS
+
+```javascript
+// Public request
+$http.get('https://myserver.com/rest/user_accounts/10').
+    success(function(data, status, headers, config) { ... }).
+    error(function(data, status, headers, config) { ... });
+    
+// Secured request (add a special 'secured' parameter)
+$http.get('https://myserver.com/rest/user_accounts/10', { secured : true }).
+    success(function(data, status, headers, config) { ... }).
+    error(function(data, status, headers, config) { ... });
 ```
 
-### Login function
+# How does it work ?
+
+The following schema shows how the library works to automatically inject an `access_token` parameter in all URLs used to 
+request your Web Services. 
+
+On this schema we suppose we've initialized an OAuth.JS request manager. We want to get a protected list of users. 
+As our server also acts as an OAuth 2.0 authorization server we have to provide a valid OAuth 2.0 Access Token to 
+autorize our request. OAuth.JS allows you to request your Web Services as if they where not secured, under the cover the 
+library will automatically add whats necessary to authorize you requests.
+
+![Standard request](https://s3.amazonaws.com/gomoob-github/oauth.js/standard-request.png "Standard request")
+
 
 #### Resource Owner Password Credentials
 
@@ -167,3 +261,21 @@ new User({id : 1}).fetch(
     }
 }
 ```
+
+# FAQ
+
+## What's the difference between a token refresh and reniewal ?
+
+## What are the OAuth 2.0 authorization grants supported ?
+
+OAuth.JS has been created to easily request your secured OAuth 2.0 Web Services inside RIA, SPA and mobile applications. 
+In this context we often use the 
+[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) to get an OAuth 2.0 Access 
+Token. 
+
+So for now the [Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#section-4.3) is the only 
+OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) supported in OAuth.JS. 
+
+## My browser always complains about a "Access-Control-Allow-Origin" header, why ?
+
+
