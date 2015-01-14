@@ -43,7 +43,7 @@ Detailed configuration and usage is described in the following sub sections.
 
 When your application starts initialize the OAuth.JS client using the following peace of code. 
 
-```
+```javascript
 OAuth.init(
     {
         clientId : 'my-app'
@@ -136,7 +136,7 @@ The following sub sections shows several request scenarios using multiple framew
 
 ### Plain Javascript
 
-```
+```javascript
 // Public request
 var req = new XMLHttpRequest();
 req.open('GET', 'https://myserver.com/rest/user_accounts/10', true);
@@ -148,6 +148,7 @@ var req = new XMLHttpRequest();
 req.openSecured('GET', 'https://myserver.com/rest/user_accounts/10', true);
 req.onreadystatechange = function (event) { ... }
 req.send(null);
+```
 
 ### JQuery
 
@@ -191,6 +192,7 @@ new User({id : 10, secured : true}).fetch(
         secured : true
     }
 );
+```
 
 ### Angular.JS
 
