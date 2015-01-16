@@ -232,23 +232,18 @@ OAuth.Request.BackboneRequestManager.prototype = {
             // retrieval we call it
             if(typeof loginFnCb !== 'undefined') {
             
-                var deferred = $.Deferred(), 
-                    loginFnCbCb = function() {
-                    
-                    deferred.resolve();
+                var deferred = $.Deferred();
 
-                };
-                
                 loginFnCb(
                     {
                         status : 'connected',
                         authResponse : data
                     },
-                    loginFnCbCb
+                    function() { deferred.resolve(); }
                 );
                 
                 // When the callback function has ended
-                loginFnCbCb.done(function() {
+                deferred.done(function() {
 
                     cb(
                         {
@@ -293,11 +288,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // So in this case we call the 'loginFn' function
         if(this._storageManager.getAccessTokenResponse() === null) {
 
-            var deferred = $.Deferred(), 
-                credentialsPromise = function(credentials, callback) {
-                deferred.resolve(credentials, callback);
-            };
-            this._loginFn(credentialsPromise);
+            var deferred = $.Deferred();
+            this._loginFn(
+                function(credentials, callback) {
+                    deferred.resolve(credentials, callback);    
+                }
+            );
             deferred.done($.proxy(this._onLoginSuccess, this, cb));
             deferred.fail($.proxy(this._onLoginError, this, cb));
 
