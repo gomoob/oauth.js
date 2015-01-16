@@ -342,7 +342,7 @@
             
         },
         
-        _onLoginSuccess : function(cb, credentials) {
+        _onLoginSuccess : function(cb, credentials, loginFnCb) {
             
             var ajaxPromise = null;
             
@@ -396,6 +396,17 @@
                         authResponse : data
                     }
                 );
+                
+                if(typeof loginFnCb !== 'undefined') {
+                
+                    loginFnCb(
+                        {
+                            status : 'connected',
+                            authResponse : data
+                        }
+                    );
+                
+                }
     
             }, this));
             

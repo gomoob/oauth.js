@@ -55,15 +55,12 @@ OAuth.init(
         parseErrorFn : function(xMLHttpRequest) {
             // Parse errors returned from server side to know if they must imply OAuth 2.0 Access Token reniewal or 
             // refresh
-        },
-        defaultLoginCb : function() {   
-            // Called just after a 'login' is successful (i.e a valid OAuth 2.0 Access Token is retrieved)
         }
     }
 );
 ```
 
-The OAuth.JS client requires 5 parameters described in the following sub-sections.
+The OAuth.JS client requires 4 parameters described in the following sub-sections.
 
 ### `clientId`
 
@@ -75,20 +72,85 @@ The absolute URL to your OAuth 2.0 token endpoint.
 
 ### `loginFn`
 
-Callback function automatically called by the OAuth.JS client when a secured request returned an error which indicates a 
-new user login is required. The `loginFn` function is used to display a login dialog or page to the user. We could 
-compare this to the Facebook Javascript SDK but with Facebook the SDK is embedded in the client, in OAuth.JS your client 
-will call your own login dialog box when necessary.
+The `loginFn` function is used to display a login dialog or page to the user. We could compare this login modal dialog 
+to the Facebook Javascript SDK Login Modal Dialog. But with OAuth.JS you create your own Login Modal Dialog, then the 
+library will automatically call it when its necessary.
+
+The `loginFn` function will be called each time the OAuth.JS client detects it cannot use a valid OAuth 2.0 Access Token
+. 
+
+This could appear in the following situations :
+ * Your server returned an error and the parsing or this error indicates that the OAuth 2.0 Access Token received is 
+   invalid.
+ * The OAuth.JS client cannot use or find a valid cached OAuth 2.0 Access Token.
+
+The `loginFn(credentialsPromise)` function only 1 parameter which we call a credentials promise. This credentials 
+promise must be resolved when your user provides its credentials in your Login Modal Box.
+
+When you resolve a promise you can provide 3 different parameters : 
+ * `credentials` : An object which describes the user credentials.
+ * `cb` : A callback function called by the OAuth.JS client after credentials have been provided and sent to the server 
+          an a response has been received.
+ * `opts` : Additional options used to configure the login behavior.
+
+Here is a sample function (we suppose our application provides a simple Login Modal) : 
+```javascript
+function(credentialsPromise) {
+
+    showLoginModal(new LoginModal({ credentialsPromise : credentialsPromise }));
+
+}
+```
+
+Our Login Modal could contain the following code.
+```javascript
+{
+    initialize : function(options) {
+        this._credentialsPromise = options.credentialsPromise;
+    },
+
+    _onLoginButtonClick : function(clickEvent) {
+    
+        // Change the style of our form while OAuth.JS is trying to get an OAuth 2.0 Access Token
+        this.disableForm();
+        this.showWaitingIndicator();
+        
+        // We resove the credentials promise to instruct OAuth.JS to get a new OAuth 2.0 Acccess Token using the 
+        // provided user credentials
+        this._credentialsPromise.resolve(
+            {
+                // Indicates to OAuth.JS which OAuth 2.0 grant type to use to get an OAuth 2.0 Access Token
+                'grand_type' : 'password',
+                username : $('#username').val(),
+                password : $('#password').val()
+            },
+            $.proxy(this._afterLogin, this)
+        );
+
+    }, 
+    
+    _afterLogin : function(response) {
+        
+        if(response.status === 'connected') {
+        
+            // Force the view displayed before the Login Modal Box to be refreshed
+            window.location.hash = window.location.hash + '?random=' + Math.random();
+        
+        } else {
+        
+           this.showError('Login failed !');
+        
+        }
+
+    }
+}
+```
 
 ### `parseErrorFn`
 
 Callback function called by the OAuth.JS client when an error is returned from your Web Services. The purpose of this 
 function is to decode the error payload received and indicate to the OAuth.JS client if the error received should 
 trigger an OAuth 2.0 token refresh or reniewal.
-
-### `defaultLoginCb`
-
-Callback function to be called after a new login operation is successful.
 
 ## Login your user
 

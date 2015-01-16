@@ -176,7 +176,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
     },
     
-    _onLoginSuccess : function(cb, credentials) {
+    _onLoginSuccess : function(cb, credentials, loginFnCb) {
         
         var ajaxPromise = null;
         
@@ -230,6 +230,17 @@ OAuth.Request.BackboneRequestManager.prototype = {
                     authResponse : data
                 }
             );
+            
+            if(typeof loginFnCb !== 'undefined') {
+            
+                loginFnCb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    }
+                );
+            
+            }
 
         }, this));
         
