@@ -212,6 +212,10 @@ OAuth.Request.BackboneRequestManager.prototype = {
                 }
             );
             
+        } else {
+            
+            throw new Error('Unknown \'grant_type\' = \'' + credentials.grant_type + '\' !');
+            
         }
         
         // TODO: Message d'erreur clair si 'grant_type' non supporté...
@@ -224,22 +228,44 @@ OAuth.Request.BackboneRequestManager.prototype = {
             //          contains the technical identifier of the user on the platform
             this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
             
-            cb(
-                {
-                    status : 'connected',
-                    authResponse : data
-                }
-            );
-            
+            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
+            // retrieval we call it
             if(typeof loginFnCb !== 'undefined') {
             
+                var loginFnCbCb = $.Deferred();
+                
                 loginFnCb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    },
+                    loginFnCbCb
+                );
+                
+                // When the callback function has ended
+                loginFnCbCb.done(function() {
+
+                    cb(
+                        {
+                            status : 'connected',
+                            authResponse : data
+                        }
+                    );
+
+                });
+
+            } 
+            
+            // Otherwise we call the 'login' function callback directly
+            else {
+
+                cb(
                     {
                         status : 'connected',
                         authResponse : data
                     }
                 );
-            
+
             }
 
         }, this));
