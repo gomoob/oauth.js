@@ -706,7 +706,8 @@ OAuth.Request.BackboneRequestManager.prototype = {
                         data : {
                             grant_type : 'password',
                             username : credentialsSettings.username,
-                            password : credentialsSettings.password
+                            password : credentialsSettings.password,
+                            client_id : this._clientId
                         },
                         type : 'POST',
                         url: this._tokenEndpoint
@@ -727,6 +728,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
                         contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
                         data : {
                             grant_type : 'client_credentials',
+                            client_id : this._clientId
                         },
                         type : 'POST',
                         url: this._tokenEndpoint        
