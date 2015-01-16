@@ -874,7 +874,8 @@
                                 username : credentialsSettings.username,
                                 password : credentialsSettings.password
                             },
-                            url: this._tokenEndpoint        
+                            type : 'POST',
+                            url: this._tokenEndpoint
                         }
                     );
                     ajaxPromise.done($.proxy(this._onReniewAccessTokenSuccess, this, originalAjaxArguments, oauthPromise));
@@ -893,6 +894,7 @@
                             data : {
                                 grant_type : 'client_credentials',
                             },
+                            type : 'POST',
                             url: this._tokenEndpoint        
                         }
                     );
