@@ -174,7 +174,7 @@ env(
                             clientId : 'my-app',
                             loginFn : function(credentialsPromise) {
                                 
-                                credentialsPromise.resolve(
+                                credentialsPromise(
                                     {
                                         grant_type : 'password'
                                     }
@@ -542,11 +542,11 @@ env(
                 var requestManager = new OAuth.Request.BackboneRequestManager(
                     {
                         clientId : 'my-app',
-                        loginFn : function(credentialsPromise) {
+                        loginFn : function(cb) {
                                 
                             loginFnDeferred.done(function(username, password) {
                                 
-                                credentialsPromise.resolve(
+                                cb(
                                     {
                                         grant_type : 'password',
                                         username : username,

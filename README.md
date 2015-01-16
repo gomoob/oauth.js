@@ -95,9 +95,9 @@ When you resolve a promise you can provide 3 different parameters :
 
 Here is a sample function (we suppose our application provides a simple Login Modal) : 
 ```javascript
-function(credentialsPromise) {
+function(cb) {
 
-    showLoginModal(new LoginModal({ credentialsPromise : credentialsPromise }));
+    showLoginModal(new LoginModal({ sendCredentials : cb }));
 
 }
 ```
@@ -106,7 +106,7 @@ Our Login Modal could contain the following code.
 ```javascript
 {
     initialize : function(options) {
-        this._credentialsPromise = options.credentialsPromise;
+        this._sendCredentials = options.sendCredentials;
     },
 
     _onLoginButtonClick : function(clickEvent) {
@@ -115,9 +115,8 @@ Our Login Modal could contain the following code.
         this.disableForm();
         this.showWaitingIndicator();
         
-        // We resove the credentials promise to instruct OAuth.JS to get a new OAuth 2.0 Acccess Token using the 
-        // provided user credentials
-        this._credentialsPromise.resolve(
+        // We transmit the credentials to OAuth.JS to let it get a new OAuth 2.0 Access Token with those credentials
+        this._sendCredentials(
             {
                 // Indicates to OAuth.JS which OAuth 2.0 grant type to use to get an OAuth 2.0 Access Token
                 'grand_type' : 'password',

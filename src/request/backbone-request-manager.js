@@ -232,7 +232,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
             // retrieval we call it
             if(typeof loginFnCb !== 'undefined') {
             
-                var loginFnCbCb = $.Deferred();
+                var deferred = $.Deferred(), 
+                    loginFnCbCb = function() {
+                    
+                    deferred.resolve();
+
+                };
                 
                 loginFnCb(
                     {
@@ -288,10 +293,13 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // So in this case we call the 'loginFn' function
         if(this._storageManager.getAccessTokenResponse() === null) {
 
-            var credentialsPromise = $.Deferred();
+            var deferred = $.Deferred(), 
+                credentialsPromise = function(credentials, callback) {
+                deferred.resolve(credentials, callback);
+            };
             this._loginFn(credentialsPromise);
-            credentialsPromise.done($.proxy(this._onLoginSuccess, this, cb));
-            credentialsPromise.fail($.proxy(this._onLoginError, this, cb));
+            deferred.done($.proxy(this._onLoginSuccess, this, cb));
+            deferred.fail($.proxy(this._onLoginError, this, cb));
 
         }
         
@@ -718,12 +726,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
         // TODO: Créer un modèle de récupération de login / mdp ou credentials
 
-        var credentialsPromise = $.Deferred();
+        var deferred = $.Deferred();
+            credentialsPromise = function(credentials, callback) {
+                deferred.resolve(credentials, callback);
+            };
 
         this._loginFn(credentialsPromise);
 
-        credentialsPromise.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oauthPromise));
-        credentialsPromise.fail(function() {
+        deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oauthPromise));
+        deferred.fail(function() {
             
         });
         
