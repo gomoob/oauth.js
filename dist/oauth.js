@@ -888,7 +888,7 @@
             
             // TODO: Créer un modèle de récupération de login / mdp ou credentials
     
-            var deferred = $.Deferred();
+            var deferred = $.Deferred(),
                 credentialsPromise = function(credentials, callback) {
                     deferred.resolve(credentials, callback);
                 };
