@@ -387,8 +387,8 @@
     
                 cb(
                     {
-                        status : 'connected',
-                        authResponse : data
+                        status : jqXHR.responseJSON.error,
+                        authResponse : jqXHR.responseJSON
                     }
                 );
     
