@@ -344,7 +344,17 @@
             
         },
         
-        _onTokenEndpointPostError : function(cb, jqXHR, textStatus, errorThrown) {
+        /**
+         * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
+         * error response.
+         * 
+         * @param cb TODO A DOCUMENTER
+         * @param loginFnCb TODO A DOCUMENTER
+         * @param data TODO A DOCUMENTER
+         * @param textStatus TODO A DOCUMENTER
+         * @param jqXHR TODO A DOCUMENTER
+         */
+        _onTokenEndpointPostError : function(cb, loginFnCb, jqXHR, textStatus, errorThrown) {
             
             console.log('Login fail !');
             console.log(jqXHR);
@@ -396,8 +406,21 @@
     
         },
         
-        _onTokenEndpointPostSuccess : function(cb, data, textStatus, jqXHR) {
+        /**
+         * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned a 
+         * successful response.
+         * 
+         * @param cb TODO A DOCUMENTER
+         * @param loginFnCb TODO A DOCUMENTER
+         * @param data TODO A DOCUMENTER
+         * @param textStatus TODO A DOCUMENTER
+         * @param jqXHR TODO A DOCUMENTER
+         */
+        _onTokenEndpointPostSuccess : function(cb, loginFnCb, data, textStatus, jqXHR) {
             
+            // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
+            //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
+    
             // Store the refreshed OAuth 2.0 in the local storage
             // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
             //          response also contain a 'user_id' field which is specific to the project and 
@@ -449,9 +472,13 @@
         /**
          * Function called when a 'loginFn' function call is successful. 
          * 
-         * @param cb TODO: TO BE DOCUMENTED
-         * @param credentials TODO: TO BE DOCUMENTED
-         * @param loginFnCb TODO: TO BE DOCUMENTED
+         * @param cb A callback function to be called when a login action has been done, please not that this callback is 
+         *        the one passed to 'OAuth.login(cb)' and is not the one passed to the 'loginFn'. 
+         * @param credentials The user credentials provided by a customized login modal box or pulled from the brower local 
+         *        storage.
+         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
+         *        function will only be called after the credentials sent using a credentials promise has been sent and 
+         *        processed by the server.
          */
         _onLoginSuccess : function(cb, credentials, loginFnCb) {
     
@@ -497,8 +524,8 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
-            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, cb));
+            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb, loginFnCb));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, cb, loginFnCb));
     
         },
         
@@ -522,7 +549,7 @@
                     // This function is called by specific login dialogs with 2 parameters
                     //  - credentials : An object which contains credentials to be sent on server side.
                     //  - callback    : A callback function which is called after the credentials have been sent on server 
-                    //                  and the server returned a response
+                    //                  and the server returned a response.
                     function(credentials, callback) {
                         deferred.resolve(credentials, callback);    
                     }
