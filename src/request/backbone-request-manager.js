@@ -176,8 +176,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
     },
     
+    /**
+     * Function called when a 'loginFn' function call is successful. 
+     * 
+     * @param cb TODO: TO BE DOCUMENTED
+     * @param credentials TODO: TO BE DOCUMENTED
+     * @param loginFnCb TODO: TO BE DOCUMENTED
+     */
     _onLoginSuccess : function(cb, credentials, loginFnCb) {
-        
+
         var ajaxPromise = null;
         
         if(credentials.grant_type === 'password') {
@@ -290,9 +297,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
             var deferred = $.Deferred();
             this._loginFn(
+                    
+                // This function is called by specific login dialogs with 2 parameters
+                //  - credentials : An object which contains credentials to be sent on server side.
+                //  - callback    : A callback function which is called after the credentials have been sent on server 
+                //                  an the server returned a response
                 function(credentials, callback) {
                     deferred.resolve(credentials, callback);    
                 }
+
             );
             deferred.done($.proxy(this._onLoginSuccess, this, cb));
             deferred.fail($.proxy(this._onLoginError, this, cb));
