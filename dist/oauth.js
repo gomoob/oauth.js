@@ -351,6 +351,9 @@
             console.log(textStatus);
             console.log(errorThrown);
             
+            // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
+            //       spécifié par OAuth 2.0.
+    
             // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
             // retrieval we call it
             if(typeof loginFnCb !== 'undefined') {
@@ -359,8 +362,8 @@
     
                 loginFnCb(
                     {
-                        status : 'connected',
-                        authResponse : data
+                        status : jqXHR.responseJSON.error,
+                        authResponse : jqXHR.responseJSON
                     },
                     function() { deferred.resolve(); }
                 );
@@ -370,8 +373,8 @@
     
                     cb(
                         {
-                            status : 'connected',
-                            authResponse : data
+                            status : jqXHR.responseJSON.error,
+                            authResponse : jqXHR.responseJSON
                         }
                     );
     
