@@ -77,18 +77,18 @@ to the Facebook Javascript SDK Login Modal Dialog. But with OAuth.JS you create 
 library will automatically call it when its necessary.
 
 The `loginFn` function will be called each time the OAuth.JS client detects it cannot use a valid OAuth 2.0 Access Token
-. 
+.
 
 This could appear in the following situations :
  * Your server returned an error and the parsing or this error indicates that the OAuth 2.0 Access Token received is 
    invalid.
  * The OAuth.JS client cannot use or find a valid cached OAuth 2.0 Access Token.
 
-The `loginFn(credentialsPromise)` function only 1 parameter which we call a credentials promise. This credentials 
-promise must be resolved when your user provides its credentials in your Login Modal Box.
+The `loginFn(credentialsPromise)` function takes only 1 parameter which we call a credentials promise. This credentials 
+promise must be called / resolved when your user provides its credentials in your Login Modal Box.
 
-When you resolve a promise you can provide 3 different parameters : 
- * `credentials` : An object which describes the user credentials.
+When you call / resolve a credentials promise you can provide the following parameters : 
+ * `credentials` : An object which describes the user credentials to send on server side.
  * `cb` : A callback function called by the OAuth.JS client after credentials have been provided and sent to the server 
           an a response has been received.
  * `opts` : Additional options used to configure the login behavior.

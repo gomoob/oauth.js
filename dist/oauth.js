@@ -344,18 +344,58 @@
             
         },
         
-        _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
+        _onTokenEndpointPostError : function(cb, jqXHR, textStatus, errorThrown) {
             
             console.log('Login fail !');
             console.log(jqXHR);
             console.log(textStatus);
             console.log(errorThrown);
+            
+            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
+            // retrieval we call it
+            if(typeof loginFnCb !== 'undefined') {
+            
+                var deferred = $.Deferred();
+    
+                loginFnCb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    },
+                    function() { deferred.resolve(); }
+                );
+                
+                // When the callback function has ended
+                deferred.done(function() {
+    
+                    cb(
+                        {
+                            status : 'connected',
+                            authResponse : data
+                        }
+                    );
+    
+                });
+    
+            } 
+            
+            // Otherwise we call the 'login' function callback directly
+            else {
+    
+                cb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    }
+                );
+    
+            }
     
         },
         
         _onTokenEndpointPostSuccess : function(cb, data, textStatus, jqXHR) {
             
-         // Store the refresed OAuth 2.0 in the local storage
+            // Store the refreshed OAuth 2.0 in the local storage
             // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
             //          response also contain a 'user_id' field which is specific to the project and 
             //          contains the technical identifier of the user on the platform
@@ -455,7 +495,7 @@
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
             ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, cb));
     
         },
         
@@ -479,7 +519,7 @@
                     // This function is called by specific login dialogs with 2 parameters
                     //  - credentials : An object which contains credentials to be sent on server side.
                     //  - callback    : A callback function which is called after the credentials have been sent on server 
-                    //                  an the server returned a response
+                    //                  and the server returned a response
                     function(credentials, callback) {
                         deferred.resolve(credentials, callback);    
                     }
