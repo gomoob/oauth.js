@@ -172,7 +172,68 @@ OAuth.Request.BackboneRequestManager.prototype = {
     
     _onLoginError : function(options) {
         
+        // TODO: Erreur à gérer
+        console.log('_onLoginError');
+        console.log(options);
         
+    },
+    
+    _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
+        
+        console.log('Login fail !');
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+
+    },
+    
+    _onTokenEndpointPostSuccess : function(cb, data, textStatus, jqXHR) {
+        
+        // Store the refreshed OAuth 2.0 in the local storage
+        // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
+        //          response also contain a 'user_id' field which is specific to the project and 
+        //          contains the technical identifier of the user on the platform
+        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+        
+        // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
+        // retrieval we call it
+        if(typeof loginFnCb !== 'undefined') {
+        
+            var deferred = $.Deferred();
+
+            loginFnCb(
+                {
+                    status : 'connected',
+                    authResponse : data
+                },
+                function() { deferred.resolve(); }
+            );
+            
+            // When the callback function has ended
+            deferred.done(function() {
+
+                cb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    }
+                );
+
+            });
+
+        } 
+        
+        // Otherwise we call the 'login' function callback directly
+        else {
+
+            cb(
+                {
+                    status : 'connected',
+                    authResponse : data
+                }
+            );
+
+        }
         
     },
     
@@ -227,64 +288,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
         // TODO: Message d'erreur clair si 'grant_type' non supporté...
 
-        ajaxPromise.done($.proxy(function(data, textStatus, jqXHR) {
-
-            // Store the refresed OAuth 2.0 in the local storage
-            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
-            //          response also contain a 'user_id' field which is specific to the project and 
-            //          contains the technical identifier of the user on the platform
-            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
-            
-            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
-            // retrieval we call it
-            if(typeof loginFnCb !== 'undefined') {
-            
-                var deferred = $.Deferred();
-
-                loginFnCb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    },
-                    function() { deferred.resolve(); }
-                );
-                
-                // When the callback function has ended
-                deferred.done(function() {
-
-                    cb(
-                        {
-                            status : 'connected',
-                            authResponse : data
-                        }
-                    );
-
-                });
-
-            } 
-            
-            // Otherwise we call the 'login' function callback directly
-            else {
-
-                cb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    }
-                );
-
-            }
-
-        }, this));
-        
-        // TODO: Gestion des erreurs...
+        ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb));
+        ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
 
     },
     
     /**
      * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
-     * configured 'loginFn' function is not called and the provided callback is directly called. Otherwise the 'loginFn' 
-     * function is called before calling the provided callback. 
+     * configured 'loginFn' callback function is not called and the provided callback is directly called. Otherwise the 
+     * 'loginFn' callback function is called before calling the provided callback. 
      * 
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.

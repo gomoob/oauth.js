@@ -338,12 +338,80 @@
         
         _onLoginError : function(options) {
             
-            
+            // TODO: Erreur à gérer
+            console.log('_onLoginError');
+            console.log(options);
             
         },
         
-        _onLoginSuccess : function(cb, credentials, loginFnCb) {
+        _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
             
+            console.log('Login fail !');
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+    
+        },
+        
+        _onTokenEndpointPostSuccess : function(cb, data, textStatus, jqXHR) {
+            
+         // Store the refresed OAuth 2.0 in the local storage
+            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
+            //          response also contain a 'user_id' field which is specific to the project and 
+            //          contains the technical identifier of the user on the platform
+            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+            
+            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
+            // retrieval we call it
+            if(typeof loginFnCb !== 'undefined') {
+            
+                var deferred = $.Deferred();
+    
+                loginFnCb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    },
+                    function() { deferred.resolve(); }
+                );
+                
+                // When the callback function has ended
+                deferred.done(function() {
+    
+                    cb(
+                        {
+                            status : 'connected',
+                            authResponse : data
+                        }
+                    );
+    
+                });
+    
+            } 
+            
+            // Otherwise we call the 'login' function callback directly
+            else {
+    
+                cb(
+                    {
+                        status : 'connected',
+                        authResponse : data
+                    }
+                );
+    
+            }
+            
+        },
+        
+        /**
+         * Function called when a 'loginFn' function call is successful. 
+         * 
+         * @param cb TODO: TO BE DOCUMENTED
+         * @param credentials TODO: TO BE DOCUMENTED
+         * @param loginFnCb TODO: TO BE DOCUMENTED
+         */
+        _onLoginSuccess : function(cb, credentials, loginFnCb) {
+    
             var ajaxPromise = null;
             
             if(credentials.grant_type === 'password') {
@@ -386,64 +454,15 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
-            ajaxPromise.done($.proxy(function(data, textStatus, jqXHR) {
-    
-                // Store the refresed OAuth 2.0 in the local storage
-                // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
-                //          response also contain a 'user_id' field which is specific to the project and 
-                //          contains the technical identifier of the user on the platform
-                this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
-                
-                // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
-                // retrieval we call it
-                if(typeof loginFnCb !== 'undefined') {
-                
-                    var deferred = $.Deferred();
-    
-                    loginFnCb(
-                        {
-                            status : 'connected',
-                            authResponse : data
-                        },
-                        function() { deferred.resolve(); }
-                    );
-                    
-                    // When the callback function has ended
-                    deferred.done(function() {
-    
-                        cb(
-                            {
-                                status : 'connected',
-                                authResponse : data
-                            }
-                        );
-    
-                    });
-    
-                } 
-                
-                // Otherwise we call the 'login' function callback directly
-                else {
-    
-                    cb(
-                        {
-                            status : 'connected',
-                            authResponse : data
-                        }
-                    );
-    
-                }
-    
-            }, this));
-            
-            // TODO: Gestion des erreurs...
+            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
     
         },
         
         /**
          * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
-         * configured 'loginFn' function is not called and the provided callback is directly called. Otherwise the 'loginFn' 
-         * function is called before calling the provided callback. 
+         * configured 'loginFn' callback function is not called and the provided callback is directly called. Otherwise the 
+         * 'loginFn' callback function is called before calling the provided callback. 
          * 
          * @param cb A callback function to be called when a login action has been done.
          * @param opts Options used to configure the login.
@@ -456,9 +475,15 @@
     
                 var deferred = $.Deferred();
                 this._loginFn(
+                        
+                    // This function is called by specific login dialogs with 2 parameters
+                    //  - credentials : An object which contains credentials to be sent on server side.
+                    //  - callback    : A callback function which is called after the credentials have been sent on server 
+                    //                  an the server returned a response
                     function(credentials, callback) {
                         deferred.resolve(credentials, callback);    
                     }
+    
                 );
                 deferred.done($.proxy(this._onLoginSuccess, this, cb));
                 deferred.fail($.proxy(this._onLoginError, this, cb));

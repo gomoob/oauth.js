@@ -5,9 +5,9 @@ OAuth.JS is a Javascript library used to easily request secured [OAuth 2.0](http
 Services. 
 
 The design of the library is largely inspired by the Facebook Javascript SDK and provides you similar methods, but the 
-difference is that the called Web Services are not Facebook one's but your Web Services. 
+difference is that the called Web Services are not Facebook one's but your own Web Services. 
 
-OAuth.JS is specifically designed to work with RIA, SPA and HTML5 mobile applications, it provides the following 
+OAuth.JS is specifically designed to work with RIA, SPA and HTML5 web / mobile applications, it provides the following 
 features : 
  * Access and refresh token retrieval
  * Automatic and transparent Access and Refresh token reniewal
