@@ -441,36 +441,25 @@
     
         },
         
-        _onLoginError : function(options) {
-            
-            // TODO: Erreur à gérer
-            console.log('_onLoginError');
-            console.log(options);
-            
-        },
-        
         /**
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
          * error response.
-         * 
-         * @param cb TODO A DOCUMENTER
-         * @param loginFnCb TODO A DOCUMENTER
-         * @param data TODO A DOCUMENTER
-         * @param textStatus TODO A DOCUMENTER
-         * @param jqXHR TODO A DOCUMENTER
+         *  
+         * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
+         *        is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' function. 
+         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
+         *        function will only be called after the credentials sent using a credentials promise has been sent and 
+         *        processed by the server.
+         * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
+         * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
+         * @param errorThrown The textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
          */
-        _onTokenEndpointPostError : function(cb, loginFnCb, jqXHR, textStatus, errorThrown) {
-            
-            console.log('Login fail !');
-            console.log(jqXHR);
-            console.log(textStatus);
-            console.log(errorThrown);
-            
+        _onTokenEndpointPostError : function(loginCb, loginFnCb, jqXHR, textStatus, errorThrown) {
+    
             // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
             //       spécifié par OAuth 2.0.
     
-            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
-            // retrieval we call it
+            // If the 'loginFn' function has provided a callback 'loginFnCb' callback
             if(typeof loginFnCb !== 'undefined') {
             
                 var deferred = $.Deferred();
@@ -486,7 +475,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    cb(
+                    loginCb(
                         {
                             status : jqXHR.responseJSON.error,
                             authResponse : jqXHR.responseJSON
@@ -500,7 +489,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                cb(
+                loginCb(
                     {
                         status : jqXHR.responseJSON.error,
                         authResponse : jqXHR.responseJSON
@@ -515,13 +504,16 @@
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned a 
          * successful response.
          * 
-         * @param cb TODO A DOCUMENTER
-         * @param loginFnCb TODO A DOCUMENTER
-         * @param data TODO A DOCUMENTER
-         * @param textStatus TODO A DOCUMENTER
-         * @param jqXHR TODO A DOCUMENTER
+         * @param cb A callback function to be called when a login action has been done, please note that this callback is 
+         *        the one passed to 'OAuth.login(cb)' and is not the one passed to the 'loginFn' function. 
+         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
+         *        function will only be called after the credentials sent using a credentials promise has been sent and 
+         *        processed by the server.
+         * @param data The raw data received from server side after posting informations to the OAuth 2.0 Token endpoint.
+         * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
+         * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          */
-        _onTokenEndpointPostSuccess : function(cb, loginFnCb, data, textStatus, jqXHR) {
+        _onTokenEndpointPostSuccess : function(loginCb, loginFnCb, data, textStatus, jqXHR) {
             
             // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -549,7 +541,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    cb(
+                    loginCb(
                         {
                             status : 'connected',
                             authResponse : data
@@ -563,7 +555,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                cb(
+                loginCb(
                     {
                         status : 'connected',
                         authResponse : data
@@ -575,17 +567,30 @@
         },
         
         /**
+         * Function called when a 'loginFn' function call has failed.
+         * 
+         * @param options
+         */
+        _onLoginError : function(options) {
+            
+            // TODO: Erreur à gérer
+            console.log('_onLoginError');
+            console.log(options);
+            
+        },
+        
+        /**
          * Function called when a 'loginFn' function call is successful. 
          * 
-         * @param cb A callback function to be called when a login action has been done, please not that this callback is 
-         *        the one passed to 'OAuth.login(cb)' and is not the one passed to the 'loginFn'. 
+         * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
+         *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
          * @param credentials The user credentials provided by a customized login modal box or pulled from the brower local 
          *        storage.
          * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
          *        function will only be called after the credentials sent using a credentials promise has been sent and 
          *        processed by the server.
          */
-        _onLoginSuccess : function(cb, credentials, loginFnCb) {
+        _onLoginSuccess : function(loginCb, credentials, loginFnCb) {
     
             var ajaxPromise = null;
             
@@ -629,14 +634,14 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
-            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, cb, loginFnCb));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, cb, loginFnCb));
+            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, loginCb, loginFnCb));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, loginCb, loginFnCb));
     
         },
         
         /**
          * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
-         * configured 'loginFn' callback function is not called and the provided callback is directly called. Otherwise the 
+         * configured 'loginFn' function is not called and the provided 'loginCb' callback is directly called. Otherwise the 
          * 'loginFn' callback function is called before calling the provided callback. 
          * 
          * @param loginCb A callback function to be called when a login action has been done.
@@ -667,7 +672,7 @@
             // Otherwise we directly call the callback.
             else {
                 
-                cb(
+                loginCb(
                     {
                         status : 'connected',
                         authResponse : this._storageManager.getAccessTokenResponse()
