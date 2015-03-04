@@ -368,29 +368,28 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * configured 'loginFn' callback function is not called and the provided callback is directly called. Otherwise the 
      * 'loginFn' callback function is called before calling the provided callback. 
      * 
-     * @param cb A callback function to be called when a login action has been done.
+     * @param loginCb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
-    login : function(cb, opts) {
+    login : function(loginCb, opts) {
 
         // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
         // So in this case we call the 'loginFn' function
         if(this._storageManager.getAccessTokenResponse() === null) {
 
+            // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
             var deferred = $.Deferred();
-            this._loginFn(
-                    
-                // This function is called by specific login dialogs with 2 parameters
-                //  - credentials : An object which contains credentials to be sent on server side.
-                //  - callback    : A callback function which is called after the credentials have been sent on server 
-                //                  and the server returned a response.
-                function(credentials, callback) {
-                    deferred.resolve(credentials, callback);    
-                }
-
-            );
-            deferred.done($.proxy(this._onLoginSuccess, this, cb));
-            deferred.fail($.proxy(this._onLoginError, this, cb));
+            
+            // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
+            var credentialsPromise = new OAuth.CredentialsPromise();
+            credentialsPromise._setLoginCb(loginCb);
+            credentialsPromise._setLoginOpts(opts);
+            credentialsPromise._setDeferred(deferred);
+            credentialsPromise._setRequestManager(this);
+            
+            this._loginFn(credentialsPromise);
+            deferred.done($.proxy(this._onLoginSuccess, this, loginCb));
+            deferred.fail($.proxy(this._onLoginError, this, loginCb));
 
         }
         
@@ -877,6 +876,29 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
         // TODO: Créer un modèle de récupération de login / mdp ou credentials
 
+        // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
+        var deferred = $.Deferred();
+        
+        // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
+        var credentialsPromise = new OAuth.CredentialsPromise();
+        // credentialsPromise._setLoginCb(loginCb);
+        // credentialsPromise._setLoginOpts(opts);
+        credentialsPromise._setDeferred(deferred);
+        credentialsPromise._setRequestManager(this);
+        
+        this._loginFn(credentialsPromise);
+//        deferred.done($.proxy(this._onLoginSuccess, this, loginCb));
+//        deferred.fail($.proxy(this._onLoginError, this, loginCb));
+        
+        deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
+        deferred.fail($.proxy(function() {
+            
+            // TODO: Erreur à gérer correctement
+            console.log('_reniewAccessToken Error !');
+            
+        }, this));
+        
+        /*
         var deferred = $.Deferred(),
             credentialsPromise = function(credentials, callback) {
                 deferred.resolve(credentials, callback);
@@ -890,6 +912,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
             // TODO: ???
 
         });
+        */
         
     }, 
     

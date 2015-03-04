@@ -80,24 +80,31 @@ The `loginFn` function will be called each time the OAuth.JS client detects it c
 .
 
 This could appear in the following situations :
- * Your server returned an error and the parsing or this error indicates that the OAuth 2.0 Access Token received is 
+ * Your server returned an error and the parsing of this error indicates that the OAuth 2.0 Access Token received is 
    invalid.
  * The OAuth.JS client cannot use or find a valid cached OAuth 2.0 Access Token.
 
 The `loginFn(credentialsPromise)` function takes only 1 parameter which we call a credentials promise. This credentials 
 promise must be called / resolved when your user provides its credentials in your Login Modal Box.
 
-When you call / resolve a credentials promise you can provide the following parameters : 
+#### The `CredentialsPromise` object
+
+The `CredentialsPromise` object is an object you have to keep while OAuth.JS did not return a successful login response.
+This object has only one method `sendCredentials`.
+
+The `sendCredentials` method is used to send credentials entered by your users to your OAuth 2.0 server, this method can 
+be called with the following parameters : 
  * `credentials` : An object which describes the user credentials to send on server side.
  * `cb` : A callback function called by the OAuth.JS client after credentials have been provided and sent to the server 
-          an a response has been received.
+          and a response has been received.
  * `opts` : Additional options used to configure the login behavior.
 
 Here is a sample function (we suppose our application provides a simple Login Modal) : 
 ```javascript
-function(cb) {
-
-    showLoginModal(new LoginModal({ sendCredentials : cb }));
+function(credentialsPromise) {
+    
+    // Show our custom Login Modal dialog and pass it the OAuth.JS Credentials Promise object
+    showLoginModal(new LoginModal({ credentialsPromise : credentialsPromise }));
 
 }
 ```
@@ -106,7 +113,7 @@ Our Login Modal could contain the following code.
 ```javascript
 {
     initialize : function(options) {
-        this._sendCredentials = options.sendCredentials;
+        this._credentialsPromise = options.credentialsPromise;
     },
 
     _onLoginButtonClick : function(clickEvent) {
@@ -116,7 +123,7 @@ Our Login Modal could contain the following code.
         this.showWaitingIndicator();
         
         // We transmit the credentials to OAuth.JS to let it get a new OAuth 2.0 Access Token with those credentials
-        this._sendCredentials(
+        this._credentialsPromise.sendCredentials(
             {
                 // Indicates to OAuth.JS which OAuth 2.0 grant type to use to get an OAuth 2.0 Access Token
                 'grand_type' : 'password',

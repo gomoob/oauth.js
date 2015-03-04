@@ -42,7 +42,8 @@
           Request : {}
 
     };
-    
+
+    // @include credentials-promise.js
     // @include storage-manager.js
     // @include request/angular-request-manager.js
     // @include request/backbone-request-manager.js
