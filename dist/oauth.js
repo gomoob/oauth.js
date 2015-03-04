@@ -101,6 +101,18 @@
         }, 
         
         /**
+         * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
+         * 
+         * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+         *          `OAuth.login(cb, opts)` method.
+         */
+        _getLoginCb : function() {
+            
+            return this._loginCb;
+            
+        },
+        
+        /**
          * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
          * 
          * @param {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
@@ -454,7 +466,7 @@
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param errorThrown The textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
          */
-        _onTokenEndpointPostError : function(loginCb, loginFnCb, jqXHR, textStatus, errorThrown) {
+        _onTokenEndpointPostError : function(credentialsPromise, loginFnCb, jqXHR, textStatus, errorThrown) {
     
             // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
             //       spécifié par OAuth 2.0.
@@ -475,7 +487,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    loginCb(
+                    credentialsPromise._getLoginCb()(
                         {
                             status : jqXHR.responseJSON.error,
                             authResponse : jqXHR.responseJSON
@@ -489,7 +501,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                loginCb(
+                credentialsPromise._getLoginCb()(
                     {
                         status : jqXHR.responseJSON.error,
                         authResponse : jqXHR.responseJSON
@@ -513,7 +525,7 @@
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          */
-        _onTokenEndpointPostSuccess : function(loginCb, loginFnCb, data, textStatus, jqXHR) {
+        _onTokenEndpointPostSuccess : function(credentialsPromise, loginFnCb, data, textStatus, jqXHR) {
             
             // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -541,7 +553,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    loginCb(
+                    credentialsPromise._getLoginCb()(
                         {
                             status : 'connected',
                             authResponse : data
@@ -555,7 +567,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                loginCb(
+                credentialsPromise._getLoginCb()(
                     {
                         status : 'connected',
                         authResponse : data
@@ -590,7 +602,7 @@
          *        function will only be called after the credentials sent using a credentials promise has been sent and 
          *        processed by the server.
          */
-        _onLoginSuccess : function(loginCb, credentials, loginFnCb) {
+        _onLoginSuccess : function(credentialsPromise, credentials, loginFnCb) {
     
             var ajaxPromise = null;
             
@@ -634,8 +646,8 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
-            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, loginCb, loginFnCb));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, loginCb, loginFnCb));
+            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, credentialsPromise, loginFnCb));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, credentialsPromise, loginFnCb));
     
         },
         
@@ -664,8 +676,8 @@
                 credentialsPromise._setRequestManager(this);
                 
                 this._loginFn(credentialsPromise);
-                deferred.done($.proxy(this._onLoginSuccess, this, loginCb));
-                deferred.fail($.proxy(this._onLoginError, this, loginCb));
+                deferred.done($.proxy(this._onLoginSuccess, this, credentialsPromise));
+                deferred.fail($.proxy(this._onLoginError, this, credentialsPromise));
     
             }
             

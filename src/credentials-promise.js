@@ -56,6 +56,18 @@ OAuth.CredentialsPromise.prototype = {
     }, 
     
     /**
+     * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
+     * 
+     * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+     *          `OAuth.login(cb, opts)` method.
+     */
+    _getLoginCb : function() {
+        
+        return this._loginCb;
+        
+    },
+    
+    /**
      * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
      * 
      * @param {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 

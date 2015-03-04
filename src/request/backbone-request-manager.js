@@ -174,8 +174,10 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
      * error response.
      *  
-     * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
-     *        is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' function. 
+     * @param credentialsPromise The credentials promise which describes the context of an authenticated call. This 
+     *        object has a reference to the callback function to be called when a login action has been done, please 
+     *        note that this callback is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' 
+     *        function. 
      * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
      *        function will only be called after the credentials sent using a credentials promise has been sent and 
      *        processed by the server.
@@ -183,7 +185,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
      * @param errorThrown The textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
      */
-    _onTokenEndpointPostError : function(loginCb, loginFnCb, jqXHR, textStatus, errorThrown) {
+    _onTokenEndpointPostError : function(credentialsPromise, loginFnCb, jqXHR, textStatus, errorThrown) {
 
         // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
         //       spécifié par OAuth 2.0.
@@ -204,7 +206,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
             // When the callback function has ended
             deferred.done(function() {
 
-                loginCb(
+                credentialsPromise._getLoginCb()(
                     {
                         status : jqXHR.responseJSON.error,
                         authResponse : jqXHR.responseJSON
@@ -218,7 +220,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // Otherwise we call the 'login' function callback directly
         else {
 
-            loginCb(
+            credentialsPromise._getLoginCb()(
                 {
                     status : jqXHR.responseJSON.error,
                     authResponse : jqXHR.responseJSON
@@ -242,7 +244,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
      * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
      */
-    _onTokenEndpointPostSuccess : function(loginCb, loginFnCb, data, textStatus, jqXHR) {
+    _onTokenEndpointPostSuccess : function(credentialsPromise, loginFnCb, data, textStatus, jqXHR) {
         
         // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
         //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -270,7 +272,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
             // When the callback function has ended
             deferred.done(function() {
 
-                loginCb(
+                credentialsPromise._getLoginCb()(
                     {
                         status : 'connected',
                         authResponse : data
@@ -284,7 +286,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // Otherwise we call the 'login' function callback directly
         else {
 
-            loginCb(
+            credentialsPromise._getLoginCb()(
                 {
                     status : 'connected',
                     authResponse : data
@@ -319,7 +321,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
      *        function will only be called after the credentials sent using a credentials promise has been sent and 
      *        processed by the server.
      */
-    _onLoginSuccess : function(loginCb, credentials, loginFnCb) {
+    _onLoginSuccess : function(credentialsPromise, credentials, loginFnCb) {
 
         var ajaxPromise = null;
         
@@ -363,8 +365,8 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
         // TODO: Message d'erreur clair si 'grant_type' non supporté...
 
-        ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, loginCb, loginFnCb));
-        ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, loginCb, loginFnCb));
+        ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, credentialsPromise, loginFnCb));
+        ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, credentialsPromise, loginFnCb));
 
     },
     
@@ -393,8 +395,8 @@ OAuth.Request.BackboneRequestManager.prototype = {
             credentialsPromise._setRequestManager(this);
             
             this._loginFn(credentialsPromise);
-            deferred.done($.proxy(this._onLoginSuccess, this, loginCb));
-            deferred.fail($.proxy(this._onLoginError, this, loginCb));
+            deferred.done($.proxy(this._onLoginSuccess, this, credentialsPromise));
+            deferred.fail($.proxy(this._onLoginError, this, credentialsPromise));
 
         }
         
