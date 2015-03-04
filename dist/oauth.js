@@ -75,6 +75,14 @@
         this._deferred = null;
         
         /**
+         * A boolean which indicate if the deferred has been resolved, the deferred is resolved when a first 
+         * 'sendCredentials' call has been done.
+         * 
+         * @var {Boolean}
+         */
+        this._deferredResolved = false;
+        
+        /**
          * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
          * 
          * @var {OAuth.RequestManager}
@@ -94,9 +102,17 @@
          */
         sendCredentials : function(credentials, loginFnCb, opts) {
     
-            this._deferred.resolve(credentials, loginFnCb);
+            if(this._deferredResolved) {
+                
+                this._requestManager.login(this._loginCb, this._loginOpts, this);
+                
+            } else {
+    
+                this._deferred.resolve(credentials, loginFnCb);
             
-            return this._deferred;
+                this._deferredResolved = true;
+    
+            }
     
         }, 
         
@@ -457,8 +473,10 @@
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
          * error response.
          *  
-         * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
-         *        is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' function. 
+         * @param credentialsPromise The credentials promise which describes the context of an authenticated call. This 
+         *        object has a reference to the callback function to be called when a login action has been done, please 
+         *        note that this callback is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' 
+         *        function. 
          * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
          *        function will only be called after the credentials sent using a credentials promise has been sent and 
          *        processed by the server.
@@ -658,8 +676,10 @@
          * 
          * @param loginCb A callback function to be called when a login action has been done.
          * @param opts Options used to configure the login.
+         * @param credentialsPromise A credentials promise to re-use instead of creating a new one, this is used when a 
+         *        first login fails and a new login attempt has to be done. 
          */
-        login : function(loginCb, opts) {
+        login : function(loginCb, opts, credentialsPromise) {
     
             // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
             // So in this case we call the 'loginFn' function
@@ -669,15 +689,23 @@
                 var deferred = $.Deferred();
                 
                 // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-                var credentialsPromise = new OAuth.CredentialsPromise();
-                credentialsPromise._setLoginCb(loginCb);
-                credentialsPromise._setLoginOpts(opts);
-                credentialsPromise._setDeferred(deferred);
-                credentialsPromise._setRequestManager(this);
+                var cp = credentialsPromise;
                 
-                this._loginFn(credentialsPromise);
-                deferred.done($.proxy(this._onLoginSuccess, this, credentialsPromise));
-                deferred.fail($.proxy(this._onLoginError, this, credentialsPromise));
+                if(!cp) {
+                    cp = new OAuth.CredentialsPromise();
+                }
+    
+                cp._setLoginCb(loginCb);
+                cp._setLoginOpts(opts);
+                cp._setRequestManager(this);
+                cp._setDeferred(deferred);
+    
+                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+                // credentials
+                this._loginFn(cp);
+                
+                deferred.done($.proxy(this._onLoginSuccess, this, cp));
+                deferred.fail($.proxy(this._onLoginError, this, cp));
     
             }
             

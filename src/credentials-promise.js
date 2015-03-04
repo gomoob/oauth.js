@@ -30,6 +30,14 @@ OAuth.CredentialsPromise = function() {
     this._deferred = null;
     
     /**
+     * A boolean which indicate if the deferred has been resolved, the deferred is resolved when a first 
+     * 'sendCredentials' call has been done.
+     * 
+     * @var {Boolean}
+     */
+    this._deferredResolved = false;
+    
+    /**
      * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
      * 
      * @var {OAuth.RequestManager}
@@ -49,9 +57,17 @@ OAuth.CredentialsPromise.prototype = {
      */
     sendCredentials : function(credentials, loginFnCb, opts) {
 
-        this._deferred.resolve(credentials, loginFnCb);
+        if(this._deferredResolved) {
+            
+            this._requestManager.login(this._loginCb, this._loginOpts, this);
+            
+        } else {
+
+            this._deferred.resolve(credentials, loginFnCb);
         
-        return this._deferred;
+            this._deferredResolved = true;
+
+        }
 
     }, 
     
