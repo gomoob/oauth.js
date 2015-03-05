@@ -1079,8 +1079,14 @@
             //          contains the technical identifier of the user on the platform
             this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
     
+            var overwittenAjaxArguments = this._cloneAjaxArguments(originalAjaxArguments);
+            overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
+            
+            // Updates the AJAX arguments by adding the OAuth 2.0 Access Token stored in the client storage
+            this._updateAjaxArgumentsWithAccessToken(overwittenAjaxArguments);
+            
             // Re-executes the orginial request
-            var ajaxPromise = $.ajax(originalAjaxArguments);
+            var ajaxPromise = $.ajax(overwittenAjaxArguments[0]);
             ajaxPromise.done($.proxy(this._onOriginalRequestReplayedDone, this, oAuthPromise));
             ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oAuthPromise));
     

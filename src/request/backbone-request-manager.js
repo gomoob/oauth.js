@@ -779,8 +779,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
         //          contains the technical identifier of the user on the platform
         this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
 
+        var overwittenAjaxArguments = this._cloneAjaxArguments(originalAjaxArguments);
+        overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
+        
+        // Updates the AJAX arguments by adding the OAuth 2.0 Access Token stored in the client storage
+        // FIXME: Ici il se peut que les arguments AJAX aient déjà un token OAuth 2.0 et qu'il faille le remplacer....
+        this._updateAjaxArgumentsWithAccessToken(overwittenAjaxArguments);
+        
         // Re-executes the orginial request
-        var ajaxPromise = $.ajax(originalAjaxArguments);
+        var ajaxPromise = $.ajax(overwittenAjaxArguments[0]);
         ajaxPromise.done($.proxy(this._onOriginalRequestReplayedDone, this, oAuthPromise));
         ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oAuthPromise));
 
