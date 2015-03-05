@@ -233,6 +233,15 @@
     OAuth.StorageManager.prototype = {
     
         /**
+         * Clear all the informations stored using this storage manage.
+         */
+        clear : function() {
+            
+            this._storage.removeItem(this._storageKey + '.accessTokenResponse');
+            
+        },
+                                      
+        /**
          * Gets the last Access Token stored.
          * 
          * @return {String} The last Access Token stored or null if no Access Token is stored.
@@ -772,11 +781,19 @@
             
         },
         
-        
-        logout : function(cb) {
+        /**
+         * Function used to logout a user.
+         * 
+         * @param logoutCb A callback to be called after the logout is done.
+         */
+        logout : function(logoutCb) {
           
-            // TODO: A implémenter...
+            // Clears the storage manage by the storage manager
+            this._storageManager.clear();
             
+            // Calls the provided callback function
+            logoutCb();
+    
         },
     
         /**
@@ -1371,10 +1388,27 @@
 
     };
 
+    /**
+     * Function used to login a user. 
+     * 
+     * @param cb A callback function to be called when a login action has been done.
+     * @param opts Options used to configure the login.
+     */
     OAuth.login = function(cb, opts) {
     
         OAuth._requestManager.login(cb, opts);
 
+    };
+    
+    /**
+     * Function used to logout a user.
+     * 
+     * @param cb A callback to be called after the logout is done.
+     */
+    OAuth.logout = function(cb) {
+        
+        OAuth._requestManager.logout(cb);
+        
     };
 
     return OAuth;

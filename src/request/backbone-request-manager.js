@@ -397,11 +397,19 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
     },
     
-    
-    logout : function(cb) {
+    /**
+     * Function used to logout a user.
+     * 
+     * @param logoutCb A callback to be called after the logout is done.
+     */
+    logout : function(logoutCb) {
       
-        // TODO: A implémenter...
+        // Clears the storage manage by the storage manager
+        this._storageManager.clear();
         
+        // Calls the provided callback function
+        logoutCb();
+
     },
 
     /**

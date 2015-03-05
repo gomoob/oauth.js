@@ -55,6 +55,15 @@ OAuth.StorageManager = function(configuration) {
 OAuth.StorageManager.prototype = {
 
     /**
+     * Clear all the informations stored using this storage manage.
+     */
+    clear : function() {
+        
+        this._storage.removeItem(this._storageKey + '.accessTokenResponse');
+        
+    },
+                                  
+    /**
      * Gets the last Access Token stored.
      * 
      * @return {String} The last Access Token stored or null if no Access Token is stored.
