@@ -1077,14 +1077,7 @@
                 // 'access_token' argument to the URL only if the 'secured' special parameter is true
                 else if(ajaxArguments[0].secured) {
     
-                    // No 'data' object is linked to we create a new one
-                    if(!ajaxArguments[0].data) {
-                        
-                        ajaxArguments[0].data = {};
-    
-                    }
-                    
-                    ajaxArguments[0].data.access_token = accessToken;
+                    ajaxArguments[0].url = OAuth.UrlUtils.addArgument(ajaxArguments[0].url, 'access_token', accessToken);
     
                 }
     

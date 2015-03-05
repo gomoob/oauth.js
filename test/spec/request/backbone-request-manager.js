@@ -247,7 +247,7 @@ env(
                         }
                     );
                     expect($.ajax.calledOnce).to.be.true();
-                    expect($.ajax.getCall(0).args[0].data.access_token).to.equal('ACCESS_TOKEN');
+                    expect($.ajax.getCall(0).args[0].url).to.equal('http://test1.com?access_token=ACCESS_TOKEN');
                     
                     // Test with a URL provided in a configuration object
                     Backbone.ajax(
@@ -257,7 +257,7 @@ env(
                         }
                     );
                     expect($.ajax.calledTwice).to.be.true();
-                    expect($.ajax.getCall(1).args[0].data.access_token).to.equal('ACCESS_TOKEN');
+                    expect($.ajax.getCall(1).args[0].url).to.equal('http://test2.com?access_token=ACCESS_TOKEN');
                     
                 });
                 
