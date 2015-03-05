@@ -134,7 +134,7 @@
             this._loginFnOpts = loginFnOpts;
             
             // Sends the credentials with OAuth.JS
-            // TODO: Ici il serait beaucoup plus propre de lever un événement intercepter par le Request Manager pour ne pas 
+            // TODO: Ici il serait beaucoup plus propre de lever un événement intercepté par le Request Manager pour ne pas 
             //       avoir de dépendance vers le Request Manager
             this._requestManager._login(this, credentials, loginFnCb);
     
@@ -290,6 +290,82 @@
         }
         
     };
+    /**
+     * Utility class used to manipulate URLs.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class UrlUtils
+     * @memberof OAuth
+     */
+    OAuth.UrlUtils = {
+    
+        /**
+         * Utility function used to append an argument to a URL, if the argument is already present in the URL this argument
+         * value is updated with the new argument value.
+         * 
+         * @param {String} url The string into which one to add an argument.
+         * @param {String} name The name of the argument to add.
+         * @param {String} value The value of the argument to add.
+         * 
+         * @param {String} The URL with the added argument.
+         */
+        addArgument : function(url, name, value) {
+            
+            var updatedUrl = url, 
+                nameEqual = name + '=',
+                argumentPos = url.indexOf(nameEqual);
+            
+            // If the provided URL has already parameters
+            if(url.indexOf('?') !== -1) {
+                
+                // If the provided URL already has the argument
+                if(argumentPos !== -1) {
+                    
+                    // Creates a URL prefix 'http://a.b.com?a=1&b=2&name=' and a URL suffix 'value=xxx&c=3&d=4'
+                    var prefix = updatedUrl.substring(0, argumentPos + nameEqual.length), 
+                        suffix = updatedUrl.substring(prefix.length), 
+                        nextArgumentPos = suffix.indexOf('&');
+                    
+                    // Their is no additional argument in the suffix so we can safely rebuild the URL with the new argument 
+                    // value
+                    if(nextArgumentPos === -1) {
+                        
+                        updatedUrl = prefix + value;
+                        
+                    } 
+                    
+                    // Otherwise we remove the old argument value from the suffix and rebuild the URL with the new argument 
+                    // value
+                    else {
+                        
+                        suffix = suffix.substring(nextArgumentPos);
+                        updatedUrl = prefix + value + suffix;
+    
+                    }
+                    
+                } 
+                
+                // Otherwise we can safely add the URL argument at the end of the URL
+                else {
+                    
+                    updatedUrl = updatedUrl + '&' + nameEqual + value;    
+                    
+                }
+            } 
+            
+            // Otherwise we can safely add the URL argument
+            else {
+                
+                updatedUrl = updatedUrl + '?' + nameEqual + value;
+    
+            }
+    
+            return updatedUrl;
+    
+        }
+                      
+    };
+    
     OAuth.Request.AngularRequestManager = function(configuration) {};
     OAuth.Request.AngularRequestManager.prototype = {
     
@@ -967,27 +1043,30 @@
             var accessToken = this._storageManager.getAccessToken();
             
             // Appends the 'access_token' URL parameter
-            if(accessToken && ajaxArguments[0].secured) {
+            if(accessToken) {
     
                 // The '$.ajax' method is called with a URL directly provided
                 if(typeof ajaxArguments[0] === 'string') {
                     
-                    /* jshint ignore:start */
-                    ajaxArguments[0] += ajaxArguments[0].indexOf('?') === -1 ? '?' : '&';
-                    ajaxArguments[0] += 'access_token';
-                    ajaxArguments[0] += '=';
-                    ajaxArguments[0] += accessToken;
-                    /* jshint ignore:end */
+                    // FIXME: Ici on considère de manière systématique que la requête est authentifié ce qui n'est pas 
+                    //        toujours ce que voudra le dévelopeur. Il nous faudrait peut-être un paramètre de configuration 
+                    //        'securedByDefault'.
+                    ajaxArguments[0] = OAuth.UrlUtils.addArgument(ajaxArguments[0], 'access_token', accessToken);
     
                 }
                 
-                // The '$.ajax' method is called with a URL inside a configuration object
-                else {
-        
-                    ajaxArguments[0].url += ajaxArguments[0].url.indexOf('?') === -1 ? '?' : '&';
-                    ajaxArguments[0].url += 'access_token';
-                    ajaxArguments[0].url += '=';
-                    ajaxArguments[0].url += accessToken;
+                // The '$.ajax' method is called with a URL inside a configuration object, in this case we add the 
+                // 'access_token' argument to the URL only if the 'secured' special parameter is true
+                else if(ajaxArguments[0].secured) {
+    
+                    // No 'data' object is linked to we create a new one
+                    if(!ajaxArguments[0].data) {
+                        
+                        ajaxArguments[0].data = {};
+    
+                    }
+                    
+                    ajaxArguments[0].data.access_token = accessToken;
     
                 }
     

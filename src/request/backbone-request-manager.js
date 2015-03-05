@@ -668,27 +668,30 @@ OAuth.Request.BackboneRequestManager.prototype = {
         var accessToken = this._storageManager.getAccessToken();
         
         // Appends the 'access_token' URL parameter
-        if(accessToken && ajaxArguments[0].secured) {
+        if(accessToken) {
 
             // The '$.ajax' method is called with a URL directly provided
             if(typeof ajaxArguments[0] === 'string') {
                 
-                /* jshint ignore:start */
-                ajaxArguments[0] += ajaxArguments[0].indexOf('?') === -1 ? '?' : '&';
-                ajaxArguments[0] += 'access_token';
-                ajaxArguments[0] += '=';
-                ajaxArguments[0] += accessToken;
-                /* jshint ignore:end */
+                // FIXME: Ici on considère de manière systématique que la requête est authentifié ce qui n'est pas 
+                //        toujours ce que voudra le dévelopeur. Il nous faudrait peut-être un paramètre de configuration 
+                //        'securedByDefault'.
+                ajaxArguments[0] = OAuth.UrlUtils.addArgument(ajaxArguments[0], 'access_token', accessToken);
 
             }
             
-            // The '$.ajax' method is called with a URL inside a configuration object
-            else {
-    
-                ajaxArguments[0].url += ajaxArguments[0].url.indexOf('?') === -1 ? '?' : '&';
-                ajaxArguments[0].url += 'access_token';
-                ajaxArguments[0].url += '=';
-                ajaxArguments[0].url += accessToken;
+            // The '$.ajax' method is called with a URL inside a configuration object, in this case we add the 
+            // 'access_token' argument to the URL only if the 'secured' special parameter is true
+            else if(ajaxArguments[0].secured) {
+
+                // No 'data' object is linked to we create a new one
+                if(!ajaxArguments[0].data) {
+                    
+                    ajaxArguments[0].data = {};
+
+                }
+                
+                ajaxArguments[0].data.access_token = accessToken;
 
             }
 
