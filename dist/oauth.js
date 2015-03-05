@@ -44,15 +44,14 @@
     };
 
     /**
-     * Class which represents a Credentials Promise, a credentials promise is an object which is used to send credentials to 
-     * an OAuth 2.0 server.
+     * Class which represents a Login Context, a login context is an object which transports informations to login to a 
+     * server.
      * 
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
-     * @class CredentialsPromise
+     * @class LoginContext
      * @memberof OAuth
      */
-    // TODO: Je pense que ceci devrait être renommé en LoginContext
-    OAuth.CredentialsPromise = function() {
+    OAuth.LoginContext = function() {
     
         /**
          * The credentials provided.
@@ -64,7 +63,7 @@
         /**
          * A reference to the callback function passed to the `OAuth.login(cb, opts)` method.
          * 
-         * @var {CredentialsPromise~loginCb}
+         * @var {LoginContext~loginCb}
          */
         this._loginCb = null;
         
@@ -80,7 +79,7 @@
         this._loginOpts = null;
     
         /**
-         * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
+         * A reference to the OAuth.JS Request Manager which created this Login Context object.
          * 
          * @var {OAuth.RequestManager}
          */
@@ -88,7 +87,7 @@
         
     };
     
-    OAuth.CredentialsPromise.prototype = {
+    OAuth.LoginContext.prototype = {
     
         /**
          * Gets the last credentials provided.
@@ -104,7 +103,7 @@
         /**
          * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
          * 
-         * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+         * @returns {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
          *          `OAuth.login(cb, opts)` method.
          */
         getLoginCb : function() {
@@ -123,7 +122,7 @@
          * Function to call to send credentials to an OAuth 2.0 server.
          * 
          * @param {Object} credentials 
-         * @param {CredentialsPromise~loginFnCb}
+         * @param {LoginContext~loginFnCb}
          * @param {Object} loginFnOpts
          */
         sendCredentials : function(credentials, loginFnCb, loginFnOpts) {
@@ -144,7 +143,7 @@
         /**
          * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
          * 
-         * @param {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+         * @param {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
          *        `OAuth.login(cb, opts)` method.
          */
         _setLoginCb : function(loginCb) {
@@ -165,9 +164,9 @@
         },
         
         /**
-         * Sets the Request Manager which created this Credentials Promise.
+         * Sets the Request Manager which created this Login Context.
          * 
-         * @param {OAuth.RequestManager} requestManager The Request Manager which created this Credentials Promise.
+         * @param {OAuth.RequestManager} requestManager The Request Manager which created this Login Context.
          */
         _setRequestManager : function(requestManager) {
             
@@ -309,7 +308,7 @@
          */
         this._backupedBackboneDotAjax = null;
         
-        this._credentialsPromise = null;
+        this._loginContext = null;
         
         /**
          * A string which identify the type of client this request manager is overwriting.
@@ -482,8 +481,8 @@
          */
         _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
     
-            var loginCb = this._credentialsPromise.getLoginCb(),
-                loginFnCb = this._credentialsPromise.getLoginFnCb();
+            var loginCb = this._loginContext.getLoginCb(),
+                loginFnCb = this._loginContext.getLoginFnCb();
             
             // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
             //       spécifié par OAuth 2.0.
@@ -539,8 +538,8 @@
          */
         _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
             
-            var loginCb = this._credentialsPromise.getLoginCb(),
-                loginFnCb = this._credentialsPromise.getLoginFnCb();
+            var loginCb = this._loginContext.getLoginCb(),
+                loginFnCb = this._loginContext.getLoginFnCb();
             
             // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -594,18 +593,18 @@
         },
     
         /**
-         * Function called after a 'loginFn' function is called and the 'CredentialsPromise.sendCredentials' is called. 
+         * Function called after a 'loginFn' function is called and the 'LoginContext.sendCredentials' is called. 
          * 
          * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
          *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
          */
-        _login : function(credentialsPromise) {
+        _login : function(loginContext) {
     
             // FIXME: Normalement ici les 2 objet sont toujours égaux !!!
-            this._credentialsPromise = credentialsPromise;
+            this._loginContext = loginContext;
             
             var ajaxPromise = null, 
-                credentials = this._credentialsPromise.getCredentials();
+                credentials = this._loginContext.getCredentials();
             
             if(credentials.grant_type === 'password') {
             
@@ -666,15 +665,15 @@
             // So in this case we call the 'loginFn' function
             if(this._storageManager.getAccessTokenResponse() === null) {
     
-                // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-                this._credentialsPromise = new OAuth.CredentialsPromise();
-                this._credentialsPromise._setLoginCb(loginCb);
-                this._credentialsPromise._setLoginOpts(opts);
-                this._credentialsPromise._setRequestManager(this);
+                // Creates and configures a Login Conext which is then received by the configured 'loginFn' method
+                this._loginContext = new OAuth.LoginContext();
+                this._loginContext._setLoginCb(loginCb);
+                this._loginContext._setLoginOpts(opts);
+                this._loginContext._setRequestManager(this);
     
                 // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
                 // credentials
-                this._loginFn(this._credentialsPromise);
+                this._loginFn(this._loginContext);
     
                 // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de 
                 //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la 
@@ -1083,6 +1082,7 @@
             overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
             
             // Updates the AJAX arguments by adding the OAuth 2.0 Access Token stored in the client storage
+            // FIXME: Ici il se peut que les arguments AJAX aient déjà un token OAuth 2.0 et qu'il faille le remplacer....
             this._updateAjaxArgumentsWithAccessToken(overwittenAjaxArguments);
             
             // Re-executes the orginial request
@@ -1169,7 +1169,7 @@
         _reniewAccessToken : function(originalAjaxArguments, oAuthPromise) {
     
             // If the Login Context is not initialized then it means that login has been done which is forbidden
-            if(this._credentialsPromise === null) {
+            if(this._loginContext === null) {
     
                 throw new Error('No login context found, did you miss to wrap your calls in \'OAuth.login\' ?');
     
@@ -1182,13 +1182,13 @@
             // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
             var deferred = $.Deferred();
             
-            // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-            // var credentialsPromise = new OAuth.CredentialsPromise();
-            // credentialsPromise._setLoginCb(loginCb);
-            // credentialsPromise._setLoginOpts(opts);
-            this._credentialsPromise._setRequestManager(this);
+            // Creates and configures a Login Context which is then received by the configured 'loginFn' method
+            // var loginContext = new OAuth.LoginContext();
+            // loginContext._setLoginCb(loginCb);
+            // loginContext._setLoginOpts(opts);
+            this._loginContext._setRequestManager(this);
             
-            this._loginFn(this._credentialsPromise);
+            this._loginFn(this._loginContext);
     
             deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
             deferred.fail($.proxy(function() {
@@ -1200,11 +1200,11 @@
             
             /*
             var deferred = $.Deferred(),
-                credentialsPromise = function(credentials, callback) {
+                loginContext = function(credentials, callback) {
                     deferred.resolve(credentials, callback);
                 };
     
-            this._loginFn(credentialsPromise);
+            this._loginFn(loginContext);
     
             deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
             deferred.fail(function() {

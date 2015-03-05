@@ -1,13 +1,12 @@
 /**
- * Class which represents a Credentials Promise, a credentials promise is an object which is used to send credentials to 
- * an OAuth 2.0 server.
+ * Class which represents a Login Context, a login context is an object which transports informations to login to a 
+ * server.
  * 
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
- * @class CredentialsPromise
+ * @class LoginContext
  * @memberof OAuth
  */
-// TODO: Je pense que ceci devrait être renommé en LoginContext
-OAuth.CredentialsPromise = function() {
+OAuth.LoginContext = function() {
 
     /**
      * The credentials provided.
@@ -19,7 +18,7 @@ OAuth.CredentialsPromise = function() {
     /**
      * A reference to the callback function passed to the `OAuth.login(cb, opts)` method.
      * 
-     * @var {CredentialsPromise~loginCb}
+     * @var {LoginContext~loginCb}
      */
     this._loginCb = null;
     
@@ -35,7 +34,7 @@ OAuth.CredentialsPromise = function() {
     this._loginOpts = null;
 
     /**
-     * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
+     * A reference to the OAuth.JS Request Manager which created this Login Context object.
      * 
      * @var {OAuth.RequestManager}
      */
@@ -43,7 +42,7 @@ OAuth.CredentialsPromise = function() {
     
 };
 
-OAuth.CredentialsPromise.prototype = {
+OAuth.LoginContext.prototype = {
 
     /**
      * Gets the last credentials provided.
@@ -59,7 +58,7 @@ OAuth.CredentialsPromise.prototype = {
     /**
      * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
      * 
-     * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+     * @returns {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
      *          `OAuth.login(cb, opts)` method.
      */
     getLoginCb : function() {
@@ -78,7 +77,7 @@ OAuth.CredentialsPromise.prototype = {
      * Function to call to send credentials to an OAuth 2.0 server.
      * 
      * @param {Object} credentials 
-     * @param {CredentialsPromise~loginFnCb}
+     * @param {LoginContext~loginFnCb}
      * @param {Object} loginFnOpts
      */
     sendCredentials : function(credentials, loginFnCb, loginFnOpts) {
@@ -90,7 +89,7 @@ OAuth.CredentialsPromise.prototype = {
         this._loginFnOpts = loginFnOpts;
         
         // Sends the credentials with OAuth.JS
-        // TODO: Ici il serait beaucoup plus propre de lever un événement intercepter par le Request Manager pour ne pas 
+        // TODO: Ici il serait beaucoup plus propre de lever un événement intercepté par le Request Manager pour ne pas 
         //       avoir de dépendance vers le Request Manager
         this._requestManager._login(this, credentials, loginFnCb);
 
@@ -99,7 +98,7 @@ OAuth.CredentialsPromise.prototype = {
     /**
      * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
      * 
-     * @param {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
+     * @param {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
      *        `OAuth.login(cb, opts)` method.
      */
     _setLoginCb : function(loginCb) {
@@ -120,9 +119,9 @@ OAuth.CredentialsPromise.prototype = {
     },
     
     /**
-     * Sets the Request Manager which created this Credentials Promise.
+     * Sets the Request Manager which created this Login Context.
      * 
-     * @param {OAuth.RequestManager} requestManager The Request Manager which created this Credentials Promise.
+     * @param {OAuth.RequestManager} requestManager The Request Manager which created this Login Context.
      */
     _setRequestManager : function(requestManager) {
         

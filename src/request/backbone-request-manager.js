@@ -9,7 +9,7 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
      */
     this._backupedBackboneDotAjax = null;
     
-    this._credentialsPromise = null;
+    this._loginContext = null;
     
     /**
      * A string which identify the type of client this request manager is overwriting.
@@ -182,8 +182,8 @@ OAuth.Request.BackboneRequestManager.prototype = {
      */
     _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
 
-        var loginCb = this._credentialsPromise.getLoginCb(),
-            loginFnCb = this._credentialsPromise.getLoginFnCb();
+        var loginCb = this._loginContext.getLoginCb(),
+            loginFnCb = this._loginContext.getLoginFnCb();
         
         // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
         //       spécifié par OAuth 2.0.
@@ -239,8 +239,8 @@ OAuth.Request.BackboneRequestManager.prototype = {
      */
     _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
         
-        var loginCb = this._credentialsPromise.getLoginCb(),
-            loginFnCb = this._credentialsPromise.getLoginFnCb();
+        var loginCb = this._loginContext.getLoginCb(),
+            loginFnCb = this._loginContext.getLoginFnCb();
         
         // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
         //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -294,18 +294,18 @@ OAuth.Request.BackboneRequestManager.prototype = {
     },
 
     /**
-     * Function called after a 'loginFn' function is called and the 'CredentialsPromise.sendCredentials' is called. 
+     * Function called after a 'loginFn' function is called and the 'LoginContext.sendCredentials' is called. 
      * 
      * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
      *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
      */
-    _login : function(credentialsPromise) {
+    _login : function(loginContext) {
 
         // FIXME: Normalement ici les 2 objet sont toujours égaux !!!
-        this._credentialsPromise = credentialsPromise;
+        this._loginContext = loginContext;
         
         var ajaxPromise = null, 
-            credentials = this._credentialsPromise.getCredentials();
+            credentials = this._loginContext.getCredentials();
         
         if(credentials.grant_type === 'password') {
         
@@ -366,15 +366,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // So in this case we call the 'loginFn' function
         if(this._storageManager.getAccessTokenResponse() === null) {
 
-            // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-            this._credentialsPromise = new OAuth.CredentialsPromise();
-            this._credentialsPromise._setLoginCb(loginCb);
-            this._credentialsPromise._setLoginOpts(opts);
-            this._credentialsPromise._setRequestManager(this);
+            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method
+            this._loginContext = new OAuth.LoginContext();
+            this._loginContext._setLoginCb(loginCb);
+            this._loginContext._setLoginOpts(opts);
+            this._loginContext._setRequestManager(this);
 
             // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
             // credentials
-            this._loginFn(this._credentialsPromise);
+            this._loginFn(this._loginContext);
 
             // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de 
             //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la 
@@ -870,7 +870,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
     _reniewAccessToken : function(originalAjaxArguments, oAuthPromise) {
 
         // If the Login Context is not initialized then it means that login has been done which is forbidden
-        if(this._credentialsPromise === null) {
+        if(this._loginContext === null) {
 
             throw new Error('No login context found, did you miss to wrap your calls in \'OAuth.login\' ?');
 
@@ -883,13 +883,13 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
         var deferred = $.Deferred();
         
-        // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-        // var credentialsPromise = new OAuth.CredentialsPromise();
-        // credentialsPromise._setLoginCb(loginCb);
-        // credentialsPromise._setLoginOpts(opts);
-        this._credentialsPromise._setRequestManager(this);
+        // Creates and configures a Login Context which is then received by the configured 'loginFn' method
+        // var loginContext = new OAuth.LoginContext();
+        // loginContext._setLoginCb(loginCb);
+        // loginContext._setLoginOpts(opts);
+        this._loginContext._setRequestManager(this);
         
-        this._loginFn(this._credentialsPromise);
+        this._loginFn(this._loginContext);
 
         deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
         deferred.fail($.proxy(function() {
@@ -901,11 +901,11 @@ OAuth.Request.BackboneRequestManager.prototype = {
         
         /*
         var deferred = $.Deferred(),
-            credentialsPromise = function(credentials, callback) {
+            loginContext = function(credentials, callback) {
                 deferred.resolve(credentials, callback);
             };
 
-        this._loginFn(credentialsPromise);
+        this._loginFn(loginContext);
 
         deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
         deferred.fail(function() {
