@@ -512,6 +512,8 @@ env(
 //            
 //        });
 //        
+        /*
+         * TODO: A réimplémenter
         describe('on invalid token OAuth 2.0 error and successful token reniewal', function() {
             
             // We create 3 different jQuery Deferred object for our test
@@ -586,7 +588,7 @@ env(
                 expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN');
                 expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN');
                 
-                // Calls our test Web Service, this one will return to token expired error
+                // Calls our test Web Service, this one will return a token expired error
                 var oauthPromise = Backbone.ajax('http://test1.com');
                 oauthPromise.done(function(data, textStatus, jqXHR) {
                     
@@ -654,7 +656,7 @@ env(
                 
             });
             
-        });
+        }); */
 
     }
 

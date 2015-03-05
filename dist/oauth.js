@@ -51,7 +51,15 @@
      * @class CredentialsPromise
      * @memberof OAuth
      */
+    // TODO: Je pense que ceci devrait être renommé en LoginContext
     OAuth.CredentialsPromise = function() {
+    
+        /**
+         * The credentials provided.
+         * 
+         * @var {Object}
+         */
+        this._credentials = null;
         
         /**
          * A reference to the callback function passed to the `OAuth.login(cb, opts)` method.
@@ -60,28 +68,17 @@
          */
         this._loginCb = null;
         
+        this._loginFnCb = null;
+        
+        this._loginFnOpts = null;
+        
         /**
          * A reference to the options passed to the `OAuth.login(cb, opts)` method.
          * 
          * @var {Object}
          */
         this._loginOpts = null;
-        
-        /**
-         * A deferred object which is resolved when the 'login' method of the Credentials Promise is called.
-         * 
-         * @var {jQuery.Deferred}
-         */
-        this._deferred = null;
-        
-        /**
-         * A boolean which indicate if the deferred has been resolved, the deferred is resolved when a first 
-         * 'sendCredentials' call has been done.
-         * 
-         * @var {Boolean}
-         */
-        this._deferredResolved = false;
-        
+    
         /**
          * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
          * 
@@ -94,27 +91,15 @@
     OAuth.CredentialsPromise.prototype = {
     
         /**
-         * Function to call to send credentials to an OAuth 2.0 server.
+         * Gets the last credentials provided.
          * 
-         * @param {Object} credentials 
-         * @param {CredentialsPromise~loginFnCb}
-         * @param {Object} opts
+         * @return {Object} The last credentials provided.
          */
-        sendCredentials : function(credentials, loginFnCb, opts) {
-    
-            if(this._deferredResolved) {
-                
-                this._requestManager.login(this._loginCb, this._loginOpts, this);
-                
-            } else {
-    
-                this._deferred.resolve(credentials, loginFnCb);
+        getCredentials : function() {
             
-                this._deferredResolved = true;
-    
-            }
-    
-        }, 
+            return this._credentials;
+            
+        },
         
         /**
          * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
@@ -122,11 +107,39 @@
          * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
          *          `OAuth.login(cb, opts)` method.
          */
-        _getLoginCb : function() {
+        getLoginCb : function() {
             
             return this._loginCb;
             
         },
+        
+        getLoginFnCb : function() {
+            
+            return this._loginFnCb;
+            
+        },
+                                          
+        /**
+         * Function to call to send credentials to an OAuth 2.0 server.
+         * 
+         * @param {Object} credentials 
+         * @param {CredentialsPromise~loginFnCb}
+         * @param {Object} loginFnOpts
+         */
+        sendCredentials : function(credentials, loginFnCb, loginFnOpts) {
+    
+            // Backups the provided credentials, login function callback and login function options. This is important 
+            // because those information can then be used by the request manager
+            this._credentials = credentials;
+            this._loginFnCb = loginFnCb;
+            this._loginFnOpts = loginFnOpts;
+            
+            // Sends the credentials with OAuth.JS
+            // TODO: Ici il serait beaucoup plus propre de lever un événement intercepter par le Request Manager pour ne pas 
+            //       avoir de dépendance vers le Request Manager
+            this._requestManager._login(this, credentials, loginFnCb);
+    
+        }, 
         
         /**
          * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
@@ -149,18 +162,6 @@
             
             this._loginOpts = loginOpts;
     
-        },
-        
-        /**
-         * Sets the deferred object which is resolved when the 'login' method of the Credentials Promise is called.
-         * 
-         * @param {jQuery.Deferred} deferred the deferred object which is resolved when the 'login' method of the 
-         *        Credentials Promise is called.
-         */
-        _setDeferred : function(deferred) {
-    
-            this._deferred = deferred;
-            
         },
         
         /**
@@ -307,6 +308,8 @@
          * A reference to the original `Backbone.ajax` method.
          */
         this._backupedBackboneDotAjax = null;
+        
+        this._credentialsPromise = null;
         
         /**
          * A string which identify the type of client this request manager is overwriting.
@@ -472,25 +475,21 @@
         /**
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
          * error response.
-         *  
-         * @param credentialsPromise The credentials promise which describes the context of an authenticated call. This 
-         *        object has a reference to the callback function to be called when a login action has been done, please 
-         *        note that this callback is the one passed to 'OAuth.login(cb)' and is note the one passed to the 'loginFn' 
-         *        function. 
-         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
-         *        function will only be called after the credentials sent using a credentials promise has been sent and 
-         *        processed by the server.
+         * 
          * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param errorThrown The textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
          */
-        _onTokenEndpointPostError : function(credentialsPromise, loginFnCb, jqXHR, textStatus, errorThrown) {
+        _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
     
+            var loginCb = this._credentialsPromise.getLoginCb(),
+                loginFnCb = this._credentialsPromise.getLoginFnCb();
+            
             // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
             //       spécifié par OAuth 2.0.
     
             // If the 'loginFn' function has provided a callback 'loginFnCb' callback
-            if(typeof loginFnCb !== 'undefined') {
+            if(typeof loginFnCb === 'function') {
             
                 var deferred = $.Deferred();
     
@@ -505,7 +504,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    credentialsPromise._getLoginCb()(
+                    loginCb(
                         {
                             status : jqXHR.responseJSON.error,
                             authResponse : jqXHR.responseJSON
@@ -519,7 +518,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                credentialsPromise._getLoginCb()(
+                loginCb(
                     {
                         status : jqXHR.responseJSON.error,
                         authResponse : jqXHR.responseJSON
@@ -534,16 +533,14 @@
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned a 
          * successful response.
          * 
-         * @param cb A callback function to be called when a login action has been done, please note that this callback is 
-         *        the one passed to 'OAuth.login(cb)' and is not the one passed to the 'loginFn' function. 
-         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
-         *        function will only be called after the credentials sent using a credentials promise has been sent and 
-         *        processed by the server.
          * @param data The raw data received from server side after posting informations to the OAuth 2.0 Token endpoint.
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          */
-        _onTokenEndpointPostSuccess : function(credentialsPromise, loginFnCb, data, textStatus, jqXHR) {
+        _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
+            
+            var loginCb = this._credentialsPromise.getLoginCb(),
+                loginFnCb = this._credentialsPromise.getLoginFnCb();
             
             // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
@@ -556,7 +553,7 @@
             
             // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
             // retrieval we call it
-            if(typeof loginFnCb !== 'undefined') {
+            if(typeof loginFnCb === 'function') {
             
                 var deferred = $.Deferred();
     
@@ -571,7 +568,7 @@
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    credentialsPromise._getLoginCb()(
+                    loginCb(
                         {
                             status : 'connected',
                             authResponse : data
@@ -585,7 +582,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                credentialsPromise._getLoginCb()(
+                loginCb(
                     {
                         status : 'connected',
                         authResponse : data
@@ -595,34 +592,20 @@
             }
             
         },
-        
+    
         /**
-         * Function called when a 'loginFn' function call has failed.
-         * 
-         * @param options
-         */
-        _onLoginError : function(options) {
-            
-            // TODO: Erreur à gérer
-            console.log('_onLoginError');
-            console.log(options);
-            
-        },
-        
-        /**
-         * Function called when a 'loginFn' function call is successful. 
+         * Function called after a 'loginFn' function is called and the 'CredentialsPromise.sendCredentials' is called. 
          * 
          * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
          *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
-         * @param credentials The user credentials provided by a customized login modal box or pulled from the brower local 
-         *        storage.
-         * @param loginFnCb A callback function to be called when a server login is successful, please note that this 
-         *        function will only be called after the credentials sent using a credentials promise has been sent and 
-         *        processed by the server.
          */
-        _onLoginSuccess : function(credentialsPromise, credentials, loginFnCb) {
+        _login : function(credentialsPromise) {
     
-            var ajaxPromise = null;
+            // FIXME: Normalement ici les 2 objet sont toujours égaux !!!
+            this._credentialsPromise = credentialsPromise;
+            
+            var ajaxPromise = null, 
+                credentials = this._credentialsPromise.getCredentials();
             
             if(credentials.grant_type === 'password') {
             
@@ -664,8 +647,8 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
-            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this, credentialsPromise, loginFnCb));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this, credentialsPromise, loginFnCb));
+            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
     
         },
         
@@ -676,36 +659,26 @@
          * 
          * @param loginCb A callback function to be called when a login action has been done.
          * @param opts Options used to configure the login.
-         * @param credentialsPromise A credentials promise to re-use instead of creating a new one, this is used when a 
-         *        first login fails and a new login attempt has to be done. 
          */
-        login : function(loginCb, opts, credentialsPromise) {
+        login : function(loginCb, opts) {
     
             // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
             // So in this case we call the 'loginFn' function
             if(this._storageManager.getAccessTokenResponse() === null) {
     
-                // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
-                var deferred = $.Deferred();
-                
                 // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-                var cp = credentialsPromise;
-                
-                if(!cp) {
-                    cp = new OAuth.CredentialsPromise();
-                }
-    
-                cp._setLoginCb(loginCb);
-                cp._setLoginOpts(opts);
-                cp._setRequestManager(this);
-                cp._setDeferred(deferred);
+                this._credentialsPromise = new OAuth.CredentialsPromise();
+                this._credentialsPromise._setLoginCb(loginCb);
+                this._credentialsPromise._setLoginOpts(opts);
+                this._credentialsPromise._setRequestManager(this);
     
                 // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
                 // credentials
-                this._loginFn(cp);
-                
-                deferred.done($.proxy(this._onLoginSuccess, this, cp));
-                deferred.fail($.proxy(this._onLoginError, this, cp));
+                this._loginFn(this._credentialsPromise);
+    
+                // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de 
+                //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la 
+                //        Credentials Promise n'aurait pas à dépendre du Request Manager
     
             }
             
@@ -723,9 +696,10 @@
             
         },
         
+        
         logout : function(cb) {
           
-    
+            // TODO: A implémenter...
             
         },
     
@@ -1187,7 +1161,14 @@
          *        successful.
          */
         _reniewAccessToken : function(originalAjaxArguments, oAuthPromise) {
-            
+    
+            // If the Login Context is not initialized then it means that login has been done which is forbidden
+            if(this._credentialsPromise === null) {
+    
+                throw new Error('No login context found, did you miss to wrap your calls in \'OAuth.login\' ?');
+    
+            }
+    
             console.log('_reniewAccessToken');
             
             // TODO: Créer un modèle de récupération de login / mdp ou credentials
@@ -1196,16 +1177,13 @@
             var deferred = $.Deferred();
             
             // Creates and configures a Credentials Promise which is then received by the configured 'loginFn' method
-            var credentialsPromise = new OAuth.CredentialsPromise();
+            // var credentialsPromise = new OAuth.CredentialsPromise();
             // credentialsPromise._setLoginCb(loginCb);
             // credentialsPromise._setLoginOpts(opts);
-            credentialsPromise._setDeferred(deferred);
-            credentialsPromise._setRequestManager(this);
+            this._credentialsPromise._setRequestManager(this);
             
-            this._loginFn(credentialsPromise);
-    //        deferred.done($.proxy(this._onLoginSuccess, this, loginCb));
-    //        deferred.fail($.proxy(this._onLoginError, this, loginCb));
-            
+            this._loginFn(this._credentialsPromise);
+    
             deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
             deferred.fail($.proxy(function() {
                 

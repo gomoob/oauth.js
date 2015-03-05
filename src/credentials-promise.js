@@ -6,7 +6,15 @@
  * @class CredentialsPromise
  * @memberof OAuth
  */
+// TODO: Je pense que ceci devrait être renommé en LoginContext
 OAuth.CredentialsPromise = function() {
+
+    /**
+     * The credentials provided.
+     * 
+     * @var {Object}
+     */
+    this._credentials = null;
     
     /**
      * A reference to the callback function passed to the `OAuth.login(cb, opts)` method.
@@ -15,28 +23,17 @@ OAuth.CredentialsPromise = function() {
      */
     this._loginCb = null;
     
+    this._loginFnCb = null;
+    
+    this._loginFnOpts = null;
+    
     /**
      * A reference to the options passed to the `OAuth.login(cb, opts)` method.
      * 
      * @var {Object}
      */
     this._loginOpts = null;
-    
-    /**
-     * A deferred object which is resolved when the 'login' method of the Credentials Promise is called.
-     * 
-     * @var {jQuery.Deferred}
-     */
-    this._deferred = null;
-    
-    /**
-     * A boolean which indicate if the deferred has been resolved, the deferred is resolved when a first 
-     * 'sendCredentials' call has been done.
-     * 
-     * @var {Boolean}
-     */
-    this._deferredResolved = false;
-    
+
     /**
      * A reference to the OAuth.JS Request Manager which created this Credentials Promise object.
      * 
@@ -49,27 +46,15 @@ OAuth.CredentialsPromise = function() {
 OAuth.CredentialsPromise.prototype = {
 
     /**
-     * Function to call to send credentials to an OAuth 2.0 server.
+     * Gets the last credentials provided.
      * 
-     * @param {Object} credentials 
-     * @param {CredentialsPromise~loginFnCb}
-     * @param {Object} opts
+     * @return {Object} The last credentials provided.
      */
-    sendCredentials : function(credentials, loginFnCb, opts) {
-
-        if(this._deferredResolved) {
-            
-            this._requestManager.login(this._loginCb, this._loginOpts, this);
-            
-        } else {
-
-            this._deferred.resolve(credentials, loginFnCb);
+    getCredentials : function() {
         
-            this._deferredResolved = true;
-
-        }
-
-    }, 
+        return this._credentials;
+        
+    },
     
     /**
      * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
@@ -77,11 +62,39 @@ OAuth.CredentialsPromise.prototype = {
      * @returns {CredentialsPromise~loginCb} loginCb A reference to the callback function passed to the 
      *          `OAuth.login(cb, opts)` method.
      */
-    _getLoginCb : function() {
+    getLoginCb : function() {
         
         return this._loginCb;
         
     },
+    
+    getLoginFnCb : function() {
+        
+        return this._loginFnCb;
+        
+    },
+                                      
+    /**
+     * Function to call to send credentials to an OAuth 2.0 server.
+     * 
+     * @param {Object} credentials 
+     * @param {CredentialsPromise~loginFnCb}
+     * @param {Object} loginFnOpts
+     */
+    sendCredentials : function(credentials, loginFnCb, loginFnOpts) {
+
+        // Backups the provided credentials, login function callback and login function options. This is important 
+        // because those information can then be used by the request manager
+        this._credentials = credentials;
+        this._loginFnCb = loginFnCb;
+        this._loginFnOpts = loginFnOpts;
+        
+        // Sends the credentials with OAuth.JS
+        // TODO: Ici il serait beaucoup plus propre de lever un événement intercepter par le Request Manager pour ne pas 
+        //       avoir de dépendance vers le Request Manager
+        this._requestManager._login(this, credentials, loginFnCb);
+
+    }, 
     
     /**
      * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
@@ -104,18 +117,6 @@ OAuth.CredentialsPromise.prototype = {
         
         this._loginOpts = loginOpts;
 
-    },
-    
-    /**
-     * Sets the deferred object which is resolved when the 'login' method of the Credentials Promise is called.
-     * 
-     * @param {jQuery.Deferred} deferred the deferred object which is resolved when the 'login' method of the 
-     *        Credentials Promise is called.
-     */
-    _setDeferred : function(deferred) {
-
-        this._deferred = deferred;
-        
     },
     
     /**
