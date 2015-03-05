@@ -737,15 +737,16 @@
          */
         login : function(loginCb, opts) {
     
+            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method and is also 
+            // used in the Request Manager
+            this._loginContext = new OAuth.LoginContext();
+            this._loginContext._setLoginCb(loginCb);
+            this._loginContext._setLoginOpts(opts);
+            this._loginContext._setRequestManager(this);
+            
             // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
             // So in this case we call the 'loginFn' function
             if(this._storageManager.getAccessTokenResponse() === null) {
-    
-                // Creates and configures a Login Conext which is then received by the configured 'loginFn' method
-                this._loginContext = new OAuth.LoginContext();
-                this._loginContext._setLoginCb(loginCb);
-                this._loginContext._setLoginOpts(opts);
-                this._loginContext._setRequestManager(this);
     
                 // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
                 // credentials
