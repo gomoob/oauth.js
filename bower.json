@@ -1,6 +1,6 @@
 {
-  "name": "cordova.mocks",
-  "version" : "0.1.0",
+  "name": "oauth.js",
+  "version" : "0.1.1",
   "main" : "dist/oauth.js",
   "ignore" : [
     ".project",
