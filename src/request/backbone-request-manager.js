@@ -144,7 +144,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
         //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
         //       on considère que le client est connecté ou non...
-        // TODO: Il faudrait également que l'on prévoit des événement Javascript de la même manière que ce que fait 
+        // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
         //       Facebook
 
         // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected

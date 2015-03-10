@@ -1,7 +1,7 @@
 {
     "name": "oauth.js",
     "description" : "Easily request OAuth 2.0 secured Web Services.",
-    "version": "0.1.0-alpha.1",
+    "version": "0.1.0",
     "homepage": "https://github.com/gomoob/oauth.js",
     "author": {
         "name": "GoMoob",
