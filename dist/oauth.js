@@ -375,17 +375,34 @@
                       
     };
     
-    OAuth.Request.AngularRequestManager = function(configuration) {
-        
-        /**
-         * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
-         */
-        this._loginFn = null;
+    /**
+     * Abstract class common to all OAuth.JS Request Managers.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    OAuth.Request.AbstractRequestManager = function(configuration) {
         
         /**
          * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
          */
         this._storageManager = null;
+    
+    };
+    
+    /**
+     * 
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    OAuth.Request.AngularRequestManager = function(configuration) {
+        
+        // The AngularRequestManager extends the AbstractRequestManager
+        OAuth.Request.AbstractRequestManager.apply(this, arguments);
+        
+        /**
+         * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
+         */
+        this._loginFn = null;
     
         // If a specific configuration is provided
         if(typeof configuration === 'object') {

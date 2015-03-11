@@ -46,6 +46,7 @@
     // @include login-context.js
     // @include storage-manager.js
     // @include url-utils.js
+    // @include request/abstract-request-manager.js
     // @include request/angular-request-manager.js
     // @include request/backbone-request-manager.js
 

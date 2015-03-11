@@ -4,6 +4,9 @@
  */ 
 OAuth.Request.BackboneRequestManager = function(configuration) {
 
+    // The BackboneRequestManager extends the AbstractRequestManager
+    OAuth.Request.AbstractRequestManager.apply(this, arguments);
+    
     /**
      * A reference to the original `Backbone.ajax` method.
      */
@@ -31,11 +34,6 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
      */
     this._clientId = null;
 
-    /**
-     * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
-     */
-    this._storageManager = null;
-    
     /**
      * The URL to the token endpoint used to retrieve an access and a refresh token.
      * 
