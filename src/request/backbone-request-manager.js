@@ -34,13 +34,6 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
      */
     this._clientId = null;
 
-    /**
-     * The URL to the token endpoint used to retrieve an access and a refresh token.
-     * 
-     * @property {String}
-     */
-    this._tokenEndpoint = null;
-
     // Backup the global 'Backbone.ajax' method
     if(typeof Backbone !== 'undefined' && Backbone !== null) {
         

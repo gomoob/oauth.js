@@ -13,5 +13,14 @@ OAuth.Request.AbstractRequestManager = function(configuration) {
      * @type {OAuth.StorageManager}
      */
     this._storageManager = null;
+    
+    /**
+     * The URL to the token endpoint used to retrieve an access and a refresh token.
+     * 
+     * @instance
+     * @private
+     * @type {String}
+     */
+    this._tokenEndpoint = null;
 
 };
