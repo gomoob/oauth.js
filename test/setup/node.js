@@ -9,6 +9,9 @@ global.sinon = sinon;
 
 global.slice = Array.prototype.slice;
 
+// Define Node XHMLHttpRequest for the tests
+global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
 // Used to emulate browser local storage in node
 if (typeof localStorage === 'undefined' || localStorage === null) {
 

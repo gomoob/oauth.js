@@ -48,6 +48,7 @@
         "load-grunt-tasks" : "~2.0",
         "mocha" : "~2.0",
         "node-localstorage" : "~0.3",
+        "xmlhttprequest" : "~1.7",
         "sinon" : "~1.12",
         "sinon-chai" : "~2.6", 
         "time-grunt" : "~1.0"
