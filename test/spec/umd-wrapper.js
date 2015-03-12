@@ -24,6 +24,7 @@ describe('OAuth : ', function() {
         OAuth.init(
             'angular', 
             {
+                $provide : { decorator: function(name, decorator) {} },
                 clientId : 'my-app',
                 loginFn : function(credentialsPromise) {},
                 parseErrorFn : function(xmlHttpRequest) {},

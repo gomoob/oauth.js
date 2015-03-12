@@ -500,6 +500,8 @@
         // The AngularRequestManager extends the AbstractRequestManager
         OAuth.Request.AbstractRequestManager.apply(this, arguments);
         
+        this._$provide = configuration.$provide;
+    
         /**
          * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
          */
@@ -570,8 +572,7 @@
             this._loginContext._setLoginOpts(opts);
             this._loginContext._setRequestManager(this);
             
-            var This = this, 
-                xhr = new XMLHttpRequest();
+            var xhr = new XMLHttpRequest();
         
             switch(credentials.grant_type) {
                 case 'password':
@@ -598,17 +599,8 @@
                         )
                     );
     
-                    xhr.onreadystatechange = function() {
-                        
-                        // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
-                        // This is because the special 'arguments' Javascript object is not an array
-                        // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
-                        var slicedArguments = [].slice.call(arguments);
-                        
-                        // Calls the OAuth.JS 'open' method
-                        return This._onreadystatechangeTokenEndpointPost(this, slicedArguments);
-        
-                    };
+                    xhr.onreadystatechange = 
+                        OAuth.FunctionUtils.bind(this._onreadystatechangeTokenEndpointPost, this, xhr);
                     
                     break;
                 default:
@@ -683,7 +675,7 @@
             var responseJSON = JSON.parse(xhr.responseText);
             
             // Store the refreshed OAuth 2.0 in the local storage
-            this._storageManager.persistRawAccessTokenResponse(responseJSON);
+            this._storageManager.persistRawAccessTokenResponse(xhr.responseText);
         
             // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
             // retrieval we call it
@@ -819,7 +811,31 @@
             }
             
         },
-                                                     
+                      
+        _$httpGet : function() {
+            
+            var augmentedArguments = arguments;
+            
+            // TODO: Uniquement si arguments[1] est défini et arguments[1].secured est vrai...
+            if(!augmentedArguments[1].params) {
+                augmentedArguments[1].params = {};
+            }
+            
+            // Try to get an OAuth 2.0 Access Token from the client storage
+            var accessToken = this._storageManager.getAccessToken();
+            
+            // Appends the 'access_token' URL parameter
+            if(accessToken) {
+    
+                augmentedArguments[1].params.access_token = accessToken;
+                
+            }
+            
+    
+            return this._$http.get.apply(this._$http, augmentedArguments);
+            
+        },
+        
         /**
          * Start the AngularJS Request Manager, the purpose of the start method is to overwrites the Angular JS HTTP service 
          * to manage OAuth 2.0 Access Token operations transparently.
@@ -828,6 +844,27 @@
             
             var This = this;
             
+            this._$provide.decorator(
+                '$http', 
+                function($delegate) {
+                
+                    This._$http = $delegate;
+                    
+                    var wrapper = function() {
+                    
+                        return This._$http.apply(This._$http, arguments);
+    
+                    };
+    
+                    // TODO: Faire une surcharge complète...
+                    wrapper.get = OAuth.FunctionUtils.bind(This._$httpGet, This);
+    
+                    return wrapper;
+                    
+                }
+            );
+            
+    /*        
             // Backup the original XHMLHttpRequest 'open' method to reuse it
             this._backupedOpen = XMLHttpRequest.prototype.open;
         
@@ -844,6 +881,8 @@
                 return This._open(this, slicedArguments);
                 
             };
+    */
+    
         },
         
         _open : function(xhr, slicedArguments) {
