@@ -76,4 +76,38 @@ describe('UrlUtils : ', function() {
         
     });
     
+    describe('When calling \'toQueryString\' with an argument which is not an object', function() {
+        
+        it('should throw an error', function() {
+            
+            expect(
+                OAuth.UrlUtils.toQueryString.bind(OAuth.UrlUtils, 'bad')
+            ).to.throw('The provided argument must be an object !');
+            
+        });
+        
+    });
+    
+    describe('When calling \'toQueryString\' with an empty object', function() {
+    
+        it('should return an empty string', function() {
+            
+            expect(OAuth.UrlUtils.toQueryString({})).to.equal('');
+            
+        });
+        
+    });
+    
+    describe('When calling \'toQueryString\' with an object', function() {
+        
+        it('should create a valid string', function() {
+            
+            expect(
+                OAuth.UrlUtils.toQueryString({a: 'a_value', b: 'b_value', c: 'c_value'})
+            ).to.equal('a=a_value&b=b_value&c=c_value');
+
+        });
+        
+    });
+    
 });

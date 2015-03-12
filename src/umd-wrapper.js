@@ -82,6 +82,7 @@
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
+    // FIXME: A renommer en 'requireConnection'
     OAuth.login = function(cb, opts) {
     
         OAuth._requestManager.login(cb, opts);
@@ -96,6 +97,13 @@
     OAuth.logout = function(cb) {
         
         OAuth._requestManager.logout(cb);
+        
+    };
+    
+    // FIXME: A renommer en 'login'
+    OAuth.sendCredentials = function(credentials, cb, opts) {
+        
+        OAuth._requestManager.sendCredentials(credentials, cb, opts);
         
     };
 
