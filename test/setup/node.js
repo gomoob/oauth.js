@@ -26,6 +26,7 @@ if (typeof localStorage === 'undefined' || localStorage === null) {
 OAuth = require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'umd-wrapper');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'login-context');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
+require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'function-utils');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'url-utils');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/abstract-request-manager');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/angular-request-manager');
