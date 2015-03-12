@@ -536,21 +536,16 @@
                     
                     // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
                     xhr.send(
-                        'grant_type=' + credentials.grant_type + 
-                        '&client_id=' + this._clientId + 
-                        '&username=' + credentials.username + 
-                        '&password=' + credentials.password
-                        // TODO: Regarder l'implémentation de la méthode jQuery.param...
-                        // @see https://github.com/jquery/jquery/blob/10399ddcf8a239acc27bdec9231b996b178224d3/src/serialize.js#L50
-                        /*{
-                            grant_type: credentials.grant_type,
-                            client_id: this._clientId,
-                            username : credentials.username,
-                            password : credentials.password
-                        }
-                        */
+                        OAuth.UrlUtils.toQueryString(
+                            {
+                                grant_type : credentials.grant_type,
+                                client_id : this._clientId,
+                                username : credentials.username,
+                                password : credentials.password
+                            }
+                        )
                     );
-                    
+    
                     xhr.onreadystatechange = function() {
                         
                         // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
