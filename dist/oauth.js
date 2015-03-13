@@ -527,6 +527,21 @@
             }
     
         };
+        
+        /**
+         * Function used to logout a user.
+         * 
+         * @param logoutCb A callback to be called after the logout is done.
+         */
+        this.logout = function(logoutCb) {
+          
+            // Clears the storage manage by the storage manager
+            this._storageManager.clear();
+            
+            // Calls the provided callback function
+            logoutCb();
+    
+        };
     
     };
     
@@ -1404,21 +1419,6 @@
                 
             }
             
-        },
-        
-        /**
-         * Function used to logout a user.
-         * 
-         * @param logoutCb A callback to be called after the logout is done.
-         */
-        logout : function(logoutCb) {
-          
-            // Clears the storage manage by the storage manager
-            this._storageManager.clear();
-            
-            // Calls the provided callback function
-            logoutCb();
-    
         },
     
         /**
