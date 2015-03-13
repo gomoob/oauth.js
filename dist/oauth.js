@@ -487,6 +487,46 @@
          * @type {String}
          */
         this._tokenEndpoint = null;
+        
+        /**
+         * Function used to determine if a user is logged in to your application. 
+         * 
+         * @param {Function} cb TODO A DOCUMENTER
+         * @returns {Boolean} forceServerCall TODO A DOCUMENTER
+         */
+        this.getLoginStatus = function(cb, forceServerCall) {
+    
+            // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une 
+            //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
+            //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
+            //       on considère que le client est connecté ou non...
+            // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
+            //       Facebook
+    
+            // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
+            if(this._storageManager.getAccessTokenResponse() === null) {
+                
+                cb(
+                    {
+                        status : 'disconnected'    
+                    }
+                );
+                
+            } 
+            
+            // Otherwise the client is considered connected
+            else {
+            
+                cb(
+                    {
+                        status : 'connected',
+                        authResponse : this._storageManager.getAccessTokenResponse()
+                    }
+                );
+    
+            }
+    
+        };
     
     };
     
@@ -1141,46 +1181,6 @@
     
         },
     
-        /**
-         * Function used to determine if a user is logged in to your application. 
-         * 
-         * @param {Function} cb
-         * @returns {Boolean}
-         */
-        getLoginStatus : function(cb, forceServerCall) {
-            
-            // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une 
-            //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
-            //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
-            //       on considère que le client est connecté ou non...
-            // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
-            //       Facebook
-    
-            // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
-            if(this._storageManager.getAccessTokenResponse() === null) {
-                
-                cb(
-                    {
-                        status : 'disconnected'    
-                    }
-                );
-                
-            } 
-            
-            // Otherwise the client is considered connected
-            else {
-            
-                cb(
-                    {
-                        status : 'connected',
-                        authResponse : this._storageManager.getAccessTokenResponse()
-                    }
-                );
-    
-            }
-    
-        },
-        
         /**
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
          * error response.
@@ -2005,6 +2005,15 @@
         OAuth._requestManager.start();
 
     };
+    
+    // TODO: Ajouter la méthode 'getAuthResponse()'
+    //       @see https://developers.facebook.com/docs/reference/javascript/FB.getAuthResponse
+    
+    OAuth.getLoginStatus = function(cb, forceServerCall) {
+        
+        return OAuth._requestManager.getLoginStatus(cb, forceServerCall);
+        
+    };
 
     /**
      * Function used to login a user. 
@@ -2012,10 +2021,10 @@
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
-    // FIXME: A renommer en 'requireConnection'
+    // FIXME: A renommer en 'requireConnection' ou 'secured()' ou 'authorized()', etc...
     OAuth.login = function(cb, opts) {
     
-        OAuth._requestManager.login(cb, opts);
+        return OAuth._requestManager.login(cb, opts);
 
     };
     
@@ -2026,15 +2035,15 @@
      */
     OAuth.logout = function(cb) {
         
-        OAuth._requestManager.logout(cb);
+        return OAuth._requestManager.logout(cb);
         
     };
     
-    // FIXME: A renommer en 'login'
+    // FIXME: A renommer en 'login' (Pas sûr que ce soit bien car on est pas vraiment identique au SDK Facebook ici).
     OAuth.sendCredentials = function(credentials, cb, opts) {
         
-        OAuth._requestManager.sendCredentials(credentials, cb, opts);
-        
+        return OAuth._requestManager.sendCredentials(credentials, cb, opts);
+
     };
 
     return OAuth;

@@ -76,6 +76,15 @@
         OAuth._requestManager.start();
 
     };
+    
+    // TODO: Ajouter la méthode 'getAuthResponse()'
+    //       @see https://developers.facebook.com/docs/reference/javascript/FB.getAuthResponse
+    
+    OAuth.getLoginStatus = function(cb, forceServerCall) {
+        
+        return OAuth._requestManager.getLoginStatus(cb, forceServerCall);
+        
+    };
 
     /**
      * Function used to login a user. 
@@ -83,10 +92,10 @@
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
-    // FIXME: A renommer en 'requireConnection'
+    // FIXME: A renommer en 'requireConnection' ou 'secured()' ou 'authorized()', etc...
     OAuth.login = function(cb, opts) {
     
-        OAuth._requestManager.login(cb, opts);
+        return OAuth._requestManager.login(cb, opts);
 
     };
     
@@ -97,15 +106,15 @@
      */
     OAuth.logout = function(cb) {
         
-        OAuth._requestManager.logout(cb);
+        return OAuth._requestManager.logout(cb);
         
     };
     
-    // FIXME: A renommer en 'login'
+    // FIXME: A renommer en 'login' (Pas sûr que ce soit bien car on est pas vraiment identique au SDK Facebook ici).
     OAuth.sendCredentials = function(credentials, cb, opts) {
         
-        OAuth._requestManager.sendCredentials(credentials, cb, opts);
-        
+        return OAuth._requestManager.sendCredentials(credentials, cb, opts);
+
     };
 
     return OAuth;

@@ -22,5 +22,45 @@ OAuth.Request.AbstractRequestManager = function(configuration) {
      * @type {String}
      */
     this._tokenEndpoint = null;
+    
+    /**
+     * Function used to determine if a user is logged in to your application. 
+     * 
+     * @param {Function} cb TODO A DOCUMENTER
+     * @returns {Boolean} forceServerCall TODO A DOCUMENTER
+     */
+    this.getLoginStatus = function(cb, forceServerCall) {
+
+        // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une 
+        //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
+        //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
+        //       on considère que le client est connecté ou non...
+        // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
+        //       Facebook
+
+        // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
+        if(this._storageManager.getAccessTokenResponse() === null) {
+            
+            cb(
+                {
+                    status : 'disconnected'    
+                }
+            );
+            
+        } 
+        
+        // Otherwise the client is considered connected
+        else {
+        
+            cb(
+                {
+                    status : 'connected',
+                    authResponse : this._storageManager.getAccessTokenResponse()
+                }
+            );
+
+        }
+
+    };
 
 };
