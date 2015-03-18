@@ -30,23 +30,36 @@
      * @namespace OAuth
      */
     var OAuth = {
-                  
+             
           /**
-           * @namespace Editor.Error
+           * @namespace OAuth.AccessToken
+           */
+          AccessToken : {},
+                 
+          /**
+           * @namespace OAuth.Error
            */
           Error : {},
                   
           /**
-           * @namespace Editor.Request
+           * @namespace OAuth.Request
            */
           Request : {}
 
     };
 
+    // @include abnf-utils.js
     // @include login-context.js
     // @include storage-manager.js
     // @include function-utils.js
     // @include url-utils.js
+    
+    // @include access-token/abstract-response.js
+    // @include access-token/critical-error-response.js
+    // @include access-token/error-response.js
+    // @include access-token/response-parser.js
+    // @include access-token/successful-response.js
+    
     // @include request/abstract-request-manager.js
     // @include request/angular-request-manager.js
     // @include request/backbone-request-manager.js

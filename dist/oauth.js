@@ -30,19 +30,267 @@
      * @namespace OAuth
      */
     var OAuth = {
-                  
+             
           /**
-           * @namespace Editor.Error
+           * @namespace OAuth.AccessToken
+           */
+          AccessToken : {},
+                 
+          /**
+           * @namespace OAuth.Error
            */
           Error : {},
                   
           /**
-           * @namespace Editor.Request
+           * @namespace OAuth.Request
            */
           Request : {}
 
     };
 
+    /**
+     * Class used to provide utilities to manage Augmented Backus-Naur Form (ABNF) Syntax used in the OAuth 2.0 
+     * specifications. Details about ABNF and OAuth 2.0 can be found in 
+     * [Appendix A.](https://tools.ietf.org/html/rfc6749#appendix-A "Augmented Backus-Naur Form (ABNF) Syntax").
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class FunctionUtils
+     * @memberof OAuth
+     * @see https://tools.ietf.org/html/rfc6749#appendix-A
+     */
+    OAuth.ABNFUtils = {
+        
+        /**
+         * Function used to check if a string is compliant with a `grant-name` (i.e compliant with `1*name-char`).
+         *  
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `grant-name`, false otherwise.
+         */
+        isValidGrantName : function(string) {
+      
+            // TODO
+            
+        },
+                   
+        /**
+         * Function used to check if a string is compliant with a `grant-type` (i.e compliant with 
+         * `grant-name / URI-reference`).
+         *  
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `grant-type`, false otherwise.
+         */
+        isValidGrantType : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with a `name-char` (i.e compliant with 
+         * `"-" / "." / "_" / DIGIT / ALPHA`).
+         *  
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `name-char`, false otherwise.
+         */
+        isValidNameChar : function(string) {
+            
+            // TODO
+            
+        },
+    
+        /**
+         * Function used to check if a string is compliant with `1*DIGIT`.
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `1*DIGIT`, false otherwise.
+         */
+        isValidOneStarDIGIT : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with `1*NQCHAR`.
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `1*NQCHAR` false otherwise.
+         */
+        isValidOneStarNQCHAR : function(string) {
+            
+            // TODO
+            
+        },
+                       
+        /**
+         * Function used to check if a string is compliant with `1*NQSCHAR`.
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `1*NQSCHAR`, false otherwise.
+         */
+        isValidOneStarNQSCHAR : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with `1*VSCHAR`. 
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `1*VSCHAR`, false otherwise.
+         */
+        isValidOneStarVSCHAR : function(string) {
+      
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with a `response-char` (i.e compliant with 
+         * `"_" / DIGIT / ALPHA`).
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `response-char`, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#appendix-A.3
+         */
+        isValidResponseChar : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with a `response-name` (i.e compliant with `1*response-char`).
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `response-name`, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#appendix-A.3
+         */
+        isValidResponseName : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with a `response-type` (i.e compliant with 
+         * `response-name *( SP response-name )`).
+         * 
+         * @param {String} string The string to check.
+         */
+        isValidResponseType : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to indicate if a string is compliant with a `scope` (i.e `scope-token *( SP scope-token )`). 
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `scope`, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#appendix-A.4
+         */
+        isValidScope : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to indicate if a string is compliant with a `scope-token` (i.e `1*NQCHAR`).
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `scope-token`, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#appendix-A.4
+         */
+        isValidScopeToken : function(string) {
+            
+            return this.isValidOneStarNQCHAR(string);
+            
+        },
+                       
+        /**
+         * Function used to check if a string is compliant with `*NQCHAR`. 
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `*NQCHAR`, false otherwise.
+         */
+        isValidStarNQCHAR : function(string) {
+    
+            // TODO
+    
+        },
+        
+        /**
+         * Function used to check if a string is compliant with `*UNICODECHARNOCRLF`. 
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `*UNICODECHARNOCRLF`, false otherwise.
+         */
+        isValidStarUNICODECHARNOCRLF : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Fuction used to check if a string is compliant with a `token-type` (i.e compliant with 
+         * `type-name / URI-reference`).
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `token-type`, false otherwise.
+         */
+        isValidTokenType : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with a `type-name` (i.e compliant with `1*name-char`).
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with a `type-name, false otherwise.
+         */
+        isValidTypeName : function(string) {
+            
+            // TODO
+            
+        },
+        
+        /**
+         * Function used to check if a string is compliant with `URI-reference`. 
+         * 
+         * @param {String} string The string to check.
+         * 
+         * @return {Boolean} True if the string is compliant with `URI-reference`, false otherwise.
+         */
+        isValidURIReference : function(string) {
+            
+            // TODO
+            
+        }
+    
+        
+                       
+    };
     /**
      * Class which represents a Login Context, a login context is an object which transports informations to login to a 
      * server.
@@ -461,6 +709,694 @@
             
         }
                       
+    };
+    
+    
+    /**
+     * Class used to represent an OAuth 2.0 Access Token response.
+     * 
+     * If the access token request is valid and authorized, the authorization server issues an access token and optional 
+     * refresh token as described in [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1").  If the 
+     * request failed client authentication or is invalid, the authorization server returns an error response as described 
+     * in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    OAuth.AccessToken.AbstractResponse = function() {
+    
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PRIVATE MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+        /**
+         * An object or array which represents the JSON response returned from the server. This attribute can null when the 
+         * server returned a response which did not represent a valid JSON type or if an error is encountered in the 
+         * response headers. If you server implementation is bad this value can also be an array (because your server 
+         * returned a valid JSON array, in this case the response is a critical one with a code equals to 
+         * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
+         * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
+         * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+         * 
+         * @instance
+         * @private
+         * @type {Object | Array}
+         */
+        var _jsonResponse = null;
+        
+        /**
+         * The XMLHttpRequest object which was used to send a request on server side and which led to the creation of this 
+         * OAuth 2.0 Access Token response.
+         * 
+         * @instance
+         * @private
+         * @type {XHMLHttpRequest}
+         */
+        var _xhr = null;
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PUBLIC MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        /**
+         * Gets an object or array which represents the JSON response returned from the server. This attribute can null when 
+         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
+         * response headers. If you server implementation is bad this value can also be an array (because your server 
+         * returned a valid JSON array, in this case the response is a critical one with a code equals to 
+         * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
+         * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
+         * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+         * 
+         * @return {Object | Array} The JSON response returned by the server.
+         */
+        this.getJsonResponse = function() {
+            
+            return _jsonResponse;
+            
+        };
+        
+        /**
+         * Gets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
+         * this OAuth 2.0 Access Token response.
+         * 
+         * @return {XHMLHttpRequest} The XMLHttpRequest object which was used to send a request on server side and which led 
+         *         to the creation of this OAuth 2.0 Access Token response.
+         */
+        this.getXhr = function() {
+            
+            return _xhr;
+            
+        };
+        
+        /**
+         * Sets an object or array which represents the JSON response returned from the server. This attribute can null when 
+         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
+         * response headers. If you server implementation is bad this value can also be an array (because your server 
+         * returned a valid JSON array, in this case the response is a critical one with a code equals to 
+         * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
+         * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
+         * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+         * 
+         * @return {Object | Array} jsonResponse The JSON response returned by the server.
+         */
+        this.setJsonResponse = function(jsonResponse) {
+            
+            _jsonResponse = jsonResponse;
+            
+        };
+        
+        /**
+         * Sets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
+         * this OAuth 2.0 Access Token response.
+         * 
+         * @param {XHMLHttpRequest} xhr The XMLHttpRequest object which was used to send a request on server side and which 
+         *        led to the creation of this OAuth 2.0 Access Token response.
+         */
+        this.setXhr = function(xhr) {
+            
+            _xhr = xhr;
+            
+        };
+        
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //STATIC MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Class used to represent a Critical Error OAuth 2.0 Access Token response.
+     * 
+     * Critial error codes ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the server returned invalid 
+     * responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors have error codes which are compliant 
+     * with the following template : '__oauth__js__${errorCode}__'.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    OAuth.AccessToken.CriticalErrorResponse = function() {
+        
+        // The CriticalResponse extends the ErrorResponse
+        OAuth.AccessToken.ErrorResponse.apply(this, arguments);
+        
+        // At the begining the error has a default code
+        this.setError('__oauth__js__uninitialized__');
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PRIVATE MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PUBLIC MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // STATIC MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * An array which stores critical error codes. Critial error codes ARE NOT DEFINED by the OAuth 2.0 RFC and are used 
+     * by OAuth.JS when the server returned invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). 
+     * Critical errors have error codes which are compliant with the following template : '__oauth__js__${errorCode}__'.
+     * 
+     * @instance
+     * @private
+     * @type {String[]}
+     */
+    OAuth.AccessToken.CriticalErrorResponse.criticalErrorCodes = [
+    
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__headers_bad_cache_control__',
+    
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__headers_bad_media_type__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__headers_bad_pragma__',
+                               
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__entity_body_invalid_json__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__entity_body_not_json__',
+    
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__uninitialized__'
+    
+    ];
+    
+    /**
+     * Class used to represent an Error OAuth 2.0 Access Token response.
+     * 
+     * If the request failed client authentication or is invalid, the authorization server returns an error response as 
+     * described in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @see https://tools.ietf.org/html/rfc6749#section-5.2
+     */
+    OAuth.AccessToken.ErrorResponse = function() {
+        
+        // The SuccessfulResponse extends the AbstractResponse
+        OAuth.AccessToken.AbstractResponse.apply(this, arguments);
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PRIVATE MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+        /**
+         * The OAuth 2.0 error code associated to this error response.
+         * 
+         * The OAuth.JS library defines 3 types of error codes : 
+         *  * Standard   : Standard error codes are error codes defined by the OAuth 2.0 RFC in 
+         *                 [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+         *  * Extension  : Extension error codes are additional error codes your application could defined or a registered 
+         *                 OAuth 2.0 extension could define. Those error codes are described by the OAuth 2.0 RFC in 
+         *                 [Section 8.5](https://tools.ietf.org/html/rfc6749#section-8.5 "Section 8.5").
+         *  * Critical   : Critial error codes ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the server 
+         *                 returned invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors 
+         *                 have error codes which are compliant with the following template : '__oauth_js__${errorCode}__'.
+         * 
+         * @instance
+         * @private
+         * @type {String}
+         */
+        var _error = '__oauth_js__uninitialized__';
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PUBLIC MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+        /**
+         * Gets the error code associated to this error response, the OAuth.JS library defines 3 types of error codes : 
+         *  * Standard   : Standard error codes are error codes defined by the OAuth 2.0 RFC in 
+         *                 [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+         *  * Extension  : Extension error codes are additional error codes your application could defined or a registered 
+         *                 OAuth 2.0 extension could define. Those error codes are described by the OAuth 2.0 RFC in 
+         *                 [Section 8.5](https://tools.ietf.org/html/rfc6749#section-8.5 "Section 8.5").
+         *  * Critical   : Critial error codes ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the server 
+         *                 returned invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors 
+         *                 have error codes which are compliant with the following template : '__oauth_js__${errorCode}__'.
+         *                 
+         * @return {String} The error code associated to this error response.
+         */
+        this.getError = function() {
+    
+            return _error;
+    
+        };
+        
+        /**
+         * Function used to indicate if this error corresponds to a critial error, Critial error codes ARE NOT DEFINED by 
+         * the OAuth 2.0 RFC and are used by OAuth.JS when the server returned invalid responses (i.e which are not 
+         * compliant with the OAuth 2.0 RFC). Critical errors have error codes which are compliant with the following 
+         * template : '__oauth_js__${errorCode}__'.
+         * 
+         * @return {Boolean} True if this error corresponds to a critical error, false otherwise.
+         */
+        this.isCriticalError = function() {
+    
+            return /^__oauth_js__[\w\d-_]+__$/.test(_error);
+    
+        };
+        
+        /**
+         * Function used to indicate if this error corresponds to an extension OAuth 2.0 error. Extension error codes are 
+         * additional error codes your application could defined or a registered OAuth 2.0 extension could define. Those 
+         * error codes are described by the OAuth 2.0 RFC in 
+         * [Section 8.5](https://tools.ietf.org/html/rfc6749#section-8.5 "Section 8.5").
+         * 
+         * @return {Boolean} True if this error corresponds to an extension OAuth 2.0 error, false otherwise.
+         */
+        this.isExtensionError = function() {
+            
+            return !this.isStandardError() && !this.isCriticalError();
+    
+        }; 
+        
+        /**
+         * Function used to indicate if this error corresponds to a standard OAuth 2.0 error. Standard error codes are error 
+         * codes defined by the OAuth 2.0 RFC in 
+         * [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+         * 
+         * @return {Boolean} True if this error corresponds to a standard OAuth 2.0 error, false otherwise.
+         */
+        this.isStandardError = function() {
+            
+            return OAuth.AccessToken.ErrorResponse.standardErrorCodes.indexOf(_error) !== -1;
+    
+        };
+        
+        /**
+         * Indicates if this response represents an OAuth 2.0 Access Token Error response.
+         * 
+         * @return {Boolean} True if this response represents an OAuth 2.0 Access Token Error response, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#section-5.2
+         */
+        this.isError = function() {
+            
+            return true;
+            
+        };
+        
+        /**
+         * Indicates if this response represents an OAuth 2.0 Access Token Successful response.
+         * 
+         * @return {Boolean} True if this response represents an OAuth 2.0 Access Token Successful response, false 
+         *         otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#section-5.1
+         */
+        this.isSuccessful = function() {
+            
+            return false;
+            
+        };
+        
+        /**
+         * Sets the error code associated to this error response, the OAuth.JS library defines 3 types of error codes : 
+         *  * Standard   : Standard error codes are error codes defined by the OAuth 2.0 RFC in 
+         *                 [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+         *  * Extension  : Extension error codes are additional error codes your application could defined or a registered 
+         *                 OAuth 2.0 extension could define. Those error codes are described by the OAuth 2.0 RFC in 
+         *                 [Section 8.5](https://tools.ietf.org/html/rfc6749#section-8.5 "Section 8.5").
+         *  * Critical   : Critial error codes ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the server 
+         *                 returned invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors 
+         *                 have error codes which are compliant with the following template : '__oauth_js__${errorCode}__'.
+         *                 
+         * @param {String} error The error code to associated to this error response.
+         */
+        this.setError = function(error) {
+            
+            _error = error;
+            
+        };
+        
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // STATIC MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * An array which stores valid OAuth 2.0 Error Access Token response error codes. Standard error codes are error 
+     * codes defined by the OAuth 2.0 RFC in 
+     * [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+     * 
+     * @instance
+     * @private
+     * @type {String[]}
+     * @see https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2"
+     */
+    OAuth.AccessToken.ErrorResponse.standardErrorCodes = [
+        
+        // The request is missing a required parameter, includes an unsupported parameter value (other than grant type),
+        // repeats a parameter, includes multiple credentials, utilizes more than one mechanism for authenticating the
+        // client, or is otherwise malformed.
+        'invalid_request',
+        
+        // Client authentication failed (e.g., unknown client, no client authentication included, or unsupported 
+        // authentication method).  The authorization server MAY return an HTTP 401 (Unauthorized) status code to 
+        // indicate which HTTP authentication schemes are supported. If the client attempted to authenticate via the 
+        // "Authorization" request header field, the authorization server MUST respond with an HTTP 401 (Unauthorized) 
+        // status code and include the "WWW-Authenticate" response header field matching the authentication scheme used 
+        // by the client.
+        'invalid_client',
+        
+        // The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is
+        // invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was 
+        // issued to another client.
+        'invalid_grant',
+        
+        // The authenticated client is not authorized to use this authorization grant type.
+        'unauthorized_client',
+        
+        // The authorization grant type is not supported by the authorization server.
+        'unsupported_grant_type',
+        
+        // The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the resource owner.
+        'invalid_scope'
+    ];
+    
+    /**
+     * Function used to indicate if a JSON response corresponds to a valid OAuth 2.0 Access Token Error response. A JSON 
+     * response corresponds to a valid OAuth 2.0 Access Token Error response if : 
+     *  * It is a valid JSON object
+     *  * It has an 'error' property
+     *  * Its 'error' property is a string
+     *  * Its 'error' property string does not include characters outside the set %x20-21 / %x23-5B / %x5D-7E
+     *  
+     * @param {Object | Array} jsonResponse An array or object which represents a JSON response returned from a server.
+     *  
+     * @return {Boolean} True if the JSON object corresponds to a valid OAuth 2.0 Access Token Error response, false 
+     *         otherwise.
+     */
+    OAuth.AccessToken.ErrorResponse.isJsonResponseValid = function(jsonResponse) {
+    
+        // The response MUST BE a JSON object
+        var valid = typeof jsonResponse === 'object';
+        
+        // The response MUST HAVE an 'error' parameter
+        valid = jsonResponse.hasOwnProperty('error');
+        
+        // The 'error' parameter MUST BE a string
+        valid = valid && typeof jsonResponse.error === 'string';
+        
+        // As described in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2") of the OAuth 2.0 
+        // specifications Values for the "error" parameter MUST NOT include characters outside the set 
+        // %x20-21 / %x23-5B / %x5D-7E.
+        // @see http://www.unicode.org/charts/PDF/U0000.pdf
+        valid = valid && /^[\x20-\x21\x23-\x5B\x5D-\x7E]+$/.test(jsonResponse.error);
+    
+        return valid;
+    
+    };
+    /**
+     * Component used to parse an OAuth 2.0 Access Token, if the result of the parsing fails then this component MUST throw 
+     * an Error.
+     * 
+     * If the access token request is valid and authorized, the authorization server issues an access token and optional 
+     * refresh token as described in [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1").  If the 
+     * request failed client authentication or is invalid, the authorization server returns an error response as described 
+     * in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    OAuth.AccessToken.AccessTokenResponseParser = function() {
+        
+        /**
+         * Function used to parse a critical error which due to an entity body which is not expressed using a valid JSON 
+         * string. Critial errors ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the server returned 
+         * invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors have error codes which 
+         * are compliant with the following template : '__oauth_js__${errorCode}__'.
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send a request to the server and which led to the 
+         *        creation of an error response.
+         *        
+         * @return {OAuth.AccessToken.ErrorResponse} The resulting OAuth.JS Access Token Response object.
+         */
+        function parseCriticalErrorNotJsonResponse(xhr) {
+    
+            var accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
+            accessTokenResponse.setError('__oauth_js__entity_body_not_json__');
+            accessTokenResponse.setXhr(xhr);
+            
+            return accessTokenResponse;
+    
+        }
+        
+        /**
+         * Function used to parse a critical error which due to an entity body which is valid JSON string but is not a valid 
+         * OAuth 2.0 JSON object. Critial errors ARE NOT DEFINED by the OAuth 2.0 RFC and are used by OAuth.JS when the 
+         * server returned invalid responses (i.e which are not compliant with the OAuth 2.0 RFC). Critical errors have 
+         * error codes which are compliant with the following template : '__oauth_js__${errorCode}__'.
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send a request to the server and which led to the 
+         *        creation of an error response.
+         * @param {Object | Array} jsonResponse A JSON object or array which is not a valid OAuth 2.0 JSON object.
+         *        
+         * @return {OAuth.AccessToken.ErrorResponse} The resulting OAuth.JS Access Token Response object.
+         */
+        function parseCriticalErrorResponse(xhr, jsonResponse) {
+    
+            var accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
+            accessTokenResponse.setError('__oauth_js__entity_body_invalid_json__');
+            accessTokenResponse.setJsonResponse(jsonResponse);
+            accessTokenResponse.setXhr(xhr);
+            
+            return accessTokenResponse;
+    
+        }
+        
+        /**
+         * Function used to parse a valid Error OAuth 2.0 Access Token response. Standard errors are errors defined by the 
+         * OAuth 2.0 RFC in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send a request to the server and which led to the 
+         *        creation of an error response.
+         * @param {Object} jsonObject A JSON object which represents the valid Error OAuth 2.0 Access Token response.
+         * 
+         * @return {OAuth.AccessToken.ErrorResponse} The resulting OAuth.JS Access Token Response object.
+         */
+        function parseErrorResponse(xhr, jsonObject) {
+            
+            var accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
+            accessTokenResponse.setError(jsonObject.error);
+            accessTokenResponse.setJsonResponse(jsonObject);
+            accessTokenResponse.setXhr(xhr);
+    
+            return accessTokenResponse;
+    
+        }
+        
+        /**
+         * Function used to parse a valid Successful OAuth 2.0 Access Token response. A successful OAuth 2.0 Access Token 
+         * response is compliant with the [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1") of 
+         * the OAuth 2.0 specifications.
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send a request to the server and which led to the 
+         *        creation of an error or successful response.
+         * @param {Object} jsonObject A JSON object which represents a Successful OAuth 2.0 Access Token response.
+         * 
+         * @return {OAuth.AccessToken.CriticalErrorResponse | OAuth.AccessToken.SuccessfulResponse} The resulting OAuth.JS 
+         *         Access Token Response object. The returned response is a critical one when the response body represents a 
+         *         valid and successful OAuth 2.0 Access Token response but their is a problems in the returned HTTP headers
+         *         . If everything is ok then a successful response object is returned. 
+         */
+        function parseSuccessfulResponse(xhr, jsonObject) {
+    
+            var accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse();
+            accessTokenResponse.setJsonResponse(jsonObject);
+            accessTokenResponse.setXhr(xhr);
+            
+            // The authorization server MUST include the HTTP "Cache-Control" response header field [RFC2616] with a value 
+            // of "no-store" in any response containing tokens, credentials, or other sensitive information, as well as the 
+            // "Pragma" response header field [RFC2616] with a value of "no-cache".
+            // TODO:
+            // '__oauth_js__headers_bad_cache_control__'
+            // '__oauth_js__headers_bad_pragma__'
+            
+            return accessTokenResponse;
+    
+        }
+    
+        /**
+         * Function used to parse a server response following a POST request to a token endpoint (see 
+         * [Section 3.2](https://tools.ietf.org/html/rfc6749#section-3.2 "Token Endpoint"). 
+         * 
+         * In this function the "parsing" has 2 purposes : 
+         *  * Check that the HTTP Response body corresponds to a OAuth 2.0 Access Token Response.
+         *  * Check that the returns HTTP headers are compliant with whats described in the OAuth 2.0 specifications.
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send a request to a Token Endpoint.
+         * 
+         * @return {OAuth.AccessToken.ErrorResponse | OAauth.AccessToken.SuccessfulResponse} An OAuth.JS Access Token 
+         *         response which represents a successful or an error parsing.
+         */
+        this.parse = function(xhr) {
+    
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Rules common to OAuth 2.0 Access Token Successful and Error responses
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            // The HTTP response MUST USE the "application/json" media type as defined by [RFC4627].
+            // TODO:
+            // __oauth_js__headers_bad_media_type__
+    
+            // Converts the entity-body into a JSON Response
+            var jsonResponse = null, 
+                response = null; 
+            
+            try {
+                
+                jsonResponse = JSON.parse(xhr.responseText);
+                
+                // The response expresses a valid OAuth 2.0 Access Token Error response
+                if(OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonResponse)) {
+    
+                    response = parseErrorResponse(xhr, jsonResponse);
+    
+                } 
+                
+                // The response expresses a valid OAuth 2.0 Access Token Successful response
+                else if(OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonResponse)) {
+    
+                    response = parseSuccessfulResponse(xhr, jsonResponse);
+    
+                }
+    
+                // The response expresses a valid JSON Type but is not a valid OAuth 2.0 Access Token Error response 
+                // neither a valid OAuth 2.0 Access Token Successful response 
+                else {
+    
+                    response = parseCriticalErrorResponse(xhr, jsonResponse);
+    
+                }
+    
+            } catch(syntaxError) {
+    
+                // The HTTP Response does not contain a JSON body
+                response = parseCriticalErrorNotJsonResponse(xhr);
+    
+            }
+    
+            return response;
+        };
+        
+    };
+    
+    /**
+     * Class used to represent a Successful OAuth 2.0 Access Token response.
+     * 
+     * If the access token request is valid and authorized, the authorization server issues an access token and optional 
+     * refresh token as described in [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1").
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @see https://tools.ietf.org/html/rfc6749#section-5.1
+     */
+    OAuth.AccessToken.SuccessfulResponse = function() {
+        
+        // The SuccessfulResponse extends the AbstractResponse
+        OAuth.AccessToken.AbstractResponse.apply(this, arguments);
+        
+        /**
+         * Indicates if this response represents an OAuth 2.0 Access Token Error response.
+         * 
+         * @return {Boolean} True if this response represents an OAuth 2.0 Access Token Error response, false otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#section-5.2
+         */
+        this.isError = function() {
+            
+            return false;
+            
+        };
+        
+        /**
+         * Indicates if this response represents an OAuth 2.0 Access Token Successful response.
+         * 
+         * @return {Boolean} True if this response represents an OAuth 2.0 Access Token Successful response, false 
+         *         otherwise.
+         * @see https://tools.ietf.org/html/rfc6749#section-5.1
+         */
+        this.isSuccessful = function() {
+            
+            return true;
+            
+        };
+        
+    };
+    
+    /**
+     * Function used to indicate if a JSON response corresponds to a valid OAuth 2.0 Access Token Successful response. A 
+     * JSON response corresponds to a valid OAuth 2.0 Access Token Successful response if : 
+     *  * It is a valid JSON object
+     *  * It has an 'access_token' property
+     *  * The 'access_token' property must be compliant with 
+     *    [Section A.12](https://tools.ietf.org/html/rfc6749#appendix-A.12 "\"access_token\" Syntax")
+     *  * It has a 'token_type' property
+     *  * The 'token_type' property must be compliant with 
+     *    [Section A.13](https://tools.ietf.org/html/rfc6749#appendix-A.13 "\"token_type\" Syntax")
+     *  * If their is an 'expires_in' property then this property must be compliant with 
+     *    [Section A.14](https://tools.ietf.org/html/rfc6749#appendix-A.14) "\"expires_in\" Syntax")
+     *  * If their is a 'refresh_token' property then this property must be compliant with 
+     *    [Section A.17](https://tools.ietf.org/html/rfc6749#appendix-A.17 "\"refresh_token\" Syntax")
+     *  * If their is a 'scope' property then this property must be compliant with 
+     *    [Section 1.4](https://tools.ietf.org/html/rfc6749#appendix-A.4 "\"scope\"" Syntax")
+     *  
+     * @param {Object | Array} jsonResponse An array or object which represents a JSON response returned from a server.
+     *  
+     * @return {Boolean} True if the JSON object corresponds to a valid OAuth 2.0 Access Token Error response, false 
+     *         otherwise.
+     */
+    OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid = function(jsonResponse) {
+      
+        // The response MUST BE a JSON object
+        var valid = typeof jsonResponse === 'object';
+        
+        // The response MUST HAVE an 'access_token' parameter
+        valid = valid && jsonResponse.hasOwnProperty('access_token');
+        
+        // The 'access_token' parameter MUST BE compliant with 
+        // [Section A.12](https://tools.ietf.org/html/rfc6749#appendix-A.12 "\"access_token\" Syntax")
+        // TODO
+        
+        // The response MUST HAVE a 'token_type' parameter
+        valid = valid && jsonResponse.hasOwnProperty('token_type');
+        
+        // The 'token_type' parameter MUST BE compliant with
+        // [Section A.13](https://tools.ietf.org/html/rfc6749#appendix-A.13 "\"token_type\" Syntax")
+        // TODO
+        
+        // In an 'expires_in' parameter value is provided it MUST BE compliant with
+        // [Section A.14](https://tools.ietf.org/html/rfc6749#appendix-A.14) "\"expires_in\" Syntax")
+        if(valid && jsonResponse.hasOwnProperty('expires_in')) {
+            
+            // TODO
+            // valid = valid && typeof response.expires_in === 'number';
+            
+        }
+        
+        // If a 'refresh_token' parameter value is provided it MUST BE compliant with
+        // [Section A.17](https://tools.ietf.org/html/rfc6749#appendix-A.17 "\"refresh_token\" Syntax")
+        if(valid && jsonResponse.hasOwnProperty('refresh_token')) {
+            
+            // TODO
+            
+        }
+        
+        // If 'scope' parameter value is provided it MUST BE compliant with
+        // [Section 1.4](https://tools.ietf.org/html/rfc6749#appendix-A.4 "\"scope\"" Syntax")
+        if(valid && jsonResponse.hasOwnProperty('scope')) {
+            
+            // TODO
+            
+        }
+    
+        return valid;
+    
     };
     
     /**
