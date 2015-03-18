@@ -124,10 +124,9 @@ OAuth.Request.AngularRequestManager.prototype = {
         var loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
     
-        // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
-        //       spécifié par OAuth 2.0.
-        var responseJSON = JSON.parse(xhr.responseText);
-    
+        // Parse the Access Token Response
+        var accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+
         // If the 'loginFn' function has provided a callback 'loginFnCb' callback
         if(typeof loginFnCb === 'function') {
         

@@ -6,6 +6,15 @@
 OAuth.Request.AbstractRequestManager = function(configuration) {
     
     /**
+     * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
+     * 
+     * @instance
+     * @private
+     * @type {OAuth.AccessToken.ResponseParser}
+     */
+    this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
+
+    /**
      * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
      * 
      * @instance

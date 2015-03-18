@@ -1,3 +1,5 @@
+/*jshint -W030 */
+
 // To use jQuery inside Node
 var env = require('jsdom').env, 
     html = '<html><body><h1>Hello World!</h1><p class="hello">Heya Big World!</body></html>';
@@ -187,7 +189,7 @@ env(
                     );
                     
                     // At the begining we have no OAuth 2.0 Access Token response stored on client side
-                    expect(requestManager.getStorageManager().getAccessTokenResponse()).to.be.null();
+                    expect(requestManager.getStorageManager().getAccessTokenResponse()).to.be.null;
                     
                     requestManager.login(function(response) {
                         
@@ -196,7 +198,7 @@ env(
                         expect(response.authResponse).to.equal('authResponse');
 
                         // After login the OAuth 2.0 response must have been stored on client side
-                        expect(requestManager.getStorageManager().getAccessTokenResponse()).to.not.be.null();
+                        expect(requestManager.getStorageManager().getAccessTokenResponse()).to.not.be.null;
                         
                         done();
                         
@@ -246,7 +248,7 @@ env(
                             secured : true
                         }
                     );
-                    expect($.ajax.calledOnce).to.be.true();
+                    expect($.ajax.calledOnce).to.be.true;
                     expect($.ajax.getCall(0).args[0].url).to.equal('http://test1.com?access_token=ACCESS_TOKEN');
                     
                     // Test with a URL provided in a configuration object
@@ -256,7 +258,7 @@ env(
                             secured : true
                         }
                     );
-                    expect($.ajax.calledTwice).to.be.true();
+                    expect($.ajax.calledTwice).to.be.true;
                     expect($.ajax.getCall(1).args[0].url).to.equal('http://test2.com?access_token=ACCESS_TOKEN');
                     
                 });
@@ -308,7 +310,7 @@ env(
                     });
                     oauthPromise.fail(function(jqXHR, textStatus, errorThrown) {
                         
-                        expect('Should not have called fail !').to.be.false();
+                        expect('Should not have called fail !').to.be.false;
                         
                     });
 
@@ -353,7 +355,7 @@ env(
                     var oauthPromise = Backbone.ajax('http://test1.com');
                     oauthPromise.done(function(data, textStatus, jqXHR) {
 
-                        expect('Should not have called done !').to.be.false();
+                        expect('Should not have called done !').to.be.false;
                         
                     });
                     oauthPromise.fail(function(jqXHR, textStatus, errorThrown) {

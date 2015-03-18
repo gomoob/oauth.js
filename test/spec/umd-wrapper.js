@@ -1,3 +1,5 @@
+/*jshint -W030 */
+
 describe('OAuth : ', function() {
     
     it('create request manager with invalid framework', function() {
@@ -46,7 +48,7 @@ describe('OAuth : ', function() {
             }
         );
         
-        expect(requestManager).to.not.be.null();
+        expect(requestManager).to.not.be.null;
 
     });
     

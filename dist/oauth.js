@@ -1125,7 +1125,7 @@
      * 
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
-    OAuth.AccessToken.AccessTokenResponseParser = function() {
+    OAuth.AccessToken.ResponseParser = function() {
         
         /**
          * Function used to parse a critical error which due to an entity body which is not expressed using a valid JSON 
@@ -1407,6 +1407,15 @@
     OAuth.Request.AbstractRequestManager = function(configuration) {
         
         /**
+         * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
+         * 
+         * @instance
+         * @private
+         * @type {OAuth.AccessToken.ResponseParser}
+         */
+        this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
+    
+        /**
          * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
          * 
          * @instance
@@ -1607,10 +1616,9 @@
             var loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
         
-            // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
-            //       spécifié par OAuth 2.0.
-            var responseJSON = JSON.parse(xhr.responseText);
-        
+            // Parse the Access Token Response
+            var accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+    
             // If the 'loginFn' function has provided a callback 'loginFnCb' callback
             if(typeof loginFnCb === 'function') {
             

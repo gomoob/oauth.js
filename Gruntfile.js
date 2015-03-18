@@ -13,7 +13,7 @@ module.exports = function(grunt) {
         /**
          * Clean task.
          */
-        clean : ['target/**/*'],
+        clean : ['tmp/**/*'],
         
         /**
          * Coveralls Task.
@@ -49,13 +49,35 @@ module.exports = function(grunt) {
         },
         
         /**
+         * JSDoc Task.
+         */
+        jsdoc : {
+            dist : {
+                src: [
+                    'jsdoc/README.md',
+                    'src/**/*.js'
+                ], 
+                options: {
+                    configure : 'jsdoc/jsdoc.conf.json',
+                    destination: 'tmp/jsdoc',
+                    template : 'node_modules/grunt-jsdoc/node_modules/ink-docstrap/template'/*,
+                    tutorials : 'tmp/replaced/jsdoc/tutorials'*/
+                }
+            }
+        },
+        
+        /**
          * JSHint Task.
          */
         jshint : {
-            lint : {
+            src : {
                 src : [
                     'Gruntfile.js',
-                    'src/**/*.js',
+                    'src/**/*.js'
+                ]
+            },
+            test : {
+                src : [
                     'test/**/*.js'
                 ]
             }
@@ -153,7 +175,8 @@ module.exports = function(grunt) {
         'test', 
         'Test the library',
         [
-            'jshint', 
+            'jshint:src',
+            'jshint:test',
             'preprocess', 
             'mochaTest' 
         ]

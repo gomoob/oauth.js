@@ -9,7 +9,7 @@
  * 
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
  */
-OAuth.AccessToken.AccessTokenResponseParser = function() {
+OAuth.AccessToken.ResponseParser = function() {
     
     /**
      * Function used to parse a critical error which due to an entity body which is not expressed using a valid JSON 

@@ -1,3 +1,5 @@
+/*jshint -W030 */
+
 describe('AccessTokenResponseStorage : ', function() {
     
     beforeEach(function() {
@@ -28,7 +30,7 @@ describe('AccessTokenResponseStorage : ', function() {
         
         it('should persist on Web Storage with default storage key', function() {
 
-            expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.be.null();
+            expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.be.null;
 
             var storageManager = new OAuth.StorageManager();
             storageManager.persistRawAccessTokenResponse(
@@ -41,10 +43,10 @@ describe('AccessTokenResponseStorage : ', function() {
                 '}'
             );
 
-            expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.not.be.null();
+            expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.not.be.null;
             
             var accessTokenResponse = storageManager.getAccessTokenResponse();
-            expect(accessTokenResponse).to.not.be.null();
+            expect(accessTokenResponse).to.not.be.null;
             expect(accessTokenResponse.access_token).to.equal('ACCESS_TOKEN');
             expect(accessTokenResponse.token_type).to.equal('bearer');
             expect(accessTokenResponse.expires_in).to.equal('3600');

@@ -1,3 +1,5 @@
+/*jshint -W030 */
+
 describe('OAuth.AccessToken.ResponseParser', function() {
 
     describe('When calling \'isError()\'', function() {
@@ -5,7 +7,7 @@ describe('OAuth.AccessToken.ResponseParser', function() {
         it('should return true', function() {
             
             var accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
-            expect(accessTokenResponse.isError()).to.be.true();
+            expect(accessTokenResponse.isError()).to.be.true;
 
         });
         
