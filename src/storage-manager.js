@@ -130,6 +130,17 @@ OAuth.StorageManager.prototype = {
 
     },
     
+    getAuthStatus : function() {
+        
+        // Retrieve the AuthStatus string representation from the storage
+        var authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+        
+        // Creates the AuthStatus object by parsing the AuthStatus string
+        // TODO
+        
+        
+    },
+    
     /**
      * Function used to persist an Access Token Response from a specified {@link XMLHttpRequest} object. 
      * 
@@ -161,10 +172,10 @@ OAuth.StorageManager.prototype = {
         
         var accessTokenResponse = null, 
             authStatus = null;
-        
+
         // Parse the Access Token Response
         accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
-        
+
         // Creates the AuthStatus object
         authStatus = new OAuth.AuthStatus(
             {

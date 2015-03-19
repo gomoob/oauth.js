@@ -108,3 +108,82 @@ OAuth.AccessToken.AbstractResponse = function() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //STATIC MEMBERS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Function used to check if a JSON object corresponds to a valid Access Token Response JSON representation. A JSON 
+ * representation of an Access Token Response to keep a description of the last OAuth 2.0 Access Token Response built 
+ * from the last server request. This function validates the objects which are produced by the 
+ * {@link OAuth.AccessToken.ErrorResponse#toJSON()} and {@link OAuth.AccessToken.SuccessfulResponse#toJSON()} functions.
+ * 
+ * @param {Object} jsonObject The JSON representation to validate.
+ * 
+ * @return {Boolean} True if the provided JSON representation is valid representation of an 
+ *         {@link OAuth.AccessToken.ErrorResponse} or {@link OAuth.AccessToken.SuccessfulResponse} object, false 
+ *         otherwise.
+ */
+OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
+
+    // The parameter MUST BE an object
+    var valid = typeof jsonObject === 'object';
+    
+    // Validates the 'jsonResponse' object property
+    if(typeof jsonObject.jsonResponse === 'object' && 
+       typeof jsonObject.jsonResponse.error === 'string') {
+        
+        valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
+        
+    } else {
+        
+        valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
+        
+    }
+    
+    // Validates the 'xhr' object property
+    valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
+
+    return valid;
+
+};
+
+/**
+ * Function used to check if a JSON object corresponds to a valid {@link XMLHttpRequest} JSON representation. A JSON 
+ * representation of the {@link XMLHttpRequest} is used by OAuth.JS to keep a description of the last request sent to 
+ * the server.
+ * 
+ * @param {Object} jsonXhr The {@link XMLHttpRequest} JSON representation to validate.
+ * 
+ * @return {Boolean} True if the provided {@link XMLHttpRequest} JSON representation is valid, false otherwise.
+ */
+OAuth.AccessToken.AbstractResponse.isJsonXhrValid = function(jsonXhr) {
+
+    // The parameter MUST BE an object
+    var valid = typeof jsonXhr === 'object';
+
+    // The object MUST HAVE a 'readyState' number property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
+    // @see http://www.w3.org/TR/XMLHttpRequest/#states
+    valid = valid && typeof jsonXhr.readyState === 'number';
+    
+    // The object MUST HAVE a 'status' number property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#the-status-attribute
+    valid = valid && typeof jsonXhr.status === 'number';
+    
+    // The object MUST HAVE a 'statusText' string property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#the-statustext-attribute
+    valid = valid && typeof jsonXhr.statusText === 'string';
+    
+    // The object MUST HAVE a 'response' string property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#the-response-attribute
+    // FIXME: This is a "complexe" property and it is not already validated
+    
+    // The object MUST HAVE a 'responseText' string property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsetext-attribute
+    valid = valid && typeof jsonXhr.responseText === 'string';
+    
+    // The object MUST HAVE a 'responseXML' string property
+    // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsexml-attribute
+    valid = valid && (jsonXhr.responseXML === null || typeof jsonXhr.responseXML === 'string');
+    
+    return valid;
+
+};

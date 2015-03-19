@@ -225,7 +225,7 @@ OAuth.AccessToken.ErrorResponse.isJsonResponseValid = function(jsonResponse) {
     var valid = typeof jsonResponse === 'object';
     
     // The response MUST HAVE an 'error' parameter
-    valid = jsonResponse.hasOwnProperty('error');
+    valid = valid && jsonResponse.hasOwnProperty('error');
     
     // The 'error' parameter MUST BE a string
     valid = valid && typeof jsonResponse.error === 'string';

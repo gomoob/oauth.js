@@ -300,7 +300,11 @@
      * @memberof OAuth
      */
     OAuth.AuthStatus = function(settings) {
-    
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PRIVATE MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         /**
          * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
          * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
@@ -324,6 +328,10 @@
          */
         var _status = 'disconnected';
         
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PUBLIC MEMBERS
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
         // TODO: A documenter, je pense qu'on peut faire que cette fonction retourne toujours quelque chose même si le 
         //       status n'est pas créé suite à une requête sur le Token Endpoint. Dans ce cas indiquer dans la 
         //       docummentation des Access Token Response que le champs 'xhr' est "fictif" si la réponse est construite 
@@ -425,6 +433,68 @@
         _status = settings.status;
         _accessTokenResponse = settings.accessTokenResponse;
     
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //STATIC MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // TODO: A documenter
+    OAuth.AuthStatus.createFromString = function(string) {
+    
+        // The provided parameter must be a string
+        if(typeof string !== 'string') {
+            
+            // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
+            //       méthode 'isCorrupted()'
+            throw new Error('The provided parameter must be a string !');
+            
+        } else {
+        
+            // The provided parameter must be a valid JSON object
+            var authStatusJson = null; 
+        
+            try {
+                authStatusJson = JSON.parse(string);
+                
+                if(OAuth.AuthStatus.isJsonValid(authStatusJson)) {
+                    
+                } else {
+                    
+                }
+                
+            } catch(syntaxError) {
+                
+                // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
+                //       méthode 'isCorrupted()'
+        
+            }
+        }
+    
+    };
+    
+    /**
+     * Function used to check if a JSON object corresponds to a valid {@link OAuth.AuthStatus} JSON representation. The 
+     * purpose of this function is to validate what would be returned by the {@link OAuth.AuthStatus#toJSON()} method.
+     * 
+     * @param {Object} jsonObject The JSON representation to validate.
+     * 
+     * @return {Boolean} True if the provided JSON representation is a valid representation of an {@link OAuth.AuthStatus} 
+     *         object, false otherwise.
+     */
+    OAuth.AuthStatus.isJsonValid = function(jsonObject) {
+        
+        // The parameter MUST BE a JSON object
+        var valid = typeof jsonObject === 'object';
+        
+        // The 'status' parameter MUST BE equal to 'connected' or 'disconnected'
+        valid = valid && (jsonObject.status === 'connected' || jsonObject.status === 'disconnected');
+        
+        // The 'accessTokenResponse' parameter MUST BE valid
+        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+    
+        return valid;
+        
     };
     /**
      * Class used to provide function utilities.
@@ -852,6 +922,17 @@
     
         },
         
+        getAuthStatus : function() {
+            
+            // Retrieve the AuthStatus string representation from the storage
+            var authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+            
+            // Creates the AuthStatus object by parsing the AuthStatus string
+            // TODO
+            
+            
+        },
+        
         /**
          * Function used to persist an Access Token Response from a specified {@link XMLHttpRequest} object. 
          * 
@@ -883,10 +964,10 @@
             
             var accessTokenResponse = null, 
                 authStatus = null;
-            
+    
             // Parse the Access Token Response
             accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
-            
+    
             // Creates the AuthStatus object
             authStatus = new OAuth.AuthStatus(
                 {
@@ -1162,6 +1243,85 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //STATIC MEMBERS
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * Function used to check if a JSON object corresponds to a valid Access Token Response JSON representation. A JSON 
+     * representation of an Access Token Response to keep a description of the last OAuth 2.0 Access Token Response built 
+     * from the last server request. This function validates the objects which are produced by the 
+     * {@link OAuth.AccessToken.ErrorResponse#toJSON()} and {@link OAuth.AccessToken.SuccessfulResponse#toJSON()} functions.
+     * 
+     * @param {Object} jsonObject The JSON representation to validate.
+     * 
+     * @return {Boolean} True if the provided JSON representation is valid representation of an 
+     *         {@link OAuth.AccessToken.ErrorResponse} or {@link OAuth.AccessToken.SuccessfulResponse} object, false 
+     *         otherwise.
+     */
+    OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
+    
+        // The parameter MUST BE an object
+        var valid = typeof jsonObject === 'object';
+        
+        // Validates the 'jsonResponse' object property
+        if(typeof jsonObject.jsonResponse === 'object' && 
+           typeof jsonObject.jsonResponse.error === 'string') {
+            
+            valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
+            
+        } else {
+            
+            valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
+            
+        }
+        
+        // Validates the 'xhr' object property
+        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
+    
+        return valid;
+    
+    };
+    
+    /**
+     * Function used to check if a JSON object corresponds to a valid {@link XMLHttpRequest} JSON representation. A JSON 
+     * representation of the {@link XMLHttpRequest} is used by OAuth.JS to keep a description of the last request sent to 
+     * the server.
+     * 
+     * @param {Object} jsonXhr The {@link XMLHttpRequest} JSON representation to validate.
+     * 
+     * @return {Boolean} True if the provided {@link XMLHttpRequest} JSON representation is valid, false otherwise.
+     */
+    OAuth.AccessToken.AbstractResponse.isJsonXhrValid = function(jsonXhr) {
+    
+        // The parameter MUST BE an object
+        var valid = typeof jsonXhr === 'object';
+    
+        // The object MUST HAVE a 'readyState' number property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
+        // @see http://www.w3.org/TR/XMLHttpRequest/#states
+        valid = valid && typeof jsonXhr.readyState === 'number';
+        
+        // The object MUST HAVE a 'status' number property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#the-status-attribute
+        valid = valid && typeof jsonXhr.status === 'number';
+        
+        // The object MUST HAVE a 'statusText' string property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#the-statustext-attribute
+        valid = valid && typeof jsonXhr.statusText === 'string';
+        
+        // The object MUST HAVE a 'response' string property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#the-response-attribute
+        // FIXME: This is a "complexe" property and it is not already validated
+        
+        // The object MUST HAVE a 'responseText' string property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsetext-attribute
+        valid = valid && typeof jsonXhr.responseText === 'string';
+        
+        // The object MUST HAVE a 'responseXML' string property
+        // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsexml-attribute
+        valid = valid && (jsonXhr.responseXML === null || typeof jsonXhr.responseXML === 'string');
+        
+        return valid;
+    
+    };
     /**
      * Class used to represent a Critical Error OAuth 2.0 Access Token response.
      * 
@@ -1485,7 +1645,7 @@
         var valid = typeof jsonResponse === 'object';
         
         // The response MUST HAVE an 'error' parameter
-        valid = jsonResponse.hasOwnProperty('error');
+        valid = valid && jsonResponse.hasOwnProperty('error');
         
         // The 'error' parameter MUST BE a string
         valid = valid && typeof jsonResponse.error === 'string';
@@ -1569,10 +1729,26 @@
         function parseErrorResponse(xhr, jsonObject) {
             
             var accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
-            accessTokenResponse.setError(jsonObject.error);
             accessTokenResponse.setJsonResponse(jsonObject);
             accessTokenResponse.setXhr(xhr);
     
+            // The XMLHttpRequest 'readyState' must be DONE
+            // TODO:
+            // '__oauth_js__ready_state_invalid__'
+    
+            // The XMLHttpRequest 'status' must be equal to 400 (Bad Request)
+            // @see https://tools.ietf.org/html/rfc6749#section-5.2
+            // TODO: En fonction de la valeur de status
+            // '__oauth_js__status_lt_1xx__',
+            // '__oauth_js__status_1xx__',
+            // '__oauth_js__status_2xx__',
+            // '__oauth_js__status_3xx__',
+            // '__oauth_js__status_4xx__',
+            // '__oauth_js__status_5xx__',
+            // '__oauth_js__status_gt_5xx__',
+            
+            accessTokenResponse.setError(jsonObject.error);
+            
             return accessTokenResponse;
     
         }

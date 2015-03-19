@@ -7,7 +7,11 @@
  * @memberof OAuth
  */
 OAuth.AuthStatus = function(settings) {
-
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // PRIVATE MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     /**
      * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
      * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
@@ -31,6 +35,10 @@ OAuth.AuthStatus = function(settings) {
      */
     var _status = 'disconnected';
     
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // PUBLIC MEMBERS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // TODO: A documenter, je pense qu'on peut faire que cette fonction retourne toujours quelque chose même si le 
     //       status n'est pas créé suite à une requête sur le Token Endpoint. Dans ce cas indiquer dans la 
     //       docummentation des Access Token Response que le champs 'xhr' est "fictif" si la réponse est construite 
@@ -132,4 +140,66 @@ OAuth.AuthStatus = function(settings) {
     _status = settings.status;
     _accessTokenResponse = settings.accessTokenResponse;
 
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//STATIC MEMBERS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: A documenter
+OAuth.AuthStatus.createFromString = function(string) {
+
+    // The provided parameter must be a string
+    if(typeof string !== 'string') {
+        
+        // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
+        //       méthode 'isCorrupted()'
+        throw new Error('The provided parameter must be a string !');
+        
+    } else {
+    
+        // The provided parameter must be a valid JSON object
+        var authStatusJson = null; 
+    
+        try {
+            authStatusJson = JSON.parse(string);
+            
+            if(OAuth.AuthStatus.isJsonValid(authStatusJson)) {
+                
+            } else {
+                
+            }
+            
+        } catch(syntaxError) {
+            
+            // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
+            //       méthode 'isCorrupted()'
+    
+        }
+    }
+
+};
+
+/**
+ * Function used to check if a JSON object corresponds to a valid {@link OAuth.AuthStatus} JSON representation. The 
+ * purpose of this function is to validate what would be returned by the {@link OAuth.AuthStatus#toJSON()} method.
+ * 
+ * @param {Object} jsonObject The JSON representation to validate.
+ * 
+ * @return {Boolean} True if the provided JSON representation is a valid representation of an {@link OAuth.AuthStatus} 
+ *         object, false otherwise.
+ */
+OAuth.AuthStatus.isJsonValid = function(jsonObject) {
+    
+    // The parameter MUST BE a JSON object
+    var valid = typeof jsonObject === 'object';
+    
+    // The 'status' parameter MUST BE equal to 'connected' or 'disconnected'
+    valid = valid && (jsonObject.status === 'connected' || jsonObject.status === 'disconnected');
+    
+    // The 'accessTokenResponse' parameter MUST BE valid
+    valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+
+    return valid;
+    
 };

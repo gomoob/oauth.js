@@ -168,6 +168,85 @@ describe('OAuth.AuthStatus : ', function() {
         
     });
     
+    describe('When calling \'isJsonValid()\' with a valid JSON representation', function() {
+        
+        it('should return true', function() {
+            
+            expect(
+                OAuth.AuthStatus.isJsonValid(
+                    {
+                        status : 'connected',
+                        accessTokenResponse : {
+                            jsonResponse : {
+                                access_token : 'access_token',
+                                refresh_token : 'refresh_token',
+                                token_type : 'Bearer',
+                                expires_in : 3600
+                            },
+                            xhr : {
+                                readyState : 4,
+                                status : 200,
+                                statusText : 'OK',
+                                response : 'THE_RESPONSE',
+                                responseText : 'THE_RESPONSE',
+                                responseXML : 'THE_RESPONSE_XML'
+                            }
+                        }
+                    }
+                )
+            ).to.be.true;
+
+        });
+        
+    });
+    
+    describe('When calling \'isJsonValid()\' with an invalid JSON representation', function() {
+        
+        it('should return true', function() {
+    
+            // Test with a parameter which is not an object
+            expect(OAuth.AuthStatus.isJsonValid('bad_type')).to.be.false;
+            
+            // Test with a bad 'status' value 
+            expect(
+                OAuth.AuthStatus.isJsonValid(
+                    {
+                        status : 'bad_value',
+                        accessTokenResponse : {
+                            jsonResponse : {
+                                access_token : 'access_token',
+                                refresh_token : 'refresh_token',
+                                token_type : 'Bearer',
+                                expires_in : 3600
+                            },
+                            xhr : {
+                                readyState : 4,
+                                status : 200,
+                                statusText : 'OK',
+                                response : 'THE_RESPONSE',
+                                responseText : 'THE_RESPONSE',
+                                responseXML : 'THE_RESPONSE_XML'
+                            }
+                        }
+                    }
+                )
+            ).to.be.false;
+            
+            // Test with a bad 'accessTokenResponse' value
+            expect(
+                OAuth.AuthStatus.isJsonValid(
+                    {
+                        status : 'connected',
+                        accessTokenResponse : {
+                            
+                        }
+                    }
+                )
+            ).to.be.false;
+        });
+
+    });
+
     describe('When calling \'toJSON()\'', function() {
         
         it('should return a valid json object', function() {

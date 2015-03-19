@@ -68,10 +68,26 @@ OAuth.AccessToken.ResponseParser = function() {
     function parseErrorResponse(xhr, jsonObject) {
         
         var accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
-        accessTokenResponse.setError(jsonObject.error);
         accessTokenResponse.setJsonResponse(jsonObject);
         accessTokenResponse.setXhr(xhr);
 
+        // The XMLHttpRequest 'readyState' must be DONE
+        // TODO:
+        // '__oauth_js__ready_state_invalid__'
+
+        // The XMLHttpRequest 'status' must be equal to 400 (Bad Request)
+        // @see https://tools.ietf.org/html/rfc6749#section-5.2
+        // TODO: En fonction de la valeur de status
+        // '__oauth_js__status_lt_1xx__',
+        // '__oauth_js__status_1xx__',
+        // '__oauth_js__status_2xx__',
+        // '__oauth_js__status_3xx__',
+        // '__oauth_js__status_4xx__',
+        // '__oauth_js__status_5xx__',
+        // '__oauth_js__status_gt_5xx__',
+        
+        accessTokenResponse.setError(jsonObject.error);
+        
         return accessTokenResponse;
 
     }
