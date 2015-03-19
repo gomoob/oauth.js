@@ -8,6 +8,26 @@ OAuth.Request.AngularRequestManager = function(configuration) {
     // The AngularRequestManager extends the AbstractRequestManager
     OAuth.Request.AbstractRequestManager.apply(this, arguments);
     
+    /**
+     * A reference to the original AngularJS `$http` service, this reference is backuped before OAuth.JS creates a 
+     * decorator around this `$http` service to modify its default behavior.
+     * 
+     * @instance
+     * @private
+     * @type {service.$http}
+     * @see https://docs.angularjs.org/api/ng/service/$http
+     */
+    this._$http = null;
+    
+    /**
+     * A reference to the AngularJS `$provide` service, this is used by OAuth.JS to create a decorator around the 
+     * `$http` service to overwrite default request behavior.
+     * 
+     * @instance
+     * @private
+     * @type {auto.$provide}
+     * @see https://docs.angularjs.org/api/auto/service/$provide
+     */
     this._$provide = configuration.$provide;
 
     /**
@@ -235,6 +255,10 @@ OAuth.Request.AngularRequestManager.prototype = {
                   
     _$httpGet : function() {
         
+        // arguments[0] : L'URL
+        // arguments[1] : L'objet 'config' passées en second arguments à la méthode get() d'AngularJS, c'est dans cet 
+        //                objet que l'on peut éventuellement avoir l'option 'secured'
+        
         var augmentedArguments = arguments;
         
         // TODO: Uniquement si arguments[1] est défini et arguments[1].secured est vrai...
@@ -251,9 +275,55 @@ OAuth.Request.AngularRequestManager.prototype = {
             augmentedArguments[1].params.access_token = accessToken;
             
         }
-        
 
-        return this._$http.get.apply(this._$http, augmentedArguments);
+        var _resolve = null,
+            _reject = null;
+
+        var httpPromise = this._$http.get.apply(this._$http, augmentedArguments), 
+            replacedHttpPromise = $q(
+                function(resolve) {
+                    _resolve(resolve);
+                },
+                function(reject) {
+                    _reject(reject);
+                }
+            );
+        
+        // TODO: 1.Créer une promise OAuth (doit être exactement pareil qu'une HttpPromise AngularJS)
+        //       2.Intercepter la promise HTTP AngularJS
+        //          a. Si succès alors résolution de la promise OAuth avec le retour de la promise AngularJS
+        //          b. Si erreur alors 
+        //            i.  si le retour serveur indique qu'un rafraichissement est possible tentative de rafraichissement 
+        //                automatique 
+        //            ii. si le retour serveur undique qu'un rafraichissement n'est pas possible déconnection (avec 
+        //                code d'erreur clair) et redirection vers la fenêtre de connexion
+
+        httpPromise.then(
+            function(response) {
+
+                // See the code of 'src/ng/http.js' => then search for 'promise.success'
+                // @see https://github.com/angular/angular.js/blob/master/src/ng/http.js#L814
+                
+                // a. Si succès alors résolution de la promise OAuth avec le retour de la promise Angular JS
+                _resolve(response);
+                
+            },
+            function(response) {
+                
+                // See the code of 'src/ng/http.js' => then search for 'promise.success'
+                // @see https://github.com/angular/angular.js/blob/master/src/ng/http.js#L823
+                
+                // b. Si erreur alors 
+                //    i.  si le retour serveur indique qu'un rafraichissement est possible tentative de rafraichissement 
+                //        automatique 
+                //    ii. si le retour serveur undique qu'un rafraichissement n'est pas possible déconnection (avec 
+                //        code d'erreur clair) et redirection vers la fenêtre de connexion
+                
+            }
+        );
+        
+        return replacedHttpPromise;
+        //return httpPromise;
         
     },
     
@@ -271,15 +341,26 @@ OAuth.Request.AngularRequestManager.prototype = {
             
                 This._$http = $delegate;
                 
+                // Create a wrapper which will proxy all its call to the original Angular JS '$http' service configured 
+                // in the request manager
                 var wrapper = function() {
                 
                     return This._$http.apply(This._$http, arguments);
 
                 };
 
-                // TODO: Faire une surcharge complète...
+                // The '$http' wrapper defines new requests methods to automatically add the required OAuth 2.0 
+                // parameter when the developer provides the special 'secured' parameter with a true value
                 wrapper.get = OAuth.FunctionUtils.bind(This._$httpGet, This);
+                // wrapper.head = OAuth.FunctionUtils.bind(This._$httpHead, This);
+                // wrapper.post = OAuth.FunctionUtils.bind(This._$httpPost, This);
+                // wrapper.put = OAuth.FunctionUtils.bind(This._$httpPu, This);
+                // wrapper.delete = OAuth.FunctionUtils.bind(This._$httpDelete, This);
+                // wrapper.jsonp = OAuth.FunctionUtils.bind(This._$httpJsonp, This);
+                // wrapper.patch = OAuth.FunctionUtils.bind(This._$httpPatch, This);
 
+                // TODO: Faire une surcharge complète...
+                
                 return wrapper;
                 
             }
