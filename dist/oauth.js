@@ -375,6 +375,12 @@
     
         };
     
+        /**
+         * Function used to create a JSON representation of this {@link AuthStatus}. This JSON representation can then be 
+         * used to persist this {@link AuthStatus} on a storage.
+         * 
+         * @return {Object} A javascript object which represents a JSON representation of this {@link AuthStatus}.
+         */
         this.toJSON = function() {
             
             return {
@@ -384,6 +390,12 @@
     
         };
         
+        /**
+         * Function used to create a string representation of this {@link AuthStatus}. This string representation can then 
+         * be used to persist this {@link AuthStatus} on a storage.
+         * 
+         * @return {String} A string representation of this {@link AuthStatus}.
+         */
         this.toString = function() {
             
             return JSON.stringify(this.toJSON());

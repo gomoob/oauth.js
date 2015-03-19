@@ -35,9 +35,8 @@ OAuth.AuthStatus = function(settings) {
     
     // TODO: A documenter, je pense qu'on peut faire que cette fonction retourne toujours quelque chose même si le 
     //       status n'est pas créé suite à une requête sur le Token Endpoint. Dans ce cas indiquer dans la 
-    //       docummentation des Access Token Response que le champs 'xhr' est null si la réponse est construite depuis 
-    //       un storage ne supportant pas la persistance d'un 'xhr'...   
-    // TODO: Il faut qu'un Access Token Response puisse être persisté dans le Local Storage
+    //       docummentation des Access Token Response que le champs 'xhr' est "fictif" si la réponse est construite 
+    //       depuis un storage...   
     /**
      * Gets the Access Token Response object which was used to create this AuthStatus object. In most cases this Access 
      * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
@@ -82,6 +81,12 @@ OAuth.AuthStatus = function(settings) {
 
     };
 
+    /**
+     * Function used to create a JSON representation of this {@link AuthStatus}. This JSON representation can then be 
+     * used to persist this {@link AuthStatus} on a storage.
+     * 
+     * @return {Object} A javascript object which represents a JSON representation of this {@link AuthStatus}.
+     */
     this.toJSON = function() {
         
         return {
@@ -91,6 +96,12 @@ OAuth.AuthStatus = function(settings) {
 
     };
     
+    /**
+     * Function used to create a string representation of this {@link AuthStatus}. This string representation can then 
+     * be used to persist this {@link AuthStatus} on a storage.
+     * 
+     * @return {String} A string representation of this {@link AuthStatus}.
+     */
     this.toString = function() {
         
         return JSON.stringify(this.toJSON());
