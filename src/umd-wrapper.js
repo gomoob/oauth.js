@@ -55,7 +55,8 @@
     // @include promise.js
     // @include storage-manager.js
     // @include url-utils.js
-
+    // @include xhr-utils.js
+    
     // @include access-token/abstract-response.js
     // @include access-token/critical-error-response.js
     // @include access-token/error-response.js

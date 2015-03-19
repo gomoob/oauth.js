@@ -946,7 +946,43 @@
                       
     };
     
-
+    /**
+     * Utility class used to manipulate {@link XMLHttpRequest} objects.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class XhrUtils
+     * @memberof OAuth 
+     * @see http://www.w3.org/TR/XMLHttpRequest
+     * @see https://github.com/ilinsky/xmlhttprequest
+     */
+    OAuth.XhrUtils = {
+    
+        /**
+         * Function used to create a JSON representation of an {@link XMLHttpRequest}, the created JSON representation allow 
+         * to backhup the state of a request somewhere (in a local storage or a cookie for exemple). Please note that the 
+         * created JSON representation cannot be used to recreate the {@link XMLHttpRequest} back.
+         * 
+         * @param {XMLHttpRequest} xhr The {@link XMLHttpRequest} object to be converted into a JSON representation.
+         * 
+         * @return {Object} A javascript object which represents a JSON representation of the provided 
+         *         {@link XMLHttpRequest} object.
+         */
+        toJSON : function(xhr) {
+            
+            // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
+            return {
+                readyState : xhr.readyState,
+                status : xhr.status,
+                statusText : xhr.statusText,
+                response : xhr.response,
+                responseText : xhr.responseText,
+                responseXML : xhr.responseXML
+            };
+    
+        }
+    
+    };
+    
     /**
      * Class used to represent an OAuth 2.0 Access Token response.
      * 
@@ -1270,15 +1306,21 @@
             
         };
         
-        // TODO: A tester et documenter
+        /**
+         * Function used to create a JSON representation of this Error OAuth 2.0 Access Token response. This JSON 
+         * representation can then be used to persist this Error OAuth 2.0 Access Token response on a storage.
+         * 
+         * @return {Object} A javascript object which represents a JSON representation of this  Error OAuth 2.0 Access Token 
+         *         response.
+         */
         this.toJSON = function() {
-            
+    
             return {
                 error : _error,
                 jsonResponse : this.getJsonResponse(),
-                xhr : this.getXhr()
+                xhr : OAuth.XhrUtils.toJSON(this.getXhr())
             };
-            
+    
         };
         
     };

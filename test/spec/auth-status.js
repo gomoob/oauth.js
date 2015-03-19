@@ -81,5 +81,92 @@ describe('OAuth.AuthStatus : ', function() {
         });
         
     });
+    
+    describe('When calling the \'getAccessTokenResponse()\'', function() {
+        
+        it('should return the Access Token Response configured in the constructor', function() {
+            
+            var accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse(),
+                authStatus = new OAuth.AuthStatus(
+                    {
+                        status : 'connected', 
+                        accessTokenResponse : accessTokenResponse
+                    }
+                );
+            
+            expect(authStatus.getAccessTokenResponse()).to.equal(accessTokenResponse);
+            
+        });
+        
+    });
+    
+    describe('When calling the \'isConnected()\' with a \'connected\' status', function() {
+        
+        it('should return true', function() {
+            
+            var authStatus = new OAuth.AuthStatus(
+                {
+                    status : 'connected', 
+                    accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
+                }
+            );
+            
+            expect(authStatus.isConnected()).to.be.true;
+            
+        });
+        
+    });
+    
+    describe('When calling the \'isConnected()\' with a \'disconnected\' status', function() {
+        
+        it('should return false', function() {
+            
+            var authStatus = new OAuth.AuthStatus(
+                {
+                    status : 'disconnected', 
+                    accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
+                }
+            );
+            
+            expect(authStatus.isConnected()).to.be.false;
+            
+        });
+        
+    });
+    
+    describe('When calling the \'isDisconnected()\' with a \'connected\' status', function() {
+        
+        it('should return false', function() {
+            
+            var authStatus = new OAuth.AuthStatus(
+                {
+                    status : 'connected', 
+                    accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
+                }
+            );
+            
+            expect(authStatus.isDisconnected()).to.be.false;
+            
+        });
+        
+    });
+    
+    describe('When calling the \'isDisconnected()\' with a \'disconnected\' status', function() {
+        
+        it('should return true', function() {
+            
+            var authStatus = new OAuth.AuthStatus(
+                {
+                    status : 'disconnected', 
+                    accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
+                }
+            );
+            
+            expect(authStatus.isDisconnected()).to.be.true;
+            
+        });
+        
+    });
+    
 
 });

@@ -31,6 +31,7 @@ require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'promise');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'function-utils');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'url-utils');
+require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'xhr-utils');
 
 // OAuth.AccessToken namespace
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/abstract-response');

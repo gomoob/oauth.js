@@ -1,4 +1,4 @@
-describe('UrlUtils : ', function() {
+describe('OAuth.UrlUtils', function() {
     
     describe('when calling \'addArgument\' with a URL wihtout any arguments', function() {
         
