@@ -301,8 +301,6 @@
      */
     OAuth.AuthStatus = function(settings) {
     
-        // TODO: Il faut maintenant que le storage manager persiste un AuthStatus
-    
         /**
          * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
          * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
@@ -1228,6 +1226,34 @@
     
         // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
         //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_lt_1xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_1xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_2xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_3xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_4xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_5xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__status_gt_5xx__',
+        
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
         '__oauth_js__uninitialized__'
     
     ];
@@ -1570,6 +1596,21 @@
             var accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse();
             accessTokenResponse.setJsonResponse(jsonObject);
             accessTokenResponse.setXhr(xhr);
+            
+            // The XMLHttpRequest 'readyState' must be DONE
+            // TODO:
+            // '__oauth_js__ready_state_invalid__'
+    
+            // The XMLHttpRequest 'status' must be equal to 200 (OK)
+            // @see https://tools.ietf.org/html/rfc6749#section-5.1
+            // TODO: En fonction de la valeur de status
+            // '__oauth_js__status_lt_1xx__',
+            // '__oauth_js__status_1xx__',
+            // '__oauth_js__status_2xx__',
+            // '__oauth_js__status_3xx__',
+            // '__oauth_js__status_4xx__',
+            // '__oauth_js__status_5xx__',
+            // '__oauth_js__status_gt_5xx__',
             
             // The authorization server MUST include the HTTP "Cache-Control" response header field [RFC2616] with a value 
             // of "no-store" in any response containing tokens, credentials, or other sensitive information, as well as the 
@@ -1998,26 +2039,13 @@
             //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour 
             //       ceci. 
             
-            var accessTokenResponse = null,
-                authStatus = null, 
+            var authStatus = null, 
                 loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
     
-            // Parse the Access Token Response
-            accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
-    
-            // Creates the AuthStatus object
-            authStatus = new new OAuth.AuthStatus(
-                {
-                    status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
-                    accessTokenResponse : accessTokenResponse
-                }
-            );
-    
-            // Persist the new AuthStatus object (this is the action which will prevent OAuth.JS to perform other successful
-            // requests)
-            // TODO:
-            
+            // Persists the response as a OAuthStatus object
+            authStatus = this._storageManager.persistAccessTokenResponse(xhr);
+                    
             // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
             // when its called we call the login callback.  
             if(typeof loginFnCb === 'function') {
@@ -2062,47 +2090,13 @@
         _onreadystatechangeTokenEndpointPost : function(xhr, slicedArguments) {
             
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
-            switch(xhr.readyState) {
-                // UNSENT
-                case 0:
-                    console.log('UNSENT');
-                    break;
-                // OPENED
-                case 1:
-                    console.log('OPENED');
-                    break;
-                // HEADERS_RECEIVED
-                case 2:
-                    console.log('HEADERS_RECEIVED');
-                    break;
-                // LOADING
-                case 3:
-                    console.log('LOADING');
-                    break;
-                // DONE
-                case 4:
-                    
-                    if(xhr.status >= 200 && xhr.status < 300) {
-                        
-                        this._onTokenEndpointPost(xhr);
-                        
-                    } else if(xhr.status >= 300 && xhr.status < 400) {
-                        
-                        console.log('DONE - 3XX');
-                        
-                    } else if(xhr.status >= 400 && xhr.status < 500) {
-                        
-                        this._onTokenEndpointPost(xhr);
-                        
-                    } else if(xhr.status >= 500 && xhr.status < 600) {
-                        
-                        console.log('DONE - 6XX');
-                        
-                    }
-                    
-                    break;
+            // If the 'readyState' is DONE then the server returned a response
+            if(xhr.readyState === xhr.DONE) {
+                
+                this._onTokenEndpointPost(xhr);
+                
             }
-        
+    
         },
                                             
         /**

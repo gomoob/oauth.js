@@ -96,6 +96,21 @@ OAuth.AccessToken.ResponseParser = function() {
         accessTokenResponse.setJsonResponse(jsonObject);
         accessTokenResponse.setXhr(xhr);
         
+        // The XMLHttpRequest 'readyState' must be DONE
+        // TODO:
+        // '__oauth_js__ready_state_invalid__'
+
+        // The XMLHttpRequest 'status' must be equal to 200 (OK)
+        // @see https://tools.ietf.org/html/rfc6749#section-5.1
+        // TODO: En fonction de la valeur de status
+        // '__oauth_js__status_lt_1xx__',
+        // '__oauth_js__status_1xx__',
+        // '__oauth_js__status_2xx__',
+        // '__oauth_js__status_3xx__',
+        // '__oauth_js__status_4xx__',
+        // '__oauth_js__status_5xx__',
+        // '__oauth_js__status_gt_5xx__',
+        
         // The authorization server MUST include the HTTP "Cache-Control" response header field [RFC2616] with a value 
         // of "no-store" in any response containing tokens, credentials, or other sensitive information, as well as the 
         // "Pragma" response header field [RFC2616] with a value of "no-cache".

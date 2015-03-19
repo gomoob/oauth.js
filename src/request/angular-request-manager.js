@@ -131,26 +131,13 @@ OAuth.Request.AngularRequestManager.prototype = {
         //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour 
         //       ceci. 
         
-        var accessTokenResponse = null,
-            authStatus = null, 
+        var authStatus = null, 
             loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
 
-        // Parse the Access Token Response
-        accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
-
-        // Creates the AuthStatus object
-        authStatus = new new OAuth.AuthStatus(
-            {
-                status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
-                accessTokenResponse : accessTokenResponse
-            }
-        );
-
-        // Persist the new AuthStatus object (this is the action which will prevent OAuth.JS to perform other successful
-        // requests)
-        // TODO:
-        
+        // Persists the response as a OAuthStatus object
+        authStatus = this._storageManager.persistAccessTokenResponse(xhr);
+                
         // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
         // when its called we call the login callback.  
         if(typeof loginFnCb === 'function') {
@@ -195,47 +182,13 @@ OAuth.Request.AngularRequestManager.prototype = {
     _onreadystatechangeTokenEndpointPost : function(xhr, slicedArguments) {
         
         // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
-        switch(xhr.readyState) {
-            // UNSENT
-            case 0:
-                console.log('UNSENT');
-                break;
-            // OPENED
-            case 1:
-                console.log('OPENED');
-                break;
-            // HEADERS_RECEIVED
-            case 2:
-                console.log('HEADERS_RECEIVED');
-                break;
-            // LOADING
-            case 3:
-                console.log('LOADING');
-                break;
-            // DONE
-            case 4:
-                
-                if(xhr.status >= 200 && xhr.status < 300) {
-                    
-                    this._onTokenEndpointPost(xhr);
-                    
-                } else if(xhr.status >= 300 && xhr.status < 400) {
-                    
-                    console.log('DONE - 3XX');
-                    
-                } else if(xhr.status >= 400 && xhr.status < 500) {
-                    
-                    this._onTokenEndpointPost(xhr);
-                    
-                } else if(xhr.status >= 500 && xhr.status < 600) {
-                    
-                    console.log('DONE - 6XX');
-                    
-                }
-                
-                break;
+        // If the 'readyState' is DONE then the server returned a response
+        if(xhr.readyState === xhr.DONE) {
+            
+            this._onTokenEndpointPost(xhr);
+            
         }
-    
+
     },
                                         
     /**

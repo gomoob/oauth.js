@@ -62,6 +62,34 @@ OAuth.AccessToken.CriticalErrorResponse.criticalErrorCodes = [
 
     // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
     //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_lt_1xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_1xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_2xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_3xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_4xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_5xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__status_gt_5xx__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
     '__oauth_js__uninitialized__'
 
 ];
