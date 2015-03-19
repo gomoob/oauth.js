@@ -292,6 +292,184 @@
                        
     };
     /**
+     * Class which represents an Authentication Status, an authentication status describes the authentication state of the 
+     * user using an app.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class AuthStatus
+     * @memberof OAuth
+     */
+    OAuth.AuthStatus = function(settings) {
+    
+        // TODO: Il faut maintenant que le storage manager persiste un AuthStatus
+    
+        /**
+         * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
+         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
+         * internally but the developer can only call the {@link #isConnected()} function.
+         * 
+         * @instance
+         * @private
+         * @type {OAuth.AccessToken.Response}
+         */
+        var _accessTokenResponse = null;
+    
+        /**
+         * The status of the current user connection, this status can only be equal to 2 values : 
+         *  * `connected`    : The user is currently connected (here "currently" means in fact it was connected the last 
+         *                     time this AuthStatus was created or refreshed / updated).
+         *  * `disconnected` : The user is currently disconnected.
+         *  
+         * @instance
+         * @private
+         * @type {String}
+         */
+        var _status = 'disconnected';
+        
+        // TODO: A documenter, je pense qu'on peut faire que cette fonction retourne toujours quelque chose même si le 
+        //       status n'est pas créé suite à une requête sur le Token Endpoint. Dans ce cas indiquer dans la 
+        //       docummentation des Access Token Response que le champs 'xhr' est null si la réponse est construite depuis 
+        //       un storage ne supportant pas la persistance d'un 'xhr'...   
+        // TODO: Il faut qu'un Access Token Response puisse être persisté dans le Local Storage
+        /**
+         * Gets the Access Token Response object which was used to create this AuthStatus object. In most cases this Access 
+         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
+         * internally but the developer can only call the {@link #isConnected()} function.
+         * 
+         * @return {OAuth.AccessToken.Response} The Access Token Response object which as used to create this OAuthStatus 
+         *         object.
+         */
+        this.getAccessTokenResponse = function() {
+    
+            return _accessTokenResponse;
+    
+        };
+    
+        /**
+         * Function used to indicate if the user is currently connected (here "currently" means in fact it was connected the 
+         * last time this AuthStatus was created or refreshed / updated). 
+         * 
+         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an 
+         * {@link OAuth.AccessToken.SuccessfulResponse} object.
+         * 
+         * @return {Boolean} True if the user is currently connected, false otherwise.
+         */
+        this.isConnected = function() {
+    
+            return _status === 'connected';
+    
+        };
+        
+        /**
+         * Function used to indicate if the user is currently disconnected (here "currently" means in fact it was 
+         * disonnected the last time this AuthStatus was created or refreshed / updated).
+         * 
+         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an 
+         * {@link OAuth.AccessToken.ErrorResponse} object.
+         * 
+         * @return {Boolean} True if the user is currently disconnected, false otherwise.
+         */
+        this.isDisconnected = function() {
+    
+            return _status === 'disconnected';
+    
+        };
+    
+        this.toJSON = function() {
+            
+            return {
+                status : _status,
+                accessTokenResponse : _accessTokenResponse.toJSON()
+            };
+    
+        };
+        
+        this.toString = function() {
+            
+            return JSON.stringify(this.toJSON());
+            
+        };
+        
+        // The settings object is mandatory
+        if(typeof settings !== 'object') {
+         
+            throw new Error('This object must be initialized with a settings object !');
+            
+        }
+        
+        // A valid status is mandatory
+        if(settings.status !== 'connected' && settings.status !== 'disconnected') {
+            
+            throw new Error('The settings oject has no status property or an invalid status property !');
+            
+        }
+        
+        // A valid access token response object is mandatory
+        if(typeof settings.accessTokenReponse !== 'object') {
+            
+            throw new Error(
+                'The settings object has not access token response object or an invalid access token response object !'
+            );
+    
+        }
+        
+        _status = settings.status;
+        _accessTokenResponse = settings.accessTokenResponse;
+    
+    };
+    /**
+     * Class used to provide function utilities.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class FunctionUtils
+     * @memberof OAuth
+     */
+    OAuth.FunctionUtils = {
+                       
+        /**
+         * Bind a function to an object, meaning that whenever the function is called, the value of this will be the object. 
+         * Optionally, pass arguments to the function to pre-fill them, also known as partial application.
+         * 
+         * NOTE: This function is the same as the Underscore JS '_.bind(func, context)' function.
+         * 
+         * @param func The function to bind.
+         * @param context The context object.
+         * 
+         * @returns The bound function.
+         * 
+         * @see http://documentcloud.github.io/underscore/docs/underscore.html#section-63
+         */
+        bind : function(func, context) {
+    
+            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-62
+            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-9 
+            var ctor = function(){},
+                slice = Array.prototype.slice, 
+                nativeBind = Function.prototype.bind;
+    
+            // Do not modify this peace of code because its a pure copy of Underscore JS '_.bind(func, context)'
+            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-63
+            /* jshint ignore:start */
+            var args, bound;
+            if (nativeBind && func.bind === nativeBind) { return nativeBind.apply(func, slice.call(arguments, 1)); }
+            if (typeof func !== 'function') throw new TypeError;
+            args = slice.call(arguments, 2);
+            return bound = function() {
+              if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+              ctor.prototype = func.prototype;
+              var self = new ctor;
+              ctor.prototype = null;
+              var result = func.apply(self, args.concat(slice.call(arguments)));
+              if (Object(result) === result) return result;
+              return self;
+            };
+            /* jshint ignore:end */
+    
+        }
+                           
+    };
+    
+    /**
      * Class which represents a Login Context, a login context is an object which transports informations to login to a 
      * server.
      * 
@@ -425,6 +603,115 @@
     };
     
     /**
+     * Class which "simulates" an ES6 promise, this class is only used internally and does not implement all aspects of ES6 
+     * promises. In fact its a very naive implementation, so DO NEVER use this class and believe its behavior is the same as 
+     * ES6 promises !
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class Promise
+     * @memberof OAuth
+     * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+     */
+    OAuth.Promise = function(executor) {
+        
+        /**
+         * An array of fullfillment listeners to be called when the promise is fullfilled.
+         * 
+         * @instance
+         * @private
+         * @type {Array}
+         */
+        _fullfillmentListeners = [];
+        
+        /**
+         * An array of rejection listeners to be called when the promise is rejected.
+         * 
+         * @instance
+         * @private
+         * @type {Array}
+         */
+        _rejectionListeners = [];
+        
+        /**
+         * The current state of the promise, available values are : 
+         *  * `pending`   : initial state, not fulfilled or rejected.
+         *  * `fulfilled` : successful operation
+         *  * `rejected`  : failed operation.
+         *  * `settled`   : the Promise is either fulfilled or rejected, but not pending.
+         *  
+         * @instance
+         * @private
+         * @type {String}
+         */
+        _state = 'pending';
+        
+        // Ensure the executor is a function
+        if(typeof executor !== 'function') {
+            
+            throw new Error('You must provide an executor function !');
+            
+        }
+        
+        executor(
+            function(value) {
+                
+                // We resolve the promise only if its state is equal to 'pending'
+                if(_state === 'pending') {
+                
+                    // Marks the promise as 'fullfilled'
+                    _state = 'fullfilled';
+                    
+                    // Call all the fullfillment listeners
+                    for(var i = 0; i < _fullfillmentListeners.length; ++i) {
+        
+                        _fullfillmentListeners[i](value);
+        
+                    }
+                }
+    
+            },
+            function(value) {
+    
+                // We reject the promise only if its state is equal to 'pending'
+                if(_state === 'pending') {
+                
+                    // Marks the promise as 'rejected'
+                    _state = 'rejected';
+                    
+                    // Call all the rejection listeners
+                    for(var i = 0; i < _rejectionListeners.length; ++i) {
+        
+                        _rejectionListeners[i](value);
+        
+                    }
+                    
+                }
+                
+            }
+        );
+        
+        /**
+         * The then() method returns a Promise. It takes two arguments, both are callback functions for the success and 
+         * failure cases of the Promise.
+         * 
+         * @param {Function} onFulfilled A Function called when the Promise is fulfilled. This function has one argument, 
+         *        the fulfillment value.
+         * @param {Function} onRejected A Function called when the Promise is rejected. This function has one argument, the 
+         *        rejection reason.
+         *        
+         * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
+         */
+        this.then = function(onFulfilled, onRejected) {
+            
+            _fullfillmentListeners.push(onFulfilled);
+            _rejectionListeners.push(onRejected);
+            
+            return this;
+            
+        };
+        
+    };
+    /**
      * 
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
@@ -548,58 +835,6 @@
         
     };
     /**
-     * Class used to provide function utilities.
-     * 
-     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
-     * @class FunctionUtils
-     * @memberof OAuth
-     */
-    OAuth.FunctionUtils = {
-                       
-        /**
-         * Bind a function to an object, meaning that whenever the function is called, the value of this will be the object. 
-         * Optionally, pass arguments to the function to pre-fill them, also known as partial application.
-         * 
-         * NOTE: This function is the same as the Underscore JS '_.bind(func, context)' function.
-         * 
-         * @param func The function to bind.
-         * @param context The context object.
-         * 
-         * @returns The bound function.
-         * 
-         * @see http://documentcloud.github.io/underscore/docs/underscore.html#section-63
-         */
-        bind : function(func, context) {
-    
-            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-62
-            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-9 
-            var ctor = function(){},
-                slice = Array.prototype.slice, 
-                nativeBind = Function.prototype.bind;
-    
-            // Do not modify this peace of code because its a pure copy of Underscore JS '_.bind(func, context)'
-            // @see http://documentcloud.github.io/underscore/docs/underscore.html#section-63
-            /* jshint ignore:start */
-            var args, bound;
-            if (nativeBind && func.bind === nativeBind) { return nativeBind.apply(func, slice.call(arguments, 1)); }
-            if (typeof func !== 'function') throw new TypeError;
-            args = slice.call(arguments, 2);
-            return bound = function() {
-              if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
-              ctor.prototype = func.prototype;
-              var self = new ctor;
-              ctor.prototype = null;
-              var result = func.apply(self, args.concat(slice.call(arguments)));
-              if (Object(result) === result) return result;
-              return self;
-            };
-            /* jshint ignore:end */
-    
-        }
-                           
-    };
-    
-    /**
      * Utility class used to manipulate URLs.
      * 
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
@@ -711,7 +946,7 @@
                       
     };
     
-    
+
     /**
      * Class used to represent an OAuth 2.0 Access Token response.
      * 
@@ -1035,6 +1270,17 @@
             
         };
         
+        // TODO: A tester et documenter
+        this.toJSON = function() {
+            
+            return {
+                error : _error,
+                jsonResponse : this.getJsonResponse(),
+                xhr : this.getXhr()
+            };
+            
+        };
+        
     };
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1327,6 +1573,16 @@
             
         };
         
+        // TODO: A tester et documenter
+        this.toJSON = function() {
+            
+            return {
+                jsonResponse : this.getJsonResponse(),
+                xhr : this.getXhr()
+            };
+            
+        };
+        
     };
     
     /**
@@ -1613,15 +1869,29 @@
         
             console.log('DONE - 4XX');
             
-            var loginCb = this._loginContext.getLoginCb(),
+            var accessTokenResponse = null,
+                authStatus = null, 
+                loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
         
             // Parse the Access Token Response
-            var accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+            accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
     
+            // Creates the AuthStatus object
+            authStatus = new new OAuth.AuthStatus(
+                {
+                    status : 'disconnected',
+                    accessTokenResponse : accessTokenResponse
+                }
+            );
+            
+            // Persist the new AuthStatus object (this is the action which will prevent OAuth.JS to perform other successful
+            // requests)
+            // TODO:
+            
             // If the 'loginFn' function has provided a callback 'loginFnCb' callback
             if(typeof loginFnCb === 'function') {
-            
+                
                 /*
                 var deferred = $.Deferred();
         
@@ -1650,14 +1920,9 @@
             
             // Otherwise we call the 'login' function callback directly
             else {
-        
-                loginCb(
-                    {
-                        status : responseJSON.error,
-                        authResponse : responseJSON
-                    }
-                );
-        
+    
+                loginCb(authStatus);
+    
             }
             
         },

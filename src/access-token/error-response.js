@@ -143,6 +143,17 @@ OAuth.AccessToken.ErrorResponse = function() {
         
     };
     
+    // TODO: A tester et documenter
+    this.toJSON = function() {
+        
+        return {
+            error : _error,
+            jsonResponse : this.getJsonResponse(),
+            xhr : this.getXhr()
+        };
+        
+    };
+    
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

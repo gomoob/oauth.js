@@ -49,11 +49,13 @@
     };
 
     // @include abnf-utils.js
-    // @include login-context.js
-    // @include storage-manager.js
+    // @include auth-status.js
     // @include function-utils.js
+    // @include login-context.js
+    // @include promise.js
+    // @include storage-manager.js
     // @include url-utils.js
-    
+
     // @include access-token/abstract-response.js
     // @include access-token/critical-error-response.js
     // @include access-token/error-response.js

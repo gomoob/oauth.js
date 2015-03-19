@@ -37,6 +37,16 @@ OAuth.AccessToken.SuccessfulResponse = function() {
         
     };
     
+    // TODO: A tester et documenter
+    this.toJSON = function() {
+        
+        return {
+            jsonResponse : this.getJsonResponse(),
+            xhr : this.getXhr()
+        };
+        
+    };
+    
 };
 
 /**

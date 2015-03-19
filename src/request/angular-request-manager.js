@@ -121,15 +121,29 @@ OAuth.Request.AngularRequestManager.prototype = {
     
         console.log('DONE - 4XX');
         
-        var loginCb = this._loginContext.getLoginCb(),
+        var accessTokenResponse = null,
+            authStatus = null, 
+            loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
     
         // Parse the Access Token Response
-        var accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+        accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
 
+        // Creates the AuthStatus object
+        authStatus = new new OAuth.AuthStatus(
+            {
+                status : 'disconnected',
+                accessTokenResponse : accessTokenResponse
+            }
+        );
+        
+        // Persist the new AuthStatus object (this is the action which will prevent OAuth.JS to perform other successful
+        // requests)
+        // TODO:
+        
         // If the 'loginFn' function has provided a callback 'loginFnCb' callback
         if(typeof loginFnCb === 'function') {
-        
+            
             /*
             var deferred = $.Deferred();
     
@@ -158,14 +172,9 @@ OAuth.Request.AngularRequestManager.prototype = {
         
         // Otherwise we call the 'login' function callback directly
         else {
-    
-            loginCb(
-                {
-                    status : responseJSON.error,
-                    authResponse : responseJSON
-                }
-            );
-    
+
+            loginCb(authStatus);
+
         }
         
     },
