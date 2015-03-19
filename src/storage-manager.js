@@ -39,7 +39,7 @@ OAuth.StorageManager = function(configuration) {
     }
     
     // If a specific configuration is provided
-    if(typeof configuration === 'object') {
+    if(OAuth.ObjectUtils.isObject(configuration)) {
      
         // Configure the storage to use
         switch(configuration.storage) {
@@ -101,6 +101,34 @@ OAuth.StorageManager.prototype = {
 
     },
 
+    getAuthStatus : function() {
+
+        var authStatus = null, 
+            authStatusString = null;
+        
+        // Retrieve the AuthStatus string representation from the storage
+        authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+
+        // If an AuthStatus string has been found on the storage
+        if(authStatusString) {
+
+            // Creates the AuthStatus object by parsing the AuthStatus string
+            authStatus = OAuth.AuthStatus.createFromString(authStatusString);
+
+        } 
+        
+        // Create and persist a disconnected AuthStatus
+        else {
+            
+            authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
+            this.persistAuthStatus(authStatus);
+            
+        }
+        
+        return authStatus;
+
+    },
+
     /**
      * Gets the last Refresh Token stored.
      * 
@@ -130,14 +158,10 @@ OAuth.StorageManager.prototype = {
 
     },
     
-    getAuthStatus : function() {
+    // TODO: A blinder, documenter et tester...
+    persistAuthStatus : function(authStatus) {
         
-        // Retrieve the AuthStatus string representation from the storage
-        var authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
-        
-        // Creates the AuthStatus object by parsing the AuthStatus string
-        // TODO
-        
+        this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
         
     },
     
@@ -185,7 +209,7 @@ OAuth.StorageManager.prototype = {
         );
         
         // Persists the new AuthStatus object
-        this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+        this.persistAuthStatus(authStatus);
 
         return authStatus;
 

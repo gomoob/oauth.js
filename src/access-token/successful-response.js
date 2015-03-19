@@ -80,7 +80,7 @@ OAuth.AccessToken.SuccessfulResponse = function() {
 OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid = function(jsonResponse) {
   
     // The response MUST BE a JSON object
-    var valid = typeof jsonResponse === 'object';
+    var valid = OAuth.ObjectUtils.isObject(jsonResponse);
     
     // The response MUST HAVE an 'access_token' parameter
     valid = valid && jsonResponse.hasOwnProperty('access_token');

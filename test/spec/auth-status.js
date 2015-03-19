@@ -38,7 +38,7 @@ describe('OAuth.AuthStatus : ', function() {
                 'The settings object has no status property or an invalid status property !'
             );
             
-            // Test with a settings object with no accessTokenReponse
+            // Test with a settings object with no accessTokenReponse and a 'connected' status
             expect(function() {
                 return new OAuth.AuthStatus(
                     { 
@@ -47,7 +47,7 @@ describe('OAuth.AuthStatus : ', function() {
                 );
             }).to.throw(
                 Error, 
-                'The settings object has not access token response object or an invalid access token response object !'
+                'An AuthStatus without an access token response must always be disconnected !'
             );
             
             // Test with a settings object attached to a bad accessTokenResponse
@@ -60,7 +60,7 @@ describe('OAuth.AuthStatus : ', function() {
                 );
             }).to.throw(
                 Error, 
-                'The settings object has not access token response object or an invalid access token response object !'
+                'The settings object has an invalid access token response object !'
             );
             
         });
@@ -252,6 +252,7 @@ describe('OAuth.AuthStatus : ', function() {
         
         it('should return true', function() {
             
+            // Test with a JSON representation having a 'connected' status and an access token response
             expect(
                 OAuth.AuthStatus.isJsonValid(
                     {
@@ -272,6 +273,38 @@ describe('OAuth.AuthStatus : ', function() {
                                 responseXML : 'THE_RESPONSE_XML'
                             }
                         }
+                    }
+                )
+            ).to.be.true;
+            
+            // Test with a JSON representation having a 'disconnected' status and an access token response
+            expect(
+                OAuth.AuthStatus.isJsonValid(
+                    {
+                        status : 'disconnected',
+                        accessTokenResponse : {
+                            jsonResponse : {
+                                error : 'invalid_grant'
+                            },
+                            xhr : {
+                                readyState : 4,
+                                status : 400,
+                                statusText : 'Bad Request',
+                                response : 'THE_RESPONSE',
+                                responseText : 'THE_RESPONSE',
+                                responseXML : 'THE_RESPONSE_XML'
+                            }
+                        }
+                    }
+                )
+            ).to.be.true;
+            
+            // Test with a JSON representation having a 'disconnected' status and no access token response
+            expect(
+                OAuth.AuthStatus.isJsonValid(
+                    {
+                        status : 'disconnected',
+                        accessTokenResponse : null
                     }
                 )
             ).to.be.true;

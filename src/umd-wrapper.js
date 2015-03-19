@@ -52,6 +52,7 @@
     // @include auth-status.js
     // @include function-utils.js
     // @include login-context.js
+    // @include object-utils.js
     // @include promise.js
     // @include storage-manager.js
     // @include url-utils.js

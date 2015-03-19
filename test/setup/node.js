@@ -27,6 +27,7 @@ OAuth = require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'umd-w
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'abnf-utils');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'auth-status');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'login-context');
+require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'object-utils');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'promise');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
 require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'function-utils');

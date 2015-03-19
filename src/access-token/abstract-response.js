@@ -217,23 +217,28 @@ OAuth.AccessToken.AbstractResponse.createFromJson = function(jsonObject) {
 OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
 
     // The parameter MUST BE an object
-    var valid = typeof jsonObject === 'object';
+    var valid = OAuth.ObjectUtils.isObject(jsonObject);
     
-    // Validates the 'jsonResponse' object property
-    if(typeof jsonObject.jsonResponse === 'object' && 
-       typeof jsonObject.jsonResponse.error === 'string') {
+    // If previous rules are valid
+    if(valid) { 
+    
+        // Validates the 'jsonResponse' object property
+        if(OAuth.ObjectUtils.isObject(jsonObject.jsonResponse) && 
+           typeof jsonObject.jsonResponse.error === 'string') {
+            
+            valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
+            
+        } else {
+            
+            valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
+            
+        }
         
-        valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
-        
-    } else {
-        
-        valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
-        
+        // Validates the 'xhr' object property
+        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
+
     }
     
-    // Validates the 'xhr' object property
-    valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
-
     return valid;
 
 };
@@ -250,7 +255,7 @@ OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
 OAuth.AccessToken.AbstractResponse.isJsonXhrValid = function(jsonXhr) {
 
     // The parameter MUST BE an object
-    var valid = typeof jsonXhr === 'object';
+    var valid = OAuth.ObjectUtils.isObject(jsonXhr);
 
     // The object MUST HAVE a 'readyState' number property
     // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest

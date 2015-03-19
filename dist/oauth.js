@@ -337,6 +337,9 @@
          * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
          * internally but the developer can only call the {@link #isConnected()} function.
          * 
+         * The Access Token Response can be null when the user is disconnected and the disconnection operation was a manual 
+         * disconnection (i.e not an automatic disconnection following an error).
+         * 
          * @return {OAuth.AccessToken.Response} The Access Token Response object which as used to create this OAuthStatus 
          *         object.
          */
@@ -386,7 +389,7 @@
             
             return {
                 status : _status,
-                accessTokenResponse : _accessTokenResponse.toJSON()
+                accessTokenResponse : _accessTokenResponse ? _accessTokenResponse.toJSON() : null
             };
     
         };
@@ -417,17 +420,24 @@
             
         }
         
-        // A valid access token response object is mandatory
-        if(typeof settings.accessTokenResponse !== 'object') {
+        // If no access token response is provided than the status MUST BE equal to 'disconnected'
+        if(!settings.accessTokenResponse && settings.status !== 'disconnected') {
+            
+            throw new Error('An AuthStatus without an access token response must always be disconnected !');
+            
+        }
+    
+        // If an access token response is provided it must be an object
+        else if(settings.accessTokenResponse && typeof settings.accessTokenResponse !== 'object') {
             
             throw new Error(
-                'The settings object has not access token response object or an invalid access token response object !'
+                'The settings object has an invalid access token response object !'
             );
     
         }
         
         _status = settings.status;
-        _accessTokenResponse = settings.accessTokenResponse;
+        _accessTokenResponse = settings.accessTokenResponse ? settings.accessTokenResponse : null;
     
     };
     
@@ -533,14 +543,18 @@
     OAuth.AuthStatus.isJsonValid = function(jsonObject) {
         
         // The parameter MUST BE a JSON object
-        var valid = typeof jsonObject === 'object';
+        var valid = OAuth.ObjectUtils.isObject(jsonObject);
         
         // The 'status' parameter MUST BE equal to 'connected' or 'disconnected'
         valid = valid && (jsonObject.status === 'connected' || jsonObject.status === 'disconnected');
         
-        // The 'accessTokenResponse' parameter MUST BE valid
-        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+        // If the 'accessTokenResponse' is provided and not null it MUST BE valid
+        if(jsonObject.accessTokenResponse !== null) {
     
+            valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+    
+        }
+        
         return valid;
         
     };
@@ -730,6 +744,33 @@
     };
     
     /**
+     * Class used to provide utilities to manipulate objects.
+     * 
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     * @class ObjectUtils
+     * @memberof OAuth
+     */
+    OAuth.ObjectUtils = {
+    
+        /**
+         * Returns true if value is an Object. Note that JavaScript arrays and functions are objects, while (normal) strings 
+         * and numbers are not.
+         * 
+         * @param {*} obj The value to check.
+         * 
+         * @returns {Boolean} True if the value is an object or a function, false otherwise.
+         */
+        isObject : function(obj) {
+            
+            // Do not modify this peace of code because its a pure copy of Underscore JS '_.isObject(value)'
+            // @see http://underscorejs.org/#isObject
+            var type = typeof obj;
+            return type === 'function' || type === 'object' && !!obj;
+    
+        }
+                         
+    };
+    /**
      * Class which "simulates" an ES6 promise, this class is only used internally and does not implement all aspects of ES6 
      * promises. In fact its a very naive implementation, so DO NEVER use this class and believe its behavior is the same as 
      * ES6 promises !
@@ -879,7 +920,7 @@
         }
         
         // If a specific configuration is provided
-        if(typeof configuration === 'object') {
+        if(OAuth.ObjectUtils.isObject(configuration)) {
          
             // Configure the storage to use
             switch(configuration.storage) {
@@ -941,6 +982,34 @@
     
         },
     
+        getAuthStatus : function() {
+    
+            var authStatus = null, 
+                authStatusString = null;
+            
+            // Retrieve the AuthStatus string representation from the storage
+            authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+    
+            // If an AuthStatus string has been found on the storage
+            if(authStatusString) {
+    
+                // Creates the AuthStatus object by parsing the AuthStatus string
+                authStatus = OAuth.AuthStatus.createFromString(authStatusString);
+    
+            } 
+            
+            // Create and persist a disconnected AuthStatus
+            else {
+                
+                authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
+                this.persistAuthStatus(authStatus);
+                
+            }
+            
+            return authStatus;
+    
+        },
+    
         /**
          * Gets the last Refresh Token stored.
          * 
@@ -970,14 +1039,10 @@
     
         },
         
-        getAuthStatus : function() {
+        // TODO: A blinder, documenter et tester...
+        persistAuthStatus : function(authStatus) {
             
-            // Retrieve the AuthStatus string representation from the storage
-            var authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
-            
-            // Creates the AuthStatus object by parsing the AuthStatus string
-            // TODO
-            
+            this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
             
         },
         
@@ -1025,7 +1090,7 @@
             );
             
             // Persists the new AuthStatus object
-            this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+            this.persistAuthStatus(authStatus);
     
             return authStatus;
     
@@ -1440,23 +1505,28 @@
     OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
     
         // The parameter MUST BE an object
-        var valid = typeof jsonObject === 'object';
+        var valid = OAuth.ObjectUtils.isObject(jsonObject);
         
-        // Validates the 'jsonResponse' object property
-        if(typeof jsonObject.jsonResponse === 'object' && 
-           typeof jsonObject.jsonResponse.error === 'string') {
+        // If previous rules are valid
+        if(valid) { 
+        
+            // Validates the 'jsonResponse' object property
+            if(OAuth.ObjectUtils.isObject(jsonObject.jsonResponse) && 
+               typeof jsonObject.jsonResponse.error === 'string') {
+                
+                valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
+                
+            } else {
+                
+                valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
+                
+            }
             
-            valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
-            
-        } else {
-            
-            valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
-            
+            // Validates the 'xhr' object property
+            valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
+    
         }
         
-        // Validates the 'xhr' object property
-        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
-    
         return valid;
     
     };
@@ -1473,7 +1543,7 @@
     OAuth.AccessToken.AbstractResponse.isJsonXhrValid = function(jsonXhr) {
     
         // The parameter MUST BE an object
-        var valid = typeof jsonXhr === 'object';
+        var valid = OAuth.ObjectUtils.isObject(jsonXhr);
     
         // The object MUST HAVE a 'readyState' number property
         // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
@@ -1835,7 +1905,7 @@
     OAuth.AccessToken.ErrorResponse.isJsonResponseValid = function(jsonResponse) {
     
         // The response MUST BE a JSON object
-        var valid = typeof jsonResponse === 'object';
+        var valid = OAuth.ObjectUtils.isObject(jsonResponse);
         
         // The response MUST HAVE an 'error' parameter
         valid = valid && jsonResponse.hasOwnProperty('error');
@@ -2139,7 +2209,7 @@
     OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid = function(jsonResponse) {
       
         // The response MUST BE a JSON object
-        var valid = typeof jsonResponse === 'object';
+        var valid = OAuth.ObjectUtils.isObject(jsonResponse);
         
         // The response MUST HAVE an 'access_token' parameter
         valid = valid && jsonResponse.hasOwnProperty('access_token');
@@ -2293,7 +2363,7 @@
         this._loginFn = null;
     
         // If a specific configuration is provided
-        if(typeof configuration === 'object') {
+        if(OAuth.ObjectUtils.isObject(configuration)) {
     
             // The login function is required
             if(typeof configuration.loginFn !== 'function') {
@@ -2337,7 +2407,7 @@
                 storageKey : configuration.storageKey
             });
             
-        } 
+        }
         
         // Otherwise the request manager uses a default configuration
         else {
@@ -2485,9 +2555,8 @@
             this._loginContext._setLoginOpts(opts);
             this._loginContext._setRequestManager(this);
             
-            // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
-            // So in this case we call the 'loginFn' function
-            if(this._storageManager.getAccessTokenResponse() === null) {
+            // If the client is considered disconnected
+            if(this._storageManager.getAuthStatus().isDisconnected()) {
         
                 // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
                 // credentials
@@ -2499,16 +2568,14 @@
         
             }
             
-            // Otherwise we directly call the callback.
+            // Otherwise if the user is considered connected we call the callback directly
+            // Please note that even if the client is considered connected the 'loginCb' callback can execute secured 
+            // OAuth 2.0 HTTP requests which will change the current AuthStatus state to a 'disconnected' status if an error 
+            // is encountered
             else {
-                
-                loginCb(
-                    {
-                        status : 'connected',
-                        authResponse : this._storageManager.getAccessTokenResponse()
-                    }
-                );
-                
+    
+                loginCb(this._storageManager.getAuthStatus());
+    
             }
             
         },
@@ -2775,7 +2842,7 @@
         }
     
         // If a specific configuration is provided
-        if(typeof configuration === 'object') {
+        if(OAuth.ObjectUtils.isObject(configuration)) {
     
             // The login function is required
             if(typeof configuration.loginFn !== 'function') {

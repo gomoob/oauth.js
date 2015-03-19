@@ -230,7 +230,7 @@ OAuth.AccessToken.ErrorResponse.isCriticalErrorCode = function(errorCode) {
 OAuth.AccessToken.ErrorResponse.isJsonResponseValid = function(jsonResponse) {
 
     // The response MUST BE a JSON object
-    var valid = typeof jsonResponse === 'object';
+    var valid = OAuth.ObjectUtils.isObject(jsonResponse);
     
     // The response MUST HAVE an 'error' parameter
     valid = valid && jsonResponse.hasOwnProperty('error');

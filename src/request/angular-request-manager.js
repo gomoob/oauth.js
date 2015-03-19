@@ -16,7 +16,7 @@ OAuth.Request.AngularRequestManager = function(configuration) {
     this._loginFn = null;
 
     // If a specific configuration is provided
-    if(typeof configuration === 'object') {
+    if(OAuth.ObjectUtils.isObject(configuration)) {
 
         // The login function is required
         if(typeof configuration.loginFn !== 'function') {
@@ -60,7 +60,7 @@ OAuth.Request.AngularRequestManager = function(configuration) {
             storageKey : configuration.storageKey
         });
         
-    } 
+    }
     
     // Otherwise the request manager uses a default configuration
     else {
@@ -208,9 +208,8 @@ OAuth.Request.AngularRequestManager.prototype = {
         this._loginContext._setLoginOpts(opts);
         this._loginContext._setRequestManager(this);
         
-        // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
-        // So in this case we call the 'loginFn' function
-        if(this._storageManager.getAccessTokenResponse() === null) {
+        // If the client is considered disconnected
+        if(this._storageManager.getAuthStatus().isDisconnected()) {
     
             // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
             // credentials
@@ -222,16 +221,14 @@ OAuth.Request.AngularRequestManager.prototype = {
     
         }
         
-        // Otherwise we directly call the callback.
+        // Otherwise if the user is considered connected we call the callback directly
+        // Please note that even if the client is considered connected the 'loginCb' callback can execute secured 
+        // OAuth 2.0 HTTP requests which will change the current AuthStatus state to a 'disconnected' status if an error 
+        // is encountered
         else {
-            
-            loginCb(
-                {
-                    status : 'connected',
-                    authResponse : this._storageManager.getAccessTokenResponse()
-                }
-            );
-            
+
+            loginCb(this._storageManager.getAuthStatus());
+
         }
         
     },

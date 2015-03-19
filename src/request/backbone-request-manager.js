@@ -56,7 +56,7 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
     }
 
     // If a specific configuration is provided
-    if(typeof configuration === 'object') {
+    if(OAuth.ObjectUtils.isObject(configuration)) {
 
         // The login function is required
         if(typeof configuration.loginFn !== 'function') {

@@ -44,6 +44,9 @@ OAuth.AuthStatus = function(settings) {
      * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
      * internally but the developer can only call the {@link #isConnected()} function.
      * 
+     * The Access Token Response can be null when the user is disconnected and the disconnection operation was a manual 
+     * disconnection (i.e not an automatic disconnection following an error).
+     * 
      * @return {OAuth.AccessToken.Response} The Access Token Response object which as used to create this OAuthStatus 
      *         object.
      */
@@ -93,7 +96,7 @@ OAuth.AuthStatus = function(settings) {
         
         return {
             status : _status,
-            accessTokenResponse : _accessTokenResponse.toJSON()
+            accessTokenResponse : _accessTokenResponse ? _accessTokenResponse.toJSON() : null
         };
 
     };
@@ -124,17 +127,24 @@ OAuth.AuthStatus = function(settings) {
         
     }
     
-    // A valid access token response object is mandatory
-    if(typeof settings.accessTokenResponse !== 'object') {
+    // If no access token response is provided than the status MUST BE equal to 'disconnected'
+    if(!settings.accessTokenResponse && settings.status !== 'disconnected') {
+        
+        throw new Error('An AuthStatus without an access token response must always be disconnected !');
+        
+    }
+
+    // If an access token response is provided it must be an object
+    else if(settings.accessTokenResponse && typeof settings.accessTokenResponse !== 'object') {
         
         throw new Error(
-            'The settings object has not access token response object or an invalid access token response object !'
+            'The settings object has an invalid access token response object !'
         );
 
     }
     
     _status = settings.status;
-    _accessTokenResponse = settings.accessTokenResponse;
+    _accessTokenResponse = settings.accessTokenResponse ? settings.accessTokenResponse : null;
 
 };
 
@@ -240,14 +250,18 @@ OAuth.AuthStatus.createFromString = function(string) {
 OAuth.AuthStatus.isJsonValid = function(jsonObject) {
     
     // The parameter MUST BE a JSON object
-    var valid = typeof jsonObject === 'object';
+    var valid = OAuth.ObjectUtils.isObject(jsonObject);
     
     // The 'status' parameter MUST BE equal to 'connected' or 'disconnected'
     valid = valid && (jsonObject.status === 'connected' || jsonObject.status === 'disconnected');
     
-    // The 'accessTokenResponse' parameter MUST BE valid
-    valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+    // If the 'accessTokenResponse' is provided and not null it MUST BE valid
+    if(jsonObject.accessTokenResponse !== null) {
 
+        valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
+
+    }
+    
     return valid;
     
 };
