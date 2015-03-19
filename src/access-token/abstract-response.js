@@ -17,11 +17,15 @@ OAuth.AccessToken.AbstractResponse = function() {
     /**
      * An object or array which represents the JSON response returned from the server. This attribute can null when the 
      * server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-     * response headers. If you server implementation is bad this value can also be an array (because your server 
-     * returned a valid JSON array, in this case the response is a critical one with a code equals to 
-     * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
-     * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
-     * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+     * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
+     * corrupted storage (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__storage_corrupted__')
+     * 
+     * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
+     * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
+     * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
+     * set with this bad object (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__entity_body_invalid_json__'). 
      * 
      * @instance
      * @private
@@ -32,6 +36,13 @@ OAuth.AccessToken.AbstractResponse = function() {
     /**
      * The XMLHttpRequest object which was used to send a request on server side and which led to the creation of this 
      * OAuth 2.0 Access Token response.
+     * 
+     * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
+     * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+     * {@link XMLHttpRequest} object having a specific state from scratch.
+     * 
+     * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+     * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
      * 
      * @instance
      * @private
@@ -46,11 +57,15 @@ OAuth.AccessToken.AbstractResponse = function() {
     /**
      * Gets an object or array which represents the JSON response returned from the server. This attribute can null when 
      * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-     * response headers. If you server implementation is bad this value can also be an array (because your server 
-     * returned a valid JSON array, in this case the response is a critical one with a code equals to 
-     * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
-     * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
-     * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+     * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
+     * corrupted storage (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__storage_corrupted__')
+     * 
+     * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
+     * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
+     * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
+     * set with this bad object (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__entity_body_invalid_json__'). 
      * 
      * @return {Object | Array} The JSON response returned by the server.
      */
@@ -64,6 +79,13 @@ OAuth.AccessToken.AbstractResponse = function() {
      * Gets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
      * this OAuth 2.0 Access Token response.
      * 
+     * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
+     * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+     * {@link XMLHttpRequest} object having a specific state from scratch.
+     * 
+     * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+     * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
+     * 
      * @return {XHMLHttpRequest} The XMLHttpRequest object which was used to send a request on server side and which led 
      *         to the creation of this OAuth 2.0 Access Token response.
      */
@@ -76,11 +98,15 @@ OAuth.AccessToken.AbstractResponse = function() {
     /**
      * Sets an object or array which represents the JSON response returned from the server. This attribute can null when 
      * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-     * response headers. If you server implementation is bad this value can also be an array (because your server 
-     * returned a valid JSON array, in this case the response is a critical one with a code equals to 
-     * '__oauth_js__entity_body_not_json__'). If your server returned a JSON object which is not compliant with the 
-     * OAuth 2.0 specification this attribute is set with this bad object (in this case the response is a critical one 
-     * with a code equals to '__oauth_js__entity_body_invalid_json__'). 
+     * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
+     * corrupted storage (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__storage_corrupted__').
+     * 
+     * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
+     * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
+     * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
+     * set with this bad object (in this case the response is a critical one with a code equals to 
+     * '__oauth_js__entity_body_invalid_json__'). 
      * 
      * @return {Object | Array} jsonResponse The JSON response returned by the server.
      */
@@ -93,6 +119,13 @@ OAuth.AccessToken.AbstractResponse = function() {
     /**
      * Sets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
      * this OAuth 2.0 Access Token response.
+     * 
+     * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
+     * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+     * {@link XMLHttpRequest} object having a specific state from scratch.
+     * 
+     * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+     * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
      * 
      * @param {XHMLHttpRequest} xhr The XMLHttpRequest object which was used to send a request on server side and which 
      *        led to the creation of this OAuth 2.0 Access Token response.
@@ -108,6 +141,66 @@ OAuth.AccessToken.AbstractResponse = function() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //STATIC MEMBERS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Function used to create an OAuth 2.0 Access Token Response object using a JSON representation.
+ * 
+ * @param {Object} jsonObject A JSON representation used to create a {@link OAuth.AccessToken.ErrorResponse} or 
+ *        {@link OAuth.AccessToken.SuccessfulResponse} object.
+ * 
+ * @return {OAuth.AccessToken.ErrorResponse | OAuth.AccessToken.SuccessfulResponse} The resulting Access Token Response 
+ *         object.
+ * @throws Error If the provided JSON does not represents a valid Access Token Response object.
+ */
+OAuth.AccessToken.AbstractResponse.createFromJson = function(jsonObject) {
+
+    // The JSON object must be valid
+    if(!OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject)) {
+        
+        throw new Error('The provided JSON object does not correspond to a valid Access Token Response !');
+
+    }
+    
+    var accessTokenResponse = null;
+    
+    // The JSON object represents an Error Access Token Response
+    if(typeof jsonObject.jsonResponse.error === 'string') {
+        
+        // Critical error
+        if(OAuth.AccessToken.ErrorResponse.isCriticalErrorCode(jsonObject.jsonResponse.error )) {
+            
+            accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
+        
+        }
+        
+        // Standard error
+        else {
+            
+            accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
+            
+        }
+        
+        accessTokenResponse.setError(jsonObject.jsonResponse.error );
+        
+    } 
+    
+    // The JSON object represents a Successful Access Token Response
+    else {
+        
+        accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse();
+        
+    }
+    
+    // Sets the 'jsonResponse'
+    accessTokenResponse.setJsonResponse(jsonObject.jsonResponse);
+
+    // Sets a "fake" XMLHttpRequest object, here the XMLHttpRequest is "fake" because it is normally not possible to 
+    // re-build an {@link XMLHttpRequest} object having a specific state from scratch.
+    accessTokenResponse.setXhr(OAuth.XhrUtils.fromJSON(jsonObject.xhr));
+    
+    return accessTokenResponse;
+
+};
 
 /**
  * Function used to check if a JSON object corresponds to a valid Access Token Response JSON representation. A JSON 

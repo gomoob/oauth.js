@@ -237,9 +237,7 @@ describe('OAuth.AuthStatus : ', function() {
                 OAuth.AuthStatus.isJsonValid(
                     {
                         status : 'connected',
-                        accessTokenResponse : {
-                            
-                        }
+                        accessTokenResponse : {}
                     }
                 )
             ).to.be.false;

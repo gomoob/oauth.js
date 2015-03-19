@@ -9,6 +9,45 @@
  */
 OAuth.XhrUtils = {
 
+    // TODO: A documenter & tester
+    fromJSON : function(jsonObject) {
+
+        return {
+            onabort: null,
+            onerror: null,
+            onload: null,
+            onloadend: null,
+            onloadstart: null,
+            onprogress: null,
+            onreadystatechange: null,
+            ontimeout: null,
+            readyState: jsonObject.readyState,
+            response: jsonObject.response,
+            responseText: jsonObject.responseText,
+            responseType: "", // FIXME: Ceci n'est pas dans notre implémentation !
+            responseURL: "",  // FIXME: Ceci n'est pas dans notee implémentation 
+                              //        @see https://xhr.spec.whatwg.org/#the-responseurl-attribute
+            responseXML: jsonObject.responseXML,
+            status: jsonObject.status,
+            statusText: jsonObject.statusText,
+            timeout: 0,       // FIXME: Ceci n'est pas dans notre implémentation 
+                              //        @see https://xhr.spec.whatwg.org/#the-timeout-attribute
+            upload: {
+                onabort: null,
+                onerror: null,
+                onload: null,
+                onloadend: null,
+                onloadstart: null,
+                onprogress: null,
+                ontimeout: null
+            },
+        
+            withCredentials: false // FIXME: Ceci n'est pas dans notre implémentation
+                                   //        @see https://xhr.spec.whatwg.org/#the-withcredentials-attribute
+        };
+
+    },
+
     /**
      * Function used to create a JSON representation of an {@link XMLHttpRequest}, the created JSON representation allow 
      * to backhup the state of a request somewhere (in a local storage or a cookie for exemple). Please note that the 
@@ -21,7 +60,8 @@ OAuth.XhrUtils = {
      */
     toJSON : function(xhr) {
         
-        // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
+        // @see https://xhr.spec.whatwg.org/
+        // FIXME: Il manque 'responseType', 'responseURL', 'timeout', 'withCredentials'
         return {
             readyState : xhr.readyState,
             status : xhr.status,

@@ -68,7 +68,7 @@ OAuth.AccessToken.ErrorResponse = function() {
      */
     this.isCriticalError = function() {
 
-        return /^__oauth_js__[\w\d-_]+__$/.test(_error);
+        return OAuth.AccessToken.ErrorResponse.isCriticalErrorCode(_error);
 
     };
     
@@ -205,6 +205,14 @@ OAuth.AccessToken.ErrorResponse.standardErrorCodes = [
     // The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the resource owner.
     'invalid_scope'
 ];
+
+// TODO: A documenter et tester...
+// TODO: Créer 2 autres méthodes isStandardErrorCode() et isExtensionErrorCode()
+OAuth.AccessToken.ErrorResponse.isCriticalErrorCode = function(errorCode) {
+
+    return /^__oauth_js__[\w\d-_]+__$/.test(errorCode);
+    
+};
 
 /**
  * Function used to indicate if a JSON response corresponds to a valid OAuth 2.0 Access Token Error response. A JSON 

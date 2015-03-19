@@ -2,6 +2,93 @@
 
 describe('OAuth.AccessToken.AbstractResponse', function() {
 
+    describe('When calling \'createFromJson(jsonObject)\' with an invalid JSON object', function() {
+        
+        it('should throw an error', function() {
+            
+            expect(function() {
+                OAuth.AccessToken.AbstractResponse.createFromJson('bad_type');
+            }).to.throw(
+                Error, 
+                'The provided JSON object does not correspond to a valid Access Token Response !'
+            );
+            
+        });
+        
+    });
+    
+    describe('When calling \'createFromJson(jsonObject)\' with an invalid JSON object', function() {
+        
+        it('should return a valid Access Token Response', function() {
+            
+            // Test with an Standard Error Access Token Response
+            var accessTokenResponse = OAuth.AccessToken.AbstractResponse.createFromJson(
+                {
+                    jsonResponse : {
+                        error : 'invalid_grant'
+                    },
+                    xhr : {
+                        readyState : 4,
+                        status : 400,
+                        statusText : 'Bad Request',
+                        response : 'THE_RESPONSE',
+                        responseText : 'THE_RESPONSE',
+                        responseXML : 'THE_RESPONSE_XML'
+                    }
+                }
+            );
+            expect(accessTokenResponse.isError()).to.be.true;
+            expect(accessTokenResponse.isSuccessful()).to.be.false;
+            expect(accessTokenResponse.isCriticalError()).to.be.false;
+            expect(accessTokenResponse.isStandardError()).to.be.true;
+            
+            // Test with a Standard Error Access Token Response
+            accessTokenResponse = OAuth.AccessToken.AbstractResponse.createFromJson(
+                {
+                    jsonResponse : {
+                        error : '__oauth_js__headers_bad_cache_control__'
+                    },
+                    xhr : {
+                        readyState : 4,
+                        status : 400,
+                        statusText : 'Bad Request',
+                        response : 'THE_RESPONSE',
+                        responseText : 'THE_RESPONSE',
+                        responseXML : 'THE_RESPONSE_XML'
+                    }
+                }
+            );
+            expect(accessTokenResponse.isError()).to.be.true;
+            expect(accessTokenResponse.isSuccessful()).to.be.false;
+            expect(accessTokenResponse.isCriticalError()).to.be.true;
+            expect(accessTokenResponse.isStandardError()).to.be.false;
+            
+            // Test with a Successful Access Token Response
+            accessTokenResponse = OAuth.AccessToken.AbstractResponse.createFromJson(
+                {
+                    jsonResponse : {
+                        access_token : 'access_token',
+                        refresh_token : 'refresh_token',
+                        token_type : 'Bearer',
+                        expires_in : 3600
+                    },
+                    xhr : {
+                        readyState : 4,
+                        status : 200,
+                        statusText : 'OK',
+                        response : 'THE_RESPONSE',
+                        responseText : 'THE_RESPONSE',
+                        responseXML : 'THE_RESPONSE_XML'
+                    }
+                }
+            );
+            expect(accessTokenResponse.isError()).to.be.false;
+            expect(accessTokenResponse.isSuccessful()).to.be.true;
+            
+        });
+        
+    });
+    
     describe('When calling \'isJsonValid()\' with a valid JSON object', function() {
         
         it('should return true', function() {

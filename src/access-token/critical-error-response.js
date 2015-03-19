@@ -90,6 +90,10 @@ OAuth.AccessToken.CriticalErrorResponse.criticalErrorCodes = [
     
     // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
     //       des spécifications OAuth 2.0 qui est violée
+    '__oauth_js__storage_corrupted__',
+    
+    // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+    //       des spécifications OAuth 2.0 qui est violée
     '__oauth_js__uninitialized__'
 
 ];

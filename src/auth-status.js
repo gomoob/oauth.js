@@ -39,10 +39,6 @@ OAuth.AuthStatus = function(settings) {
     // PUBLIC MEMBERS
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO: A documenter, je pense qu'on peut faire que cette fonction retourne toujours quelque chose même si le 
-    //       status n'est pas créé suite à une requête sur le Token Endpoint. Dans ce cas indiquer dans la 
-    //       docummentation des Access Token Response que le champs 'xhr' est "fictif" si la réponse est construite 
-    //       depuis un storage...   
     /**
      * Gets the Access Token Response object which was used to create this AuthStatus object. In most cases this Access 
      * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
@@ -146,37 +142,81 @@ OAuth.AuthStatus = function(settings) {
 //STATIC MEMBERS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: A documenter
+/**
+ * Function used to create an {@link OAuth.AuthStatus} object which indicate that the content of the storage has been 
+ * corrupted. A storage content is corrupted when a malicious user manually update its content. 
+ * 
+ * @return {OAuth.AuthStatus} An {@link OAuth.AuthStatus} object which indicate that the content of the storage has been 
+ *         corrupted.
+ */
+OAuth.AuthStatus.createCorrupted = function() {
+    
+    var accessTokenResponse = null, 
+        authStatus = null;
+    
+    accessTokenResponse = new OAuth.AccessToken.AccessTokenResponse();
+    accessTokenResponse.setError('__oauth_js__storage_corrupted__');
+    authStatus = new OAuth.AuthStatus(
+        {
+            status : 'disconnected',
+            accessTokenResponse : accessTokenResponse
+        }
+    );
+    
+    return authStatus;
+    
+};
+
+// TODO: A documenter & tester
 OAuth.AuthStatus.createFromString = function(string) {
 
+    var authStatus = null;
+    
     // The provided parameter must be a string
     if(typeof string !== 'string') {
+
+        authStatus = OAuth.AuthStatus.createCorrupted();
         
-        // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
-        //       méthode 'isCorrupted()'
-        throw new Error('The provided parameter must be a string !');
-        
-    } else {
-    
+    } 
+
+    // The provided parameter is a string, convert it to a JSON representation and validates this representation
+    else {
+
         // The provided parameter must be a valid JSON object
         var authStatusJson = null; 
     
         try {
             authStatusJson = JSON.parse(string);
             
+            // The AuthStatus JSON representation is valid
             if(OAuth.AuthStatus.isJsonValid(authStatusJson)) {
                 
-            } else {
+                authStatus = new OAuth.AuthStatus(
+                    {
+                        status : authStatusJson.status, 
+                        accessTokenResponse : OAuth.AccessToken.AbstractResponse.createFromJSON(
+                            authStatusJson.accessTokenResponse
+                        )
+                    }
+                );
                 
+            }
+
+            // The AuthStatus JSON representation is invalid
+            else {
+                
+                authStatus = OAuth.AuthStatus.createCorrupted();
+
             }
             
         } catch(syntaxError) {
             
-            // TODO: Si le parsing échoue créer un AuthStatus 'disconnected' avec une erreur critique 'corrupted' avec une 
-            //       méthode 'isCorrupted()'
-    
+            authStatus = OAuth.AuthStatus.createCorrupted();
+
         }
     }
+
+    return authStatus;
 
 };
 
