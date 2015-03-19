@@ -1615,16 +1615,22 @@
             
         };
         
-        // TODO: A tester et documenter
+        /**
+         * Function used to create a JSON representation of this Successful OAuth 2.0 Access Token response. This JSON 
+         * representation can then be used to persist this Successful OAuth 2.0 Access Token response on a storage.
+         * 
+         * @return {Object} A javascript object which represents a JSON representation of this Successful OAuth 2.0 Access 
+         *         Token response.
+         */
         this.toJSON = function() {
-            
+    
             return {
                 jsonResponse : this.getJsonResponse(),
-                xhr : this.getXhr()
+                xhr : OAuth.XhrUtils.toJSON(this.getXhr())
             };
-            
+    
         };
-        
+    
     };
     
     /**
