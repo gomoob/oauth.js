@@ -400,12 +400,12 @@
         // A valid status is mandatory
         if(settings.status !== 'connected' && settings.status !== 'disconnected') {
             
-            throw new Error('The settings oject has no status property or an invalid status property !');
+            throw new Error('The settings object has no status property or an invalid status property !');
             
         }
         
         // A valid access token response object is mandatory
-        if(typeof settings.accessTokenReponse !== 'object') {
+        if(typeof settings.accessTokenResponse !== 'object') {
             
             throw new Error(
                 'The settings object has not access token response object or an invalid access token response object !'
@@ -1865,57 +1865,70 @@
             
         },
         
-        _onTokenEndpointPostError : function(xhr) {
-        
-            console.log('DONE - 4XX');
+        /**
+         * Callback function called when an HTTP POST request is sent to the configured OAuth 2.0 Token Endpoint. This 
+         * function is called if the POST is successful or in error, then an Access Token Response Parser (see 
+         * {@link OAuth.AccessToken.ResponseParser) is used to know if the response is successful or not. 
+         * 
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send an HTTP POST request to the OAuth 2.0 Token 
+         *        Endpoint.
+         */
+        _onTokenEndpointPost : function(xhr) {
+    
+            // TODO: Les callbacks de login sont appelés dans tous les cas, il est souvent fréquent que l'on ne souhaite pas 
+            //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour 
+            //       ceci. 
             
             var accessTokenResponse = null,
                 authStatus = null, 
                 loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
-        
+    
             // Parse the Access Token Response
             accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
     
             // Creates the AuthStatus object
             authStatus = new new OAuth.AuthStatus(
                 {
-                    status : 'disconnected',
+                    status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
                     accessTokenResponse : accessTokenResponse
                 }
             );
-            
+    
             // Persist the new AuthStatus object (this is the action which will prevent OAuth.JS to perform other successful
             // requests)
             // TODO:
             
-            // If the 'loginFn' function has provided a callback 'loginFnCb' callback
+            // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
+            // when its called we call the login callback.  
             if(typeof loginFnCb === 'function') {
                 
-                /*
-                var deferred = $.Deferred();
-        
-                loginFnCb(
-                    {
-                        status : jqXHR.responseJSON.error,
-                        authResponse : jqXHR.responseJSON
-                    },
-                    function() { deferred.resolve(); }
+                var promise = new OAuth.Promise(
+                    function(resolve, reject) {
+                        
+                        // Calls the 'loginFnCb' callback with the 'resolve' and 'reject' to allow the developer to fullfill 
+                        // the promise or reject it.
+                        //  - If the promise is fullfilled this indicates that the login form has been successfully filled
+                        //  - If the promise is rejected this indicates that the login form has not been successfully filled
+                        loginFnCb(authStatus, resolve, reject);
+    
+                    }
                 );
-                
-                // When the callback function has ended
-                deferred.done(function() {
-        
-                    loginCb(
-                        {
-                            status : jqXHR.responseJSON.error,
-                            authResponse : jqXHR.responseJSON
-                        }
-                    );
-        
-                });
-                */
-        
+                promise.then(
+                    function(value) {
+                        
+                        // The form has been successfully filled
+                        loginCb(authStatus);
+    
+                    }, 
+                    function(reason) {
+                        
+                        // The form has not been successfully filled
+                        loginCb(authStatus);
+    
+                    }
+                );
+    
             } 
             
             // Otherwise we call the 'login' function callback directly
@@ -1923,64 +1936,6 @@
     
                 loginCb(authStatus);
     
-            }
-            
-        },
-        
-        _onTokenEndpointPostSuccess : function(xhr) {
-            
-            console.log('DONE - successful');
-            
-            var loginCb = this._loginContext.getLoginCb(),
-                loginFnCb = this._loginContext.getLoginFnCb();
-        
-            // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
-            //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
-            var responseJSON = JSON.parse(xhr.responseText);
-            
-            // Store the refreshed OAuth 2.0 in the local storage
-            this._storageManager.persistRawAccessTokenResponse(xhr.responseText);
-        
-            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
-            // retrieval we call it
-            if(typeof loginFnCb === 'function') {
-            
-                /*
-                var deferred = $.Deferred();
-        
-                loginFnCb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    },
-                    function() { deferred.resolve(); }
-                );
-                
-                // When the callback function has ended
-                deferred.done(function() {
-        
-                    loginCb(
-                        {
-                            status : 'connected',
-                            authResponse : data
-                        }
-                    );
-        
-                });
-                */
-        
-            } 
-            
-            // Otherwise we call the 'login' function callback directly
-            else {
-        
-                loginCb(
-                    {
-                        status : 'connected',
-                        authResponse : responseJSON
-                    }
-                );
-        
             }
             
         },
@@ -2010,7 +1965,7 @@
                     
                     if(xhr.status >= 200 && xhr.status < 300) {
                         
-                        this._onTokenEndpointPostSuccess(xhr);
+                        this._onTokenEndpointPost(xhr);
                         
                     } else if(xhr.status >= 300 && xhr.status < 400) {
                         
@@ -2018,7 +1973,7 @@
                         
                     } else if(xhr.status >= 400 && xhr.status < 500) {
                         
-                        this._onTokenEndpointPostError(xhr);
+                        this._onTokenEndpointPost(xhr);
                         
                     } else if(xhr.status >= 500 && xhr.status < 600) {
                         
@@ -2273,8 +2228,8 @@
             
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
         
-            ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this));
-            ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
+            ajaxPromise.done($.proxy(this._onTokenEndpointPost, this));
+            ajaxPromise.fail($.proxy(this._onTokenEndpointPost, this));
         */
         },
     

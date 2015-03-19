@@ -107,12 +107,12 @@ OAuth.AuthStatus = function(settings) {
     // A valid status is mandatory
     if(settings.status !== 'connected' && settings.status !== 'disconnected') {
         
-        throw new Error('The settings oject has no status property or an invalid status property !');
+        throw new Error('The settings object has no status property or an invalid status property !');
         
     }
     
     // A valid access token response object is mandatory
-    if(typeof settings.accessTokenReponse !== 'object') {
+    if(typeof settings.accessTokenResponse !== 'object') {
         
         throw new Error(
             'The settings object has not access token response object or an invalid access token response object !'
