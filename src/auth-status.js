@@ -154,7 +154,7 @@ OAuth.AuthStatus.createCorrupted = function() {
     var accessTokenResponse = null, 
         authStatus = null;
     
-    accessTokenResponse = new OAuth.AccessToken.AccessTokenResponse();
+    accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
     accessTokenResponse.setError('__oauth_js__storage_corrupted__');
     authStatus = new OAuth.AuthStatus(
         {
@@ -167,7 +167,15 @@ OAuth.AuthStatus.createCorrupted = function() {
     
 };
 
-// TODO: A documenter & tester
+/**
+ * Function used to create an {@link OAuth.AuthStatus} object from a JSON string representation. In most cases this 
+ * function is used to create an {@link OAuth.AuthStatus} javascript object from data pulled from a specific storage 
+ * mechanism. 
+ * 
+ * @param {String} string The string to convert into an {@link OAuth.AuthStatus} object.
+ * 
+ * @return {OAuth.AuthStatus} The created {@link OAuth.AuthStatus} object.
+ */
 OAuth.AuthStatus.createFromString = function(string) {
 
     var authStatus = null;
@@ -194,7 +202,7 @@ OAuth.AuthStatus.createFromString = function(string) {
                 authStatus = new OAuth.AuthStatus(
                     {
                         status : authStatusJson.status, 
-                        accessTokenResponse : OAuth.AccessToken.AbstractResponse.createFromJSON(
+                        accessTokenResponse : OAuth.AccessToken.AbstractResponse.createFromJson(
                             authStatusJson.accessTokenResponse
                         )
                     }

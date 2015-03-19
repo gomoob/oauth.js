@@ -82,6 +82,86 @@ describe('OAuth.AuthStatus : ', function() {
         
     });
     
+    describe('When calling the \'createFromString(string)\' with a parameter which is not a string', function() {
+        
+        it('should return a corrupted AuthStatus', function() {
+    
+            var authStatus = OAuth.AuthStatus.createFromString(98769);
+            expect(authStatus.isConnected()).to.be.false;
+            expect(authStatus.isDisconnected()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isCriticalError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isStandardError()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().isSuccessful()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().getError()).to.equal('__oauth_js__storage_corrupted__');
+            
+        });
+        
+    });
+    
+    describe('When calling the \'createFromString(string)\' with a bad JSON string', function() {
+        
+        it('should return a corrupted AuthStatus', function() {
+    
+            // Test with a string which is not a JSON string
+            var authStatus = OAuth.AuthStatus.createFromString('bad_json_string');
+            expect(authStatus.isConnected()).to.be.false;
+            expect(authStatus.isDisconnected()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isCriticalError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isStandardError()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().isSuccessful()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().getError()).to.equal('__oauth_js__storage_corrupted__');
+            
+            // Test with a string which is a JSON string but does not represent an AuthStatus
+            authStatus = OAuth.AuthStatus.createFromString('{}');
+            expect(authStatus.isConnected()).to.be.false;
+            expect(authStatus.isDisconnected()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isCriticalError()).to.be.true;
+            expect(authStatus.getAccessTokenResponse().isStandardError()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().isSuccessful()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().getError()).to.equal('__oauth_js__storage_corrupted__');
+            
+        });
+        
+    });
+    
+    describe('When calling the \'createFromString(string)\' with a valid AuthStatus JSON string', function() {
+        
+        it('should return a valid AuthStatus object', function() {
+            
+            var authStatus = OAuth.AuthStatus.createFromString(
+                '{' +
+                    '"status" : "connected",' + 
+                    '"accessTokenResponse" : {' +
+                        '"jsonResponse" : {' +
+                            '"access_token" : "access_token",' +
+                            '"refresh_token" : "refresh_token",' +
+                            '"token_type" : "Bearer",' +
+                            '"expires_in" : 3600' +
+                        '},' +
+                        '"xhr" : {' +
+                            '"readyState" : 4,' +
+                            '"status" : 200,' +
+                            '"statusText" : "OK",' +
+                            '"response" : "THE_RESPONSE",' +
+                            '"responseText" : "THE_RESPONSE",' +
+                            '"responseXML" : "THE_RESPONSE_XML"' +
+                        '}' +
+                    '}' +
+                '}'
+            );
+            
+            expect(authStatus.isConnected()).to.be.true;
+            expect(authStatus.isDisconnected()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().isError()).to.be.false;
+            expect(authStatus.getAccessTokenResponse().isSuccessful()).to.be.true;
+            
+        });
+        
+    });
+    
     describe('When calling the \'getAccessTokenResponse()\'', function() {
         
         it('should return the Access Token Response configured in the constructor', function() {

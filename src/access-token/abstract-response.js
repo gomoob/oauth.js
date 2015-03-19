@@ -153,7 +153,7 @@ OAuth.AccessToken.AbstractResponse = function() {
  * @throws Error If the provided JSON does not represents a valid Access Token Response object.
  */
 OAuth.AccessToken.AbstractResponse.createFromJson = function(jsonObject) {
-
+    
     // The JSON object must be valid
     if(!OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject)) {
         

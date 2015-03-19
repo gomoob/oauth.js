@@ -155,7 +155,7 @@ OAuth.AccessToken.ErrorResponse = function() {
         return {
             error : _error,
             jsonResponse : this.getJsonResponse(),
-            xhr : OAuth.XhrUtils.toJSON(this.getXhr())
+            xhr : this.getXhr() ? OAuth.XhrUtils.toJSON(this.getXhr()) : null
         };
 
     };
