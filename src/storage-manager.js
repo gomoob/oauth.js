@@ -1,9 +1,19 @@
 /**
+ * Component used to manage persistance of a user connection state on client side.
  * 
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
  */
 OAuth.StorageManager = function(configuration) {
 
+    /**
+     * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
+     * 
+     * @instance
+     * @private
+     * @type {OAuth.AccessToken.ResponseParser}
+     */
+    this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
+    
     /**
      * The storage used to store the Access Token Response, 2 kinds of storage are supported. 
      * 
@@ -117,6 +127,56 @@ OAuth.StorageManager.prototype = {
         // TODO: Valider la réponse...
 
         this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
+
+    },
+    
+    /**
+     * Function used to persist an Access Token Response from a specified {@link XMLHttpRequest} object. 
+     * 
+     * @param {XMLHttpRequest} xhr An {@link XMLHttpRequest} object which was used to send a POST HTTP request to an 
+     *        OAuth 2.0 Token Endpoint.
+     *        
+     * @return {OAuth.AuthStatus} A resulting {@link OAuth.Status} object which describe the user connection state which 
+     *         has been persisted on the storage.
+     */
+    persistAccessTokenResponse : function(xhr) {
+        
+        // The 'xhr' parameter must be an object
+        if(typeof xhr !== 'object') {
+            
+            throw new Error(
+                'The provided XHMLHttpRequest object is invalid !'
+            );
+            
+        }
+        
+        // The XMLHttpRequest object must be in the 'DONE' state
+        if(xhr.readyState !== xhr.DONE) {
+
+            throw new Error(
+                'The provided XHMLHttpRequest object must be in the DONE state before used for persistance !'
+            );
+
+        }
+        
+        var accessTokenResponse = null, 
+            authStatus = null;
+        
+        // Parse the Access Token Response
+        accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+        
+        // Creates the AuthStatus object
+        authStatus = new OAuth.AuthStatus(
+            {
+                status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
+                accessTokenResponse : accessTokenResponse
+            }
+        );
+        
+        // Persists the new AuthStatus object
+        this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+
+        return authStatus;
 
     }
     

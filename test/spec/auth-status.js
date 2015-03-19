@@ -188,6 +188,7 @@ describe('OAuth.AuthStatus : ', function() {
                 {
                     access_token : 'access_token',
                     refresh_token : 'refresh_token',
+                    token_type : 'Bearer',
                     expires_in : 3600
                 }
             );
@@ -201,19 +202,26 @@ describe('OAuth.AuthStatus : ', function() {
             );
             
             var jsonObject = authStatus.toJSON();
+            
+            // Checks root properties
             expect(Object.keys(jsonObject).length).to.equal(2);
             expect(jsonObject.hasOwnProperty('status')).to.be.true;
             expect(jsonObject.hasOwnProperty('accessTokenResponse')).to.be.true;
             expect(jsonObject.status).to.equal('connected');            
+            
+            // Checks Access Token Response properties
             expect(Object.keys(jsonObject.accessTokenResponse).length).to.equal(3);
             expect(jsonObject.accessTokenResponse.hasOwnProperty('error')).to.be.true;
             expect(jsonObject.accessTokenResponse.hasOwnProperty('jsonResponse')).to.be.true;
             expect(jsonObject.accessTokenResponse.hasOwnProperty('xhr')).to.be.true;
             expect(jsonObject.accessTokenResponse.error).to.equal('invalid_grant');
-            expect(Object.keys(jsonObject.accessTokenResponse.jsonResponse).length).to.equal(3);
+            expect(Object.keys(jsonObject.accessTokenResponse.jsonResponse).length).to.equal(4);
             expect(jsonObject.accessTokenResponse.jsonResponse.access_token).to.equal('access_token');
             expect(jsonObject.accessTokenResponse.jsonResponse.refresh_token).to.equal('refresh_token');
+            expect(jsonObject.accessTokenResponse.jsonResponse.token_type).to.equal('Bearer');
             expect(jsonObject.accessTokenResponse.jsonResponse.expires_in).to.equal(3600);
+            
+            // Checks XHR properties
             expect(Object.keys(jsonObject.accessTokenResponse.xhr).length).to.equal(6);
             expect(jsonObject.accessTokenResponse.xhr.hasOwnProperty('readyState')).to.be.true;
             expect(jsonObject.accessTokenResponse.xhr.hasOwnProperty('status')).to.be.true;
@@ -252,6 +260,7 @@ describe('OAuth.AuthStatus : ', function() {
                 {
                     access_token : 'access_token',
                     refresh_token : 'refresh_token',
+                    token_type : 'Bearer',
                     expires_in : 3600
                 }
             );
@@ -273,6 +282,7 @@ describe('OAuth.AuthStatus : ', function() {
                         '"jsonResponse":{' +
                             '"access_token":"access_token",' + 
                             '"refresh_token":"refresh_token",' + 
+                            '"token_type":"Bearer",' +
                             '"expires_in":3600' +
                         '},' +
                         '"xhr":{' +

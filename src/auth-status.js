@@ -8,8 +8,6 @@
  */
 OAuth.AuthStatus = function(settings) {
 
-    // TODO: Il faut maintenant que le storage manager persiste un AuthStatus
-
     /**
      * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
      * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
