@@ -18,16 +18,6 @@ OAuth.Request.BackboneRequestManager = function(configuration) {
      * A string which identify the type of client this request manager is overwriting.
      */
     this._clientType = 'backbone';
-    
-    /**
-     * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
-     */
-    this._loginFn = null;
-
-    /**
-     * The function used to parse errors returned by the Web Services.
-     */
-    this._parseErrorFn = null;
 
     /**
      * The OAuth 2.0 'client_id' to use.

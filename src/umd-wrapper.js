@@ -47,6 +47,8 @@
           Request : {}
 
     };
+    
+    // @include xmlhttprequest/XMLHttpRequest.js
 
     // @include abnf-utils.js
     // @include auth-status.js
@@ -54,6 +56,7 @@
     // @include login-context.js
     // @include object-utils.js
     // @include promise.js
+    // @include request-context.js
     // @include storage-manager.js
     // @include url-utils.js
     // @include xhr-utils.js

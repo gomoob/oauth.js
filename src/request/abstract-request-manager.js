@@ -13,6 +13,24 @@ OAuth.Request.AbstractRequestManager = function(configuration) {
      * @type {OAuth.AccessToken.ResponseParser}
      */
     this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
+    
+    /**
+     * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
+     * 
+     * @instance
+     * @private
+     */
+    // TODO: A documenter mieux que celà (notamment le type)...
+    this._loginFn = null;
+    
+    /**
+     * The function used to parse errors returned by the Web Services.
+     * 
+     * @instance
+     * @private
+     */
+    // TODO: A documenter mieux que celà (notamment le type)...
+    this._parseErrorFn = null;
 
     /**
      * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.

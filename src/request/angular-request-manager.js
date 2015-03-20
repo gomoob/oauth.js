@@ -28,12 +28,9 @@ OAuth.Request.AngularRequestManager = function(configuration) {
      * @type {auto.$provide}
      * @see https://docs.angularjs.org/api/auto/service/$provide
      */
+    // FIXME: Il est peut-être plus logique de configurer le Request Manager avec l'$injector plustôt car il permet de 
+    //        récupérer le '$provide'. Regarder aussi le rôle de 'window.angular'...
     this._$provide = configuration.$provide;
-
-    /**
-     * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
-     */
-    this._loginFn = null;
 
     // If a specific configuration is provided
     if(OAuth.ObjectUtils.isObject(configuration)) {
@@ -145,6 +142,8 @@ OAuth.Request.AngularRequestManager.prototype = {
      * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send an HTTP POST request to the OAuth 2.0 Token 
      *        Endpoint.
      */
+    // TODO: Renommer cette méthode car elle doit être appelée uniquement après un login et pas pour un rafraichissement 
+    //       de token
     _onTokenEndpointPost : function(xhr) {
 
         // TODO: Les callbacks de login sont appelés dans tous les cas, il est souvent fréquent que l'on ne souhaite pas 
@@ -155,7 +154,7 @@ OAuth.Request.AngularRequestManager.prototype = {
             loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
 
-        // Persists the response as a OAuthStatus object
+        // Persists the response as an OAuthStatus object
         authStatus = this._storageManager.persistAccessTokenResponse(xhr);
                 
         // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
@@ -252,82 +251,142 @@ OAuth.Request.AngularRequestManager.prototype = {
         }
         
     },
-                  
-    _$httpGet : function() {
-        
-        // arguments[0] : L'URL
-        // arguments[1] : L'objet 'config' passées en second arguments à la méthode get() d'AngularJS, c'est dans cet 
-        //                objet que l'on peut éventuellement avoir l'option 'secured'
-        
-        var augmentedArguments = arguments;
-        
-        // TODO: Uniquement si arguments[1] est défini et arguments[1].secured est vrai...
-        if(!augmentedArguments[1].params) {
-            augmentedArguments[1].params = {};
-        }
-        
-        // Gets the user authentication status
-        var authStatus = this._storageManager.getAuthStatus();
-        
-        // Appends the 'access_token' URL parameter
-        // TODO: Vérifier que le token ne soit pas déjà dans l'URL...
+
+    _onRefreshAccessTokenPost : function(xhr, requestContext) {
+
+        // Persists the response as an OAuthStatus object
+        var authStatus = this._storageManager.persistAccessTokenResponse(xhr);
+
+        // If the user is considered connected (i.e the OAuth 2.0 Access Token refresh was successful) the replay the 
+        // original request
         if(authStatus.isConnected()) {
-
-            augmentedArguments[1].params.access_token = authStatus.getAccessTokenResponse().getJsonResponse().access_token;
             
-        }
+            var replayXhr = new XMLHttpRequest();
+            
+            replayXhr.open = this._backupedOpen;
+            replayXhr.send = this._backupedSend;
+            replayXhr.setRequestHeader = this._backupedSetRequestHeader;
+            
+            // Updates the original XMLHttpRequest URL used to modify the 'access_token' parameter with the new one we 
+            // retrieved
+            this._requestContext.originalXhr.args.open[1] = OAuth.UrlUtils.addArgument(
+                this._requestContext.originalXhr.args.open[1], 
+                'access_token',
+                authStatus.getAccessTokenResponse().getJsonResponse().access_token
+            );
+            
+            // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
+            replayXhr.open.apply(replayXhr, this._requestContext.originalXhr.args.open);
+            
+            // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
+            replayXhr.setRequestHeader.apply(replayXhr, this._requestContext.originalXhr.args.setRequestHeader);
+            
+            // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
+            replayXhr.send.apply(replayXhr, this._requestContext.originalXhr.args.send);
+            
+            var This = this;
+            
+            replayXhr.onreadystatechange = function() {
 
-        var _resolve = null,
-            _reject = null;
+                var xhr = This._requestContext.originalXhr.xhr;
 
-        var httpPromise = this._$http.get.apply(this._$http, augmentedArguments)/*, 
-            replacedHttpPromise = $q(
-                function(resolve) {
-                    _resolve(resolve);
-                },
-                function(reject) {
-                    _reject(reject);
+                // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
+                // If the 'readyState' is DONE then the server returned a response
+                if(xhr.readyState === xhr.DONE) {
+
+                    xhr.readyState = this.readyState;
+                    xhr.response = this.response;
+                    xhr.responseText = this.responseText;
+                    xhr.responseType = this.responseType;
+                    xhr.responseURL = this.responseURL;
+                    xhr.responseXML = this.responseXML;
+                    xhr.status = this.status;
+                    xhr.statusText = this.statusText;
+                    xhr.timeout = this.timeout;
+                    xhr.withCredentials = this.withCredentials;
+                    
+                    if(this.status === 200) {
+                        
+                        if(xhr.onreadystatechange) { 
+                            xhr.onreadystatechange();
+                        }
+                        
+                        if(xhr.onload) {
+                            xhr.onload();
+                        }
+                        
+                    } else {
+                    
+                        console.log('Error after replay...');
+
+                    }
+
                 }
-            )*/;
+                
+            };
+            
+            console.log('refresh succeeded');
+
+        } 
         
-        // TODO: 1.Créer une promise OAuth (doit être exactement pareil qu'une HttpPromise AngularJS)
-        //       2.Intercepter la promise HTTP AngularJS
-        //          a. Si succès alors résolution de la promise OAuth avec le retour de la promise AngularJS
-        //          b. Si erreur alors 
-        //            i.  si le retour serveur indique qu'un rafraichissement est possible tentative de rafraichissement 
-        //                automatique 
-        //            ii. si le retour serveur undique qu'un rafraichissement n'est pas possible déconnection (avec 
-        //                code d'erreur clair) et redirection vers la fenêtre de connexion
+        // TODO
+        else {
 
-        /*
-        httpPromise.then(
-            function(response) {
+            console.log('refresh failed');
 
-                // See the code of 'src/ng/http.js' => then search for 'promise.success'
-                // @see https://github.com/angular/angular.js/blob/master/src/ng/http.js#L814
-                
-                // a. Si succès alors résolution de la promise OAuth avec le retour de la promise Angular JS
-                _resolve(response);
-                
-            },
-            function(response) {
-                
-                // See the code of 'src/ng/http.js' => then search for 'promise.success'
-                // @see https://github.com/angular/angular.js/blob/master/src/ng/http.js#L823
-                
-                // b. Si erreur alors 
-                //    i.  si le retour serveur indique qu'un rafraichissement est possible tentative de rafraichissement 
-                //        automatique 
-                //    ii. si le retour serveur undique qu'un rafraichissement n'est pas possible déconnection (avec 
-                //        code d'erreur clair) et redirection vers la fenêtre de connexion
-                
-            }
+        }
+        
+    },
+    
+    _refreshAccessToken : function(requestContext) {
+
+        // Gets the current authentication status
+        var authStatus = this._storageManager.getAuthStatus();
+
+        // Refresh the Access Token, if the refresh is successful then the 'replacedHttpPromise' will be 
+        // resolved, otherwise the 'replacedHttpPromise' will be rejected
+        var refreshXhr = new XMLHttpRequest();
+        refreshXhr.open = this._backupedOpen;
+        refreshXhr.send = this._backupedSend;
+        refreshXhr.setRequestHeader = this._backupedSetRequestHeader;
+        
+        // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
+        refreshXhr.open(
+            'POST',                // Method
+            this._tokenEndpoint,   // URL
+            true                   // Async
         );
-        */
         
-        // return replacedHttpPromise;
-        return httpPromise;
+        // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
+        refreshXhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         
+        // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
+        refreshXhr.send(
+            OAuth.UrlUtils.toQueryString(
+                {
+                    grant_type : 'refresh_token',
+                    client_id : this._clientId,
+                    refresh_token : authStatus.getAccessTokenResponse().getJsonResponse().refresh_token
+                }
+            )
+        );
+        
+        refreshXhr.onreadystatechange = OAuth.FunctionUtils.bind(
+            function(xhr) {
+
+                // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
+                // If the 'readyState' is DONE then the server returned a response
+                if(xhr.readyState === xhr.DONE) {
+
+                    this._onRefreshAccessTokenPost(xhr, requestContext);
+
+                }
+                
+            }, 
+            this, 
+            refreshXhr
+        );
+
     },
     
     /**
@@ -352,9 +411,10 @@ OAuth.Request.AngularRequestManager.prototype = {
 
                 };
 
+                // TODO: Faire une surcharge complète...
                 // The '$http' wrapper defines new requests methods to automatically add the required OAuth 2.0 
                 // parameter when the developer provides the special 'secured' parameter with a true value
-                wrapper.get = OAuth.FunctionUtils.bind(This._$httpGet, This);
+                // wrapper.get = OAuth.FunctionUtils.bind(This._$httpGet, This);
                 // wrapper.head = OAuth.FunctionUtils.bind(This._$httpHead, This);
                 // wrapper.post = OAuth.FunctionUtils.bind(This._$httpPost, This);
                 // wrapper.put = OAuth.FunctionUtils.bind(This._$httpPu, This);
@@ -362,17 +422,42 @@ OAuth.Request.AngularRequestManager.prototype = {
                 // wrapper.jsonp = OAuth.FunctionUtils.bind(This._$httpJsonp, This);
                 // wrapper.patch = OAuth.FunctionUtils.bind(This._$httpPatch, This);
 
-                // TODO: Faire une surcharge complète...
-                
+                wrapper.get = OAuth.FunctionUtils.bind(
+                    function() {
+                        
+                        // TODO: Ici il est plus sage de faire un clone...
+                        var augmentedArguments = arguments;
+
+                        // If the AngularJS $http.get(url, config) is called with a 'config' parameter and this 'config' 
+                        // parameter indicates the request has to be secured
+                        if(augmentedArguments[1] && augmentedArguments[1].secured === true) {
+
+                            // Gets the current AuthStatus
+                            var authStatus = this._storageManager.getAuthStatus();
+                            
+                            // Updates the URL to append the 'access_token' parameter
+                            augmentedArguments[0] = OAuth.UrlUtils.addArgument(
+                                augmentedArguments[0],
+                                'access_token',
+                                authStatus.getAccessTokenResponse().getJsonResponse().access_token
+                            );
+
+                        }
+                        
+                        return this._$http.get.apply(this._$http, augmentedArguments);
+
+                }, This);
+
                 return wrapper;
                 
             }
         );
-        
-/*        
+
         // Backup the original XHMLHttpRequest 'open' method to reuse it
         this._backupedOpen = XMLHttpRequest.prototype.open;
-    
+        this._backupedSend = XMLHttpRequest.prototype.send;
+        this._backupedSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+
         // Change the reference to the HTMLHttpRequest 'open' method to use the OAuth.JS custom 'open' method 
         // instead            
         XMLHttpRequest.prototype.open = function() {
@@ -382,16 +467,60 @@ OAuth.Request.AngularRequestManager.prototype = {
             // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
             var slicedArguments = [].slice.call(arguments);
             
+            This._requestContext =  new OAuth.RequestContext();
+            This._requestContext.originalXhr.xhr = this;
+            This._requestContext.originalXhr.args.open = slicedArguments;
+
             // Calls the OAuth.JS 'open' method
             return This._open(this, slicedArguments);
             
         };
-*/
+        
+        XMLHttpRequest.prototype.setRequestHeader = function(key, value) {
+            
+            // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
+            // This is because the special 'arguments' Javascript object is not an array
+            // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
+            var slicedArguments = [].slice.call(arguments);
+            
+            This._requestContext.originalXhr.args.setRequestHeader = slicedArguments;
+            
+            // Calls the OAuth.JS 'setRequestHeader' method
+            return This._setRequestHeader(this, slicedArguments);
+            
+        };
+        
+        XMLHttpRequest.prototype.send = function(key, value) {
+            
+            // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
+            // This is because the special 'arguments' Javascript object is not an array
+            // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
+            var slicedArguments = [].slice.call(arguments);
+            
+            This._requestContext.originalXhr.args.send = slicedArguments;
+            
+            // Calls the OAuth.JS 'setRequestHeader' method
+            return This._send(this, slicedArguments);
+            
+        };
+        
+    },
+    
+    _setRequestHeader : function(xhr, slicedArguments) {
+        
+        this._backupedSetRequestHeader.apply(this._realXhr, slicedArguments);
 
     },
     
-    _open : function(xhr, slicedArguments) {
+    _send : function(xhr, slicedArguments) {
         
+        this._backupedSend.apply(this._realXhr, slicedArguments);
+        
+    },
+    
+    // TODO: Méthode open permettant l'exécution de la requête avec 'access_token'
+    _open : function(xhr, slicedArguments) {
+
         // We ensure that if the provided arguments are modified somewhere in the code this has no impact on the 
         // standard XMLHttpRequest behavior. So we clone the original HTMLHttpRequest arguments before working with 
         // them.
@@ -400,40 +529,70 @@ OAuth.Request.AngularRequestManager.prototype = {
         // Augment the original XMLHttpRequest arguments by adding arguments specific to OAuth 2.0 / OAuth.JS
         var augmentedOpenArguments = this._augmentOpenArguments(clonedOpenArguments);
         
-        xhr.onreadystatechange = function() {
+        // We create an other XMLHttpRequest object to execute the request
+        // TODO: C'est ce qui permettra d'intercepter la réponse OK ou KO...
+        this._realXhr = new XMLHttpRequest();
+        this._realXhr.open = this._backupedOpen;
+        this._realXhr.send = this._backupedSend;
+        this._realXhr.setRequestHeader = this._backupedSetRequestHeader;
+        
+        this._backupedOpen.apply(this._realXhr, slicedArguments);
+        
+        var This = this;
+        this._realXhr.onreadystatechange = function() {
             
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
             switch(this.readyState) {
-                // UNSENT
-                case 0:
-                    console.log('UNSENT');
-                    break;
-                // OPENED
                 case 1:
                     console.log('OPENED');
-                    break;
-                // HEADERS_RECEIVED
-                case 2:
-                    console.log('HEADERS_RECEIVED');
-                    break;
-                // LOADING
-                case 3:
-                    console.log('LOADING');
-                    break;
-                // DONE
+                break;
                 case 4:
+                    
+                    xhr.readyState = this.readyState;
+                    xhr.response = this.response;
+                    xhr.responseText = this.responseText;
+                    xhr.responseType = this.responseType;
+                    xhr.responseURL = this.responseURL;
+                    xhr.responseXML = this.responseXML;
+                    xhr.status = this.status;
+                    xhr.statusText = this.statusText;
+                    xhr.timeout = this.timeout;
+                    xhr.withCredentials = this.withCredentials;
+                    
+                    if(this.status === 200) {
+                        
+                        if(xhr.onreadystatechange) { 
+                            xhr.onreadystatechange();
+                        }
+                        
+                        if(xhr.onload) {
+                            xhr.onload();
+                        }
+                        
+                    } else {
+                    
+                        var action = This._parseErrorFn(xhr);
+                        
+                        if(action === 'refresh') {
+                            
+                            This._refreshAccessToken();
+
+                        } else {
+
+                            // Reniew in all other cases...
+
+                        }
+                        
+
+                    }
+                    
                     console.log('DONE');
-                    break;
+                break;
+            
             }
             
         };
-    
-        console.log('Tada !');
-        console.log(arguments);
-        console.log([].slice.call(arguments));
-        
-        return this._backupedOpen.apply(xhr, slicedArguments);
-        
+
     },
     
     _cloneOpenArguments : function(slicedArguments) {
@@ -455,68 +614,6 @@ OAuth.Request.AngularRequestManager.prototype = {
             
         }
     
-    },
-    
-    /**
-     * Function called after a 'loginFn' function is called and the 'LoginContext.sendCredentials' is called. 
-     * 
-     * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
-     *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
-     */
-    _login : function(loginContext) {
-    
-        // FIXME: Normalement ici les 2 objet sont toujours égaux !!!
-        this._loginContext = loginContext;
-        
-        var ajaxPromise = null, 
-            credentials = this._loginContext.getCredentials();
-    
-        console.log(credentials);
-        
-    /*            
-        if(credentials.grant_type === 'password') {
-        
-            ajaxPromise = $.ajax(
-                {
-                    contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data : {
-                        grant_type : credentials.grant_type,
-                        client_id : this._clientId,
-                        username : credentials.username,
-                        password : credentials.password
-                    },
-                    type : 'POST',
-                    url: this._tokenEndpoint        
-                }
-            );
-            
-        } else if(credentials.grant_type === 'gomoob_facebook_access_token') {
-            
-            ajaxPromise = $.ajax(
-                {
-                    contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data : {
-                        grant_type : credentials.grant_type,
-                        client_id : this._clientId,
-                        facebook_access_token : credentials.facebook_access_token,
-                        facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
-                    },
-                    type : 'POST',
-                    url: this._tokenEndpoint        
-                }
-            );
-            
-        } else {
-            
-            throw new Error('Unknown \'grant_type\' = \'' + credentials.grant_type + '\' !');
-            
-        }
-        
-        // TODO: Message d'erreur clair si 'grant_type' non supporté...
-    
-        ajaxPromise.done($.proxy(this._onTokenEndpointPost, this));
-        ajaxPromise.fail($.proxy(this._onTokenEndpointPost, this));
-    */
-    },
+    }
 
 };
