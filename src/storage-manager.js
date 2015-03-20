@@ -69,7 +69,7 @@ OAuth.StorageManager.prototype = {
      */
     clear : function() {
         
-        this._storage.removeItem(this._storageKey + '.accessTokenResponse');
+        this._storage.removeItem(this._storageKey + '.authStatus');
         
     },
                                   
