@@ -2303,28 +2303,8 @@
             // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
             //       Facebook
     
-            // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
-            if(this._storageManager.getAccessTokenResponse() === null) {
-                
-                cb(
-                    {
-                        status : 'disconnected'    
-                    }
-                );
-                
-            } 
-            
-            // Otherwise the client is considered connected
-            else {
-            
-                cb(
-                    {
-                        status : 'connected',
-                        authResponse : this._storageManager.getAccessTokenResponse()
-                    }
-                );
-    
-            }
+            // Very simple, simply call the provided callback with the stored AuthStatus
+            cb(this._storageManager.getAuthStatus());
     
         };
         
