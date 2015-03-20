@@ -60,8 +60,9 @@ OAuth.Request.AbstractRequestManager = function(configuration) {
     this.logout = function(logoutCb) {
       
         // Clears the storage manage by the storage manager
+        // FIXME: Le logout devrait persister un AuthStatus disconnected à la place...
         this._storageManager.clear();
-        
+
         // Calls the provided callback function
         logoutCb();
 

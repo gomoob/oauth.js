@@ -998,13 +998,17 @@
     
             } 
             
-            // Create and persist a disconnected AuthStatus
+            // Create a disconnected AuthStatus
             else {
                 
                 authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
-                this.persistAuthStatus(authStatus);
                 
             }
+            
+            // We always update the AuthStatus in the storage. This is VERY IMPORTANT because if the AuthStatus has been 
+            // manually updated outside the application and the data in the storage are corrupted we have to refresh those 
+            // data to valid values. 
+            this.persistAuthStatus(authStatus);
             
             return authStatus;
     
@@ -2316,8 +2320,9 @@
         this.logout = function(logoutCb) {
           
             // Clears the storage manage by the storage manager
+            // FIXME: Le logout devrait persister un AuthStatus disconnected à la place...
             this._storageManager.clear();
-            
+    
             // Calls the provided callback function
             logoutCb();
     
