@@ -2627,7 +2627,7 @@
             var _resolve = null,
                 _reject = null;
     
-            var httpPromise = this._$http.get.apply(this._$http, augmentedArguments), 
+            var httpPromise = this._$http.get.apply(this._$http, augmentedArguments)/*, 
                 replacedHttpPromise = $q(
                     function(resolve) {
                         _resolve(resolve);
@@ -2635,7 +2635,7 @@
                     function(reject) {
                         _reject(reject);
                     }
-                );
+                )*/;
             
             // TODO: 1.Créer une promise OAuth (doit être exactement pareil qu'une HttpPromise AngularJS)
             //       2.Intercepter la promise HTTP AngularJS
@@ -2646,6 +2646,7 @@
             //            ii. si le retour serveur undique qu'un rafraichissement n'est pas possible déconnection (avec 
             //                code d'erreur clair) et redirection vers la fenêtre de connexion
     
+            /*
             httpPromise.then(
                 function(response) {
     
@@ -2669,9 +2670,10 @@
                     
                 }
             );
+            */
             
-            return replacedHttpPromise;
-            //return httpPromise;
+            // return replacedHttpPromise;
+            return httpPromise;
             
         },
         
