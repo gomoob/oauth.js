@@ -266,13 +266,14 @@ OAuth.Request.AngularRequestManager.prototype = {
             augmentedArguments[1].params = {};
         }
         
-        // Try to get an OAuth 2.0 Access Token from the client storage
-        var accessToken = this._storageManager.getAccessToken();
+        // Gets the user authentication status
+        var authStatus = this._storageManager.getAuthStatus();
         
         // Appends the 'access_token' URL parameter
-        if(accessToken) {
+        // TODO: Vérifier que le token ne soit pas déjà dans l'URL...
+        if(authStatus.isConnected()) {
 
-            augmentedArguments[1].params.access_token = accessToken;
+            augmentedArguments[1].params.access_token = authStatus.getAccessTokenResponse().getJsonResponse().access_token;
             
         }
 
