@@ -614,12 +614,11 @@ OAuth.Request.AngularRequestManager.prototype = {
         var augmentedOpenArguments = this._augmentOpenArguments(clonedOpenArguments);
         
         // We create an other XMLHttpRequest object to execute the request
-        // TODO: C'est ce qui permettra d'intercepter la réponse OK ou KO...
         this._realXhr = new XMLHttpRequest();
         this._realXhr.open = this._backupedOpen;
         this._realXhr.send = this._backupedSend;
         this._realXhr.setRequestHeader = this._backupedSetRequestHeader;
-        
+
         this._backupedOpen.apply(this._realXhr, slicedArguments);
         
         var This = this;
