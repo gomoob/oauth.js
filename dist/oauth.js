@@ -2730,51 +2730,52 @@
             // original request
             if(authStatus.isConnected()) {
                 
-                var replayXhr = new XMLHttpRequest();
+                this._replayXhr = new XMLHttpRequest();
                 
-                replayXhr.open = this._backupedOpen;
-                replayXhr.send = this._backupedSend;
-                replayXhr.setRequestHeader = this._backupedSetRequestHeader;
+                this._replayXhr.open = this._backupedOpen;
+                this._replayXhr.send = this._backupedSend;
+                this._replayXhr.setRequestHeader = this._backupedSetRequestHeader;
                 
                 // Updates the original XMLHttpRequest URL used to modify the 'access_token' parameter with the new one we 
                 // retrieved
-                this._requestContext.originalXhr.args.open[1] = OAuth.UrlUtils.addArgument(
-                    this._requestContext.originalXhr.args.open[1], 
+                requestContext.originalXhr.args.open[1] = OAuth.UrlUtils.addArgument(
+                    requestContext.originalXhr.args.open[1], 
                     'access_token',
                     authStatus.getAccessTokenResponse().getJsonResponse().access_token
                 );
                 
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
-                replayXhr.open.apply(replayXhr, this._requestContext.originalXhr.args.open);
+                this._replayXhr.open.apply(this._replayXhr, requestContext.originalXhr.args.open);
                 
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
-                replayXhr.setRequestHeader.apply(replayXhr, this._requestContext.originalXhr.args.setRequestHeader);
+                this._replayXhr.setRequestHeader.apply(this._replayXhr, requestContext.originalXhr.args.setRequestHeader);
                 
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
-                replayXhr.send.apply(replayXhr, this._requestContext.originalXhr.args.send);
+                this._replayXhr.send.apply(this._replayXhr, requestContext.originalXhr.args.send);
                 
                 var This = this;
                 
-                replayXhr.onreadystatechange = function() {
+                this._replayXhr.onreadystatechange = function() {
     
-                    var xhr = This._requestContext.originalXhr.xhr;
+                    var xhr = requestContext.originalXhr.xhr;
     
                     // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
                     // If the 'readyState' is DONE then the server returned a response
-                    if(this.readyState === xhr.DONE) {
+                    if(This._replayXhr.readyState === This._replayXhr.DONE) {
     
-                        xhr.readyState = this.readyState;
-                        xhr.response = this.response;
-                        xhr.responseText = this.responseText;
-                        xhr.responseType = this.responseType;
-                        xhr.responseURL = this.responseURL;
-                        xhr.responseXML = this.responseXML;
-                        xhr.status = this.status;
-                        xhr.statusText = this.statusText;
-                        xhr.timeout = this.timeout;
-                        xhr.withCredentials = this.withCredentials;
+                        xhr.readyState = This._replayXhr.readyState;
+                        xhr.response = This._replayXhr.response;
+                        xhr.responseText = This._replayXhr.responseText;
+                        xhr.responseType = This._replayXhr.responseType;
+                        xhr.responseURL = This._replayXhr.responseURL;
+                        xhr.responseXML = This._replayXhr.responseXML;
+                        xhr.status = This._replayXhr.status;
+                        xhr.statusText = This._replayXhr.statusText;
+                        xhr.timeout = This._replayXhr.timeout;
+                        xhr.upload = This._replayXhr.upload;
+                        xhr.withCredentials = This._replayXhr.withCredentials;
                         
-                        if(this.status === 200) {
+                        if(This._replayXhr.status === 200) {
                             
                             if(xhr.onreadystatechange) { 
                                 xhr.onreadystatechange();
@@ -2809,6 +2810,8 @@
         
         _refreshAccessToken : function(requestContext) {
     
+            var This = this;
+            
             // Gets the current authentication status
             var authStatus = this._storageManager.getAuthStatus();
     
@@ -2840,25 +2843,19 @@
                 )
             );
             
-            refreshXhr.onreadystatechange = OAuth.FunctionUtils.bind(
-                function(xhr) {
+            refreshXhr.onreadystatechange = function() {
     
-                    // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
-                    // If the 'readyState' is DONE then the server returned a response
-                    if(xhr.readyState === xhr.DONE) {
+                // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
+                // If the 'readyState' is DONE then the server returned a response
+                if(refreshXhr.readyState === refreshXhr.DONE) {
     
-                        this._onRefreshAccessTokenPost(xhr, requestContext);
+                    This._onRefreshAccessTokenPost(refreshXhr, requestContext);
     
-                    }
-                    
-                }, 
-                this, 
-                refreshXhr
-            );
+                }
+                
+            };
     
         },
-        
-        
         
         /**
          * Start the AngularJS Request Manager, the purpose of the start method is to overwrites the Angular JS HTTP service 
@@ -3020,12 +3017,14 @@
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
                 
-                This._requestContext =  new OAuth.RequestContext();
-                This._requestContext.originalXhr.xhr = this;
-                This._requestContext.originalXhr.args.open = slicedArguments;
+                var requestContext = new OAuth.RequestContext();
+                requestContext.originalXhr.xhr = this;
+                requestContext.originalXhr.args.open = slicedArguments;
     
+                this.requestContext = requestContext;
+                
                 // Calls the OAuth.JS 'open' method
-                return This._open(this, slicedArguments);
+                return This._open(requestContext, this, slicedArguments);
                 
             };
             
@@ -3036,7 +3035,7 @@
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
                 
-                This._requestContext.originalXhr.args.setRequestHeader = slicedArguments;
+                this.requestContext.originalXhr.args.setRequestHeader = slicedArguments;
                 
                 // Calls the OAuth.JS 'setRequestHeader' method
                 return This._setRequestHeader(this, slicedArguments);
@@ -3050,8 +3049,8 @@
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
                 
-                This._requestContext.originalXhr.args.send = slicedArguments;
-                
+                this.requestContext.originalXhr.args.send = slicedArguments;
+    
                 // Calls the OAuth.JS 'setRequestHeader' method
                 return This._send(this, slicedArguments);
                 
@@ -3072,7 +3071,7 @@
         },
         
         // TODO: Méthode open permettant l'exécution de la requête avec 'access_token'
-        _open : function(xhr, slicedArguments) {
+        _open : function(requestContext, xhr, slicedArguments) {
     
             // We ensure that if the provided arguments are modified somewhere in the code this has no impact on the 
             // standard XMLHttpRequest behavior. So we clone the original HTMLHttpRequest arguments before working with 
@@ -3126,8 +3125,7 @@
                             var action = This._parseErrorFn(xhr);
                             
                             if(action === 'refresh') {
-                                
-                                This._refreshAccessToken();
+                                This._refreshAccessToken(requestContext);
     
                             } else {
     
