@@ -292,7 +292,7 @@ OAuth.Request.AngularRequestManager.prototype = {
 
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
                 // If the 'readyState' is DONE then the server returned a response
-                if(xhr.readyState === xhr.DONE) {
+                if(this.readyState === xhr.DONE) {
 
                     xhr.readyState = this.readyState;
                     xhr.response = this.response;
