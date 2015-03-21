@@ -1740,6 +1740,10 @@
     
         // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
         //       des spécifications OAuth 2.0 qui est violée
+        '__oauth_js__fail_to_get_refresh_token__',
+                    
+        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
+        //       des spécifications OAuth 2.0 qui est violée
         '__oauth_js__headers_bad_cache_control__',
     
         // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
@@ -2794,15 +2798,16 @@
                     }
                     
                 };
-                
-                console.log('refresh succeeded');
     
             } 
             
-            // TODO
+            // Otherwise if the AuthStatus is disconnected it means that the refresh token request returned an error, in 
+            // this case we redirect the user to the login form 
             else {
     
-                console.log('refresh failed');
+                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+                // credentials
+                this._loginFn(this._loginContext);
     
             }
             

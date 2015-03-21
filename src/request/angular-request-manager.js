@@ -325,15 +325,16 @@ OAuth.Request.AngularRequestManager.prototype = {
                 }
                 
             };
-            
-            console.log('refresh succeeded');
 
         } 
         
-        // TODO
+        // Otherwise if the AuthStatus is disconnected it means that the refresh token request returned an error, in 
+        // this case we redirect the user to the login form 
         else {
 
-            console.log('refresh failed');
+            // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+            // credentials
+            this._loginFn(this._loginContext);
 
         }
         
