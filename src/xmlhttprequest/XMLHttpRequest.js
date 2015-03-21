@@ -1,9 +1,25 @@
 (function () {
+
+    'use strict';
     
+    // The XMLHttpRequest wrapper defined in this file does not work under IE5, IE7, IE8 and IE9
+    // Their are several problems with those browser
+    //  - We encounter the 'c00c023f' error 
+    //    @see http://stackoverflow.com/questions/7287706/ie-9-javascript-error-c00c023f
+    //    @see https://groups.google.com/forum/#!topic/websync/ysBEvtvMyb0
+    //  - Even after solving the previous error IE crashes on a call to 'getAllResponseHeaders()'
+    if(navigator.appVersion.indexOf('MSIE 7.') !== -1 ||
+       navigator.appVersion.indexOf('MSIE 8.') !== -1 ||
+       navigator.appVersion.indexOf('MSIE 9.') !== -1) {
+
+        throw new Error('The oauth.js library does not support IE7, IE8 or IE9 !');
+
+    }
+
     //@see https://xhr.spec.whatwg.org
-    window.OXMLHttpRequest = window.XMLHttpRequest;
+    var OXMLHttpRequest = XMLHttpRequest;
     
-    window.XMLHttpRequest = function() {
+    XMLHttpRequest = function() {
         
         this.DONE = 4;
         this.HEADERS_RECEIVED = 2;
@@ -71,27 +87,46 @@
 
     };
 
-    window.XMLHttpRequest.prototype = {};
-    window.XMLHttpRequest.prototype.abort = function() {
+    XMLHttpRequest.prototype = {};
+    XMLHttpRequest.prototype.abort = function() {
         return this.oXMLHttpRequest.abort();
     };
-    window.XMLHttpRequest.prototype.open = function(sMethod, sUrl, bAsync, sUser, sPassword) {
+    XMLHttpRequest.prototype.open = function(sMethod, sUrl, bAsync, sUser, sPassword) {
         return this.oXMLHttpRequest.open(sMethod, sUrl, bAsync, sUser, sPassword);
     };
-    window.XMLHttpRequest.prototype.overrideMimeType = function(mime) {
+    XMLHttpRequest.prototype.overrideMimeType = function(mime) {
         return this.oXMLHttpRequest.overrideMimeType(mime);
     };
-    window.XMLHttpRequest.prototype.send = function(data) {
+    XMLHttpRequest.prototype.send = function(data) {
         return this.oXMLHttpRequest.send(data);
     };
-    window.XMLHttpRequest.prototype.getAllResponseHeaders = function() {
+    XMLHttpRequest.prototype.getAllResponseHeaders = function() {
         return this.oXMLHttpRequest.getAllResponseHeaders();
     };
-    window.XMLHttpRequest.prototype.getResponseHeader = function(name) {
+    XMLHttpRequest.prototype.getResponseHeader = function(name) {
         return this.oXMLHttpRequest.getResponseHeader(name);
     };
-    window.XMLHttpRequest.prototype.setRequestHeader  = function(name, value) {
+    XMLHttpRequest.prototype.setRequestHeader  = function(name, value) {
         return this.oXMLHttpRequest.setRequestHeader(name, value);
     };
+    
+    // IE ???
+    // @see http://developer.blackberry.com/html5/documentation/v1_0/xmlhttprequest_dispatchevent_620051_11.html
+//    XMLHttpRequest.prototype.dispatchEvent  = function(type, listener, useCapture) {
+//        return this.oXMLHttpRequest.dispatchEvent(type, listener, useCapture);
+//    };
+    // @see http://docs.blackberry.com/ko-kr/developers/deliverables/11849/XMLHttpRequest_addEventListener_573783_11.jsp
+//    XMLHttpRequest.prototype.addEventListener  = function(type, listener, useCapture) {
+//        return this.oXMLHttpRequest.addEventListener(type, listener, useCapture);
+//    };
+    // @see http://docs.blackberry.com/en/developers/deliverables/11849/XMLHttpRequest_removeEventListener_620054_11.jsp
+//    XMLHttpRequest.prototype.removeEventListener  = function(type, listener, useCapture) {
+//        return this.oXMLHttpRequest.removeEventListener(type, listener, useCapture);
+//    };
 
+    // FIREFOX ???
+    // XMLHttpRequest.prototype.sendAsBinary = function(data) {
+    //    return this.oXMLHttpRequest.sendAsBinary(data);
+    // };
+    
 })();

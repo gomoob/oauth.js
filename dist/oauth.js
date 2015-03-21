@@ -49,11 +49,27 @@
     };
     
     (function () {
+    
+        'use strict';
         
+        // The XMLHttpRequest wrapper defined in this file does not work under IE5, IE7, IE8 and IE9
+        // Their are several problems with those browser
+        //  - We encounter the 'c00c023f' error 
+        //    @see http://stackoverflow.com/questions/7287706/ie-9-javascript-error-c00c023f
+        //    @see https://groups.google.com/forum/#!topic/websync/ysBEvtvMyb0
+        //  - Even after solving the previous error IE crashes on a call to 'getAllResponseHeaders()'
+        if(navigator.appVersion.indexOf('MSIE 7.') !== -1 ||
+           navigator.appVersion.indexOf('MSIE 8.') !== -1 ||
+           navigator.appVersion.indexOf('MSIE 9.') !== -1) {
+    
+            throw new Error('The oauth.js library does not support IE7, IE8 or IE9 !');
+    
+        }
+    
         //@see https://xhr.spec.whatwg.org
-        window.OXMLHttpRequest = window.XMLHttpRequest;
+        var OXMLHttpRequest = XMLHttpRequest;
         
-        window.XMLHttpRequest = function() {
+        XMLHttpRequest = function() {
             
             this.DONE = 4;
             this.HEADERS_RECEIVED = 2;
@@ -121,29 +137,48 @@
     
         };
     
-        window.XMLHttpRequest.prototype = {};
-        window.XMLHttpRequest.prototype.abort = function() {
+        XMLHttpRequest.prototype = {};
+        XMLHttpRequest.prototype.abort = function() {
             return this.oXMLHttpRequest.abort();
         };
-        window.XMLHttpRequest.prototype.open = function(sMethod, sUrl, bAsync, sUser, sPassword) {
+        XMLHttpRequest.prototype.open = function(sMethod, sUrl, bAsync, sUser, sPassword) {
             return this.oXMLHttpRequest.open(sMethod, sUrl, bAsync, sUser, sPassword);
         };
-        window.XMLHttpRequest.prototype.overrideMimeType = function(mime) {
+        XMLHttpRequest.prototype.overrideMimeType = function(mime) {
             return this.oXMLHttpRequest.overrideMimeType(mime);
         };
-        window.XMLHttpRequest.prototype.send = function(data) {
+        XMLHttpRequest.prototype.send = function(data) {
             return this.oXMLHttpRequest.send(data);
         };
-        window.XMLHttpRequest.prototype.getAllResponseHeaders = function() {
+        XMLHttpRequest.prototype.getAllResponseHeaders = function() {
             return this.oXMLHttpRequest.getAllResponseHeaders();
         };
-        window.XMLHttpRequest.prototype.getResponseHeader = function(name) {
+        XMLHttpRequest.prototype.getResponseHeader = function(name) {
             return this.oXMLHttpRequest.getResponseHeader(name);
         };
-        window.XMLHttpRequest.prototype.setRequestHeader  = function(name, value) {
+        XMLHttpRequest.prototype.setRequestHeader  = function(name, value) {
             return this.oXMLHttpRequest.setRequestHeader(name, value);
         };
+        
+        // IE ???
+        // @see http://developer.blackberry.com/html5/documentation/v1_0/xmlhttprequest_dispatchevent_620051_11.html
+    //    XMLHttpRequest.prototype.dispatchEvent  = function(type, listener, useCapture) {
+    //        return this.oXMLHttpRequest.dispatchEvent(type, listener, useCapture);
+    //    };
+        // @see http://docs.blackberry.com/ko-kr/developers/deliverables/11849/XMLHttpRequest_addEventListener_573783_11.jsp
+    //    XMLHttpRequest.prototype.addEventListener  = function(type, listener, useCapture) {
+    //        return this.oXMLHttpRequest.addEventListener(type, listener, useCapture);
+    //    };
+        // @see http://docs.blackberry.com/en/developers/deliverables/11849/XMLHttpRequest_removeEventListener_620054_11.jsp
+    //    XMLHttpRequest.prototype.removeEventListener  = function(type, listener, useCapture) {
+    //        return this.oXMLHttpRequest.removeEventListener(type, listener, useCapture);
+    //    };
     
+        // FIREFOX ???
+        // XMLHttpRequest.prototype.sendAsBinary = function(data) {
+        //    return this.oXMLHttpRequest.sendAsBinary(data);
+        // };
+        
     })();
 
     /**
@@ -987,6 +1022,15 @@
      */
     OAuth.RequestContext = function() {
         
+        // 'originalXhr' : L'objet XMLHttpRequest utilisé par le développeut ou au sein du Framework Javascript pour 
+        //                récupérer une resource
+        // 'replacedXhr' : L'objet XMLHttpRequest utilisé en lieu et place de 'originalXhr' pour executer la requête du 
+        //                 dévelopeur ou du Framework
+        // 'refreshXhr'  : L'objet XMLHttpRequest utilisé lorsqu'une réponse serveur a indiqué que l'accès à une resource 
+        //                 n'était pas possible à cause d'un Access Token expiré
+        // 'replayXhr'   : L'objet XMLHttpRequest utilisé pour rejouer la même requête que la requête de départ 
+        //                 'originalXhr' suite à une rafraichissement de Token OAuth 2.0
+    
         this.originalXhr = {
             xhr : null, 
             args : {
@@ -1738,10 +1782,6 @@
      */
     OAuth.AccessToken.CriticalErrorResponse.criticalErrorCodes = [
     
-        // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
-        //       des spécifications OAuth 2.0 qui est violée
-        '__oauth_js__fail_to_get_refresh_token__',
-                    
         // TODO: A documenter, cette documentation doit apparaître dans le JSDoc, on doit avoir une référence à la règle 
         //       des spécifications OAuth 2.0 qui est violée
         '__oauth_js__headers_bad_cache_control__',
@@ -2585,17 +2625,47 @@
                     // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
                     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
                     
-                    // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
-                    xhr.send(
-                        OAuth.UrlUtils.toQueryString(
+                    // Firefox bug
+                    // @see https://bugzilla.mozilla.org/show_bug.cgi?id=416178
+                    // @see http://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-encoding-algorithm
+                    // @see https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#sendAsBinary()_polyfill
+                    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
+                    {
+                        var sData = OAuth.UrlUtils.toQueryString(
                             {
                                 grant_type : credentials.grant_type,
                                 client_id : this._clientId,
                                 username : credentials.username,
                                 password : credentials.password
                             }
-                        )
-                    );
+                        );                  
+                        
+                        var nBytes = sData.length, 
+                            ui8Data = new Uint8Array(nBytes);
+                        
+                        for (var nIdx = 0; nIdx < nBytes; nIdx++) {
+                            ui8Data[nIdx] = sData.charCodeAt(nIdx) & 0xff;
+                        }
+                                        
+                        xhr.send(ui8Data);
+                        
+                    } 
+                    
+                    // All other browsers
+                    else {
+                    
+                        xhr.send(
+                            OAuth.UrlUtils.toQueryString(
+                                {
+                                    grant_type : credentials.grant_type,
+                                    client_id : this._clientId,
+                                    username : credentials.username,
+                                    password : credentials.password
+                                }
+                            )
+                        );
+                        
+                    }
     
                     xhr.onreadystatechange = 
                         OAuth.FunctionUtils.bind(this._onreadystatechangeTokenEndpointPost, this, xhr);
@@ -2884,7 +2954,7 @@
      
                     };
     
-                    // Overwrite the Angular JS '$http.get(url, config)' method
+                    // Overwrite the Angular JS '$http.get(url, [config])' method
                     wrapper.get = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2901,7 +2971,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.head(url, config)' method
+                    // Overwrite the Angular JS '$http.head(url, [config])' method
                     wrapper.head = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2918,7 +2988,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.post(url, config)' method
+                    // Overwrite the Angular JS '$http.post(url, data, [config])' method
                     wrapper.post = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2935,7 +3005,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.put(url, config)' method
+                    // Overwrite the Angular JS '$http.put(url, data, [config])' method
                     wrapper.put = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2952,7 +3022,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.delete(url, config)' method
+                    // Overwrite the Angular JS '$http.delete(url, [config])' method
                     wrapper.delete = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2969,7 +3039,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.jsonp(url, config)' method
+                    // Overwrite the Angular JS '$http.jsonp(url, [config])' method
                     wrapper.jsonp = OAuth.FunctionUtils.bind(
                         function() {
                             
@@ -2986,7 +3056,7 @@
                         This
                     );
                     
-                    // Overwrite the Angular JS '$http.patch(url, config)' method
+                    // Overwrite the Angular JS '$http.patch(url, data, [config])' method
                     wrapper.patch = OAuth.FunctionUtils.bind(
                         function() {
                             

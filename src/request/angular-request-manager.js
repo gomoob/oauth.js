@@ -112,17 +112,47 @@ OAuth.Request.AngularRequestManager.prototype = {
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
                 xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
                 
-                // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
-                xhr.send(
-                    OAuth.UrlUtils.toQueryString(
+                // Firefox bug
+                // @see https://bugzilla.mozilla.org/show_bug.cgi?id=416178
+                // @see http://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-encoding-algorithm
+                // @see https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#sendAsBinary()_polyfill
+                if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
+                {
+                    var sData = OAuth.UrlUtils.toQueryString(
                         {
                             grant_type : credentials.grant_type,
                             client_id : this._clientId,
                             username : credentials.username,
                             password : credentials.password
                         }
-                    )
-                );
+                    );                  
+                    
+                    var nBytes = sData.length, 
+                        ui8Data = new Uint8Array(nBytes);
+                    
+                    for (var nIdx = 0; nIdx < nBytes; nIdx++) {
+                        ui8Data[nIdx] = sData.charCodeAt(nIdx) & 0xff;
+                    }
+                                    
+                    xhr.send(ui8Data);
+                    
+                } 
+                
+                // All other browsers
+                else {
+                
+                    xhr.send(
+                        OAuth.UrlUtils.toQueryString(
+                            {
+                                grant_type : credentials.grant_type,
+                                client_id : this._clientId,
+                                username : credentials.username,
+                                password : credentials.password
+                            }
+                        )
+                    );
+                    
+                }
 
                 xhr.onreadystatechange = 
                     OAuth.FunctionUtils.bind(this._onreadystatechangeTokenEndpointPost, this, xhr);
@@ -411,7 +441,7 @@ OAuth.Request.AngularRequestManager.prototype = {
  
                 };
 
-                // Overwrite the Angular JS '$http.get(url, config)' method
+                // Overwrite the Angular JS '$http.get(url, [config])' method
                 wrapper.get = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -428,7 +458,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.head(url, config)' method
+                // Overwrite the Angular JS '$http.head(url, [config])' method
                 wrapper.head = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -445,7 +475,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.post(url, config)' method
+                // Overwrite the Angular JS '$http.post(url, data, [config])' method
                 wrapper.post = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -462,7 +492,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.put(url, config)' method
+                // Overwrite the Angular JS '$http.put(url, data, [config])' method
                 wrapper.put = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -479,7 +509,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.delete(url, config)' method
+                // Overwrite the Angular JS '$http.delete(url, [config])' method
                 wrapper.delete = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -496,7 +526,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.jsonp(url, config)' method
+                // Overwrite the Angular JS '$http.jsonp(url, [config])' method
                 wrapper.jsonp = OAuth.FunctionUtils.bind(
                     function() {
                         
@@ -513,7 +543,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     This
                 );
                 
-                // Overwrite the Angular JS '$http.patch(url, config)' method
+                // Overwrite the Angular JS '$http.patch(url, data, [config])' method
                 wrapper.patch = OAuth.FunctionUtils.bind(
                     function() {
                         
