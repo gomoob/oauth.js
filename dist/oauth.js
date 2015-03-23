@@ -2948,132 +2948,122 @@
                     
                     // Create a wrapper which will proxy all its call to the original Angular JS '$http' service 
                     // configured in the request manager
-                    var wrapper = function() {
+                    var $httpWrapper = function() {
                     
-                        return This._$http.apply(This._$http, arguments);
+                        // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
+                        // parameter is true
+                        var updatedArguments = arguments; 
+                        updatedArguments[0] = This._updateAngularHttpConfig(updatedArguments[0]);
+                        
+                        // Calls the Angular JS `$http` method with the updated arguments, when the `http` method will call 
+                        // an XMLHttpRequest it will call the methods overwritten by OAuth.JS to manage OAuth 2.0 Access 
+                        // Token refresh if necessary.
+                        return This._$http.apply(This._$http, updatedArguments);
      
                     };
     
                     // Overwrite the Angular JS '$http.get(url, [config])' method
-                    wrapper.get = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.get = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('get', arguments);
-                            
-                            // Calls the Angular JS `$http.get` method with the updated arguments, when the `http.get` 
-                            // method will call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to 
-                            // manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.get.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'GET';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
-                    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+    
                     // Overwrite the Angular JS '$http.head(url, [config])' method
-                    wrapper.head = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.head = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('head', arguments);
-                            
-                            // Calls the Angular JS `$http.head` method with the updated arguments, when the `http.head` 
-                            // method will call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to 
-                            // manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.head.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'HEAD';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
                     
                     // Overwrite the Angular JS '$http.post(url, data, [config])' method
-                    wrapper.post = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.post = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('post', arguments);
-                            
-                            // Calls the Angular JS `$http.post` method with the updated arguments, when the `http.post` 
-                            // method will call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to 
-                            // manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.post.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
                     
                     // Overwrite the Angular JS '$http.put(url, data, [config])' method
-                    wrapper.put = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.put = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('put', arguments);
-                            
-                            // Calls the Angular JS `$http.put` method with the updated arguments, when the `http.put` 
-                            // method will call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to 
-                            // manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.put.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
                     
                     // Overwrite the Angular JS '$http.delete(url, [config])' method
-                    wrapper.delete = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.delete = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('delete', arguments);
-                            
-                            // Calls the Angular JS `$http.delete` method with the updated arguments, when the 
-                            // `http.delete` method will call an XMLHttpRequest it will call the methods overwritten by 
-                            // OAuth.JS to manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.delete.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'HEAD';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
                     
                     // Overwrite the Angular JS '$http.jsonp(url, [config])' method
-                    wrapper.jsonp = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.jsonp = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('jsonp', arguments);
-                            
-                            // Calls the Angular JS `$http.jsonp` method with the updated arguments, when the 
-                            // `http.jsonp` method will call an XMLHttpRequest it will call the methods overwritten by 
-                            // OAuth.JS to manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.jsonp.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'JSONP';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+                        
+                    };
                     
                     // Overwrite the Angular JS '$http.patch(url, data, [config])' method
-                    wrapper.patch = OAuth.FunctionUtils.bind(
-                        function() {
+                    $httpWrapper.patch = function() {
                             
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                            // parameter is true
-                            var updatedArguments = this._updateAngularHttpMethodArguments('patch', arguments);
-                            
-                            // Calls the Angular JS `$http.patch` method with the updated arguments, when the 
-                            // `http.patch` method will call an XMLHttpRequest it will call the methods overwritten by 
-                            // OAuth.JS to manage OAuth 2.0 Access Token refresh if necessary.
-                            return this._$http.patch.apply(this._$http, updatedArguments);
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
     
-                        }, 
-                        This
-                    );
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
     
-                    return wrapper;
+                    };
+    
+                    return $httpWrapper;
                     
                 }
             );
@@ -3242,69 +3232,45 @@
         },
         
         /**
-         * Utility function used to update an array of arguments passed to an Angular JS `$http` method. Those arguments 
-         * could have been passed to the `get`, `head`, `post`, `put`, `delete`, `jsonp` or `patch` method. The purpose of 
-         * this method is to automatically update the URL provided with the arguments to append the OAuth 2.0 'access_token'
-         * URL parameter. The 'access_token' URL parameter is only appended to the URL is the 'secured' configuration 
-         * parameter is found.
+         * Utility function used to update a configuration object passed to the Angular JS `$http(config)` method. The 
+         * purpose of this method is to automatically update the URL provided with the arguments to append the OAuth 2.0 
+         * 'access_token' URL parameter. The 'access_token' URL parameter is only appended to the URL is the 'secured' 
+         * configuration parameter is found.
          * 
-         * @param {String} method The name of the method for which one to update arguments, this can be equal to `get`, 
-         *        `head`, `post`, `put`, `delete`, `jsonp` or `patch`.
-         * @param {Array} args An array of arguments passed to an Angular JS `$http` method, for exemple if 
-         *        `$http.get('http://www.website.com/rest', { secured : true })` is called then the array will be 
-         *        `['http://www.website.com/rest', { secured : true }]`.
+         * @param {Object} config A configuration object passed to the Angular JS `$http(config)` method.
          *        
-         * @return {Array} The updated arguments array, only the first argument (i.e the URL) could have been updated, this 
-         *         update is only applied if the second argument provides the 'secured' parameter with a true value.
+         * @return {Object} The updated configuration object. The provided `config` object is not modified, the returned 
+         *         object is a modified copy of the provided `config` object. The returned configuration object has no 
+         *         'secured' property because the returned configuration MUST BE 100% compliant with the Angular JS 
+         *         framework. The URL could have been updated, this update is only applied if the 'secured' parameter is 
+         *         true. If the URL associated to the `config` object already contained an 'access_token' URL parameter then 
+         *         its value is updated to the 'access_token' associated to the Storage Manager attached to this Request 
+         *         Manager.
          */
-        // TODO: A tester
-        _updateAngularHttpMethodArguments : function(method, args) {
+        _updateAngularHttpConfig : function(config) {
     
-            // TODO: Ici il est plus sage de faire un clone...
-            var updatedArguments = args, 
-                configIndex = null;
-    
-            switch(method) {
-            
-                // Methods which accepts (url, [config]) arguments
-                case 'get':
-                case 'head':
-                case 'delete':
-                case 'jsonp':
-                    // If the optionnal 'config' argument is provided
-                    if(args.length > 1) {
-                        configIndex = 1;
-                    }
-                    break;
-                case 'patch':
-                case 'post':
-                case 'put':
-                    // If the optionnal 'config' argument is provided
-                    if(args.length > 2) {
-                        configIndex = 2;
-                    }
-                    break;
-                default:
-                    throw new Error('Invalid method value \'' + method + '\' !');
-            }
+            var updatedConfig = config;
     
             // If the AngularJS $http.get(url, config) is called with a 'config' parameter and this 'config' 
             // parameter indicates the request has to be secured
-            if(configIndex && updatedArguments[configIndex].secured === true) {
+            if(config.secured === true) {
     
                 // Gets the current AuthStatus
                 var authStatus = this._storageManager.getAuthStatus();
                 
                 // Updates the URL to append the 'access_token' parameter
-                updatedArguments[0] = OAuth.UrlUtils.addArgument(
-                    updatedArguments[0],
+                config.url = OAuth.UrlUtils.addArgument(
+                    config.url,
                     'access_token',
                     authStatus.getAccessTokenResponse().getJsonResponse().access_token
                 );
     
             }
-    
-            return updatedArguments;
+            
+            // Now the 'secured' parameter is not needed anymore, we delete it because its not useful for Angular  
+            delete updatedConfig.secured;
+            
+            return updatedConfig;
     
         }
     
