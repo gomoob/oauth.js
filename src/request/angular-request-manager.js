@@ -336,7 +336,7 @@ OAuth.Request.AngularRequestManager.prototype = {
                     OAuth.XhrUtils.copyAttributes(This._replayXhr, originalXhr);
                     
                     // The server returned a 2xx HTTP Response
-                    if(This._replayXhr.status >= 200 && This.__replayXhr < 300) {
+                    if(This._replayXhr.status >= 200 && This._replayXhr.status < 300) {
 
                         if(originalXhr.onreadystatechange) { 
                             originalXhr.onreadystatechange();
