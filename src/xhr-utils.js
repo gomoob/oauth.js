@@ -4,11 +4,65 @@
  * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
  * @class XhrUtils
  * @memberof OAuth 
- * @see http://www.w3.org/TR/XMLHttpRequest
- * @see https://github.com/ilinsky/xmlhttprequest
+ * @see https://xhr.spec.whatwg.org
  */
 OAuth.XhrUtils = {
 
+    /**
+     * Utility function used to copy all the attributes of an {@link XMLHttpRequest} object to an other 
+     * {@link XMLHttpRequest} object. 
+     * 
+     * Here what we call "attributes" references all the elements marked as "attribute" in the WhatWG XMLHttpRequest 2 
+     * specifications :
+     * 
+     *  * [4.4 States](https://xhr.spec.whatwg.org/#states "States")
+     *    * `readyState` attribute
+     *  
+     *  * [4.5 Request](https://xhr.spec.whatwg.org/#request "Request") attributes
+     *    * `timeout` attribute 
+     *    * `withCredentials` attribute
+
+     *  * [4.6 Response](https://xhr.spec.whatwg.org/#xmlhttprequest-response "Response") attributes
+     *    * `responseURL` attribute
+     *    * `status` attribute
+     *    * `statusText` attribute
+     *    * `responseType` attribute
+     *    * `response` attribute
+     *    * `responseText` attribute
+     *    * `responseXML` attribute
+     * 
+     * **NOTE**    : Please note that the request `upload` attribute is never copied because listeners could have been 
+     *               attached to the `upload` attribute of the xhr the attributes are copied to.
+     * 
+     * **WARNING** : Please note that this copy is only possible if the provided {@link XMLHttpRequest} are instance of 
+     *               the modified {@link XMLHttpRequest} object defined in the OAuth.JS project. This is very important 
+     *               because otherwise some browser will simply forbid any change to the target {@link XMLHttpRequest} 
+     *               object (this behavior is implemented as is in browsers to prevent an xhr to be in an invalid state)
+     *               . 
+     * 
+     * @param {XMLHttpRequest} fromXhr The {@link XMLHttpRequest} object from which one to copy properties.
+     * @param {XMLHttpRequest} toXhr The {@link XMLHttpRequest} object to which one to copy properties.
+     */
+    copyAttributes : function(fromXhr, toXhr) {
+        
+        // [4.4 States](https://xhr.spec.whatwg.org/#states "States")
+        toXhr.readyState      = fromXhr.readyState;
+        
+        // [4.5 Request](https://xhr.spec.whatwg.org/#request "Request") attributes
+        toXhr.timeout         = fromXhr.timeout;
+        toXhr.withCredentials = fromXhr.withCredentials;
+        
+        // [4.6 Response](https://xhr.spec.whatwg.org/#xmlhttprequest-response "Response") attributes
+        toXhr.responseURL     = fromXhr.responseURL;
+        toXhr.status          = fromXhr.status;
+        toXhr.statusText      = fromXhr.statusText;
+        toXhr.responseType    = fromXhr.responseType;
+        toXhr.response        = fromXhr.response;
+        toXhr.responseText    = fromXhr.responseText;
+        toXhr.responseXML     = fromXhr.responseXML;
+
+    },
+                  
     // TODO: A documenter & tester
     fromJSON : function(jsonObject) {
 

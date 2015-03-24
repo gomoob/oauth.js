@@ -191,7 +191,7 @@ OAuth.StorageManager.prototype = {
         }
         
         // The XMLHttpRequest object must be in the 'DONE' state
-        if(xhr.readyState !== xhr.DONE) {
+        if(xhr.readyState !== XMLHttpRequest.DONE) {
 
             throw new Error(
                 'The provided XHMLHttpRequest object must be in the DONE state before used for persistance !'

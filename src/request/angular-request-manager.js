@@ -89,16 +89,24 @@ OAuth.Request.AngularRequestManager = function(configuration) {
 };
 OAuth.Request.AngularRequestManager.prototype = {
 
-    //TODO: Ceci correspond presque à la méthode '_login' que l'on a en Backbone
+    /**
+     * Function used to send credentials use the configured OAuth 2.0 Token Endpoint.
+     * 
+     * @param {Object} credentials TODO A DOCUMENTER
+     * @param {Function} cb TODO A DOCUMENTER
+     * @param {Object} opts TODO A DOCUMENTER
+     */
+    // TODO: A tester et documenter...
     sendCredentials : function(credentials, cb, opts) {
-        
+
         this._loginContext = new OAuth.LoginContext();
         this._loginContext._setLoginCb(cb);
         this._loginContext._setLoginOpts(opts);
         this._loginContext._setRequestManager(this);
-        
+
         var xhr = new XMLHttpRequest();
-    
+        xhr.requestType = '__oauth_js_send_credentials__';
+
         switch(credentials.grant_type) {
             case 'password':
                 
@@ -154,8 +162,19 @@ OAuth.Request.AngularRequestManager.prototype = {
                     
                 }
 
-                xhr.onreadystatechange = 
-                    OAuth.FunctionUtils.bind(this._onreadystatechangeTokenEndpointPost, this, xhr);
+                var This = this;
+
+                xhr.onreadystatechange = function() {
+
+                    // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
+                    // If the 'readyState' is DONE then the server returned a response
+                    if(xhr.readyState === XMLHttpRequest.DONE) {
+                        
+                        This._onTokenEndpointPost(xhr);
+
+                    }
+
+                };
                 
                 break;
             default:
@@ -179,14 +198,14 @@ OAuth.Request.AngularRequestManager.prototype = {
         // TODO: Les callbacks de login sont appelés dans tous les cas, il est souvent fréquent que l'on ne souhaite pas 
         //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour 
         //       ceci. 
-        
+
         var authStatus = null, 
             loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
 
         // Persists the response as an OAuthStatus object
         authStatus = this._storageManager.persistAccessTokenResponse(xhr);
-                
+
         // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
         // when its called we call the login callback.  
         if(typeof loginFnCb === 'function') {
@@ -226,18 +245,6 @@ OAuth.Request.AngularRequestManager.prototype = {
 
         }
         
-    },
-    
-    _onreadystatechangeTokenEndpointPost : function(xhr, slicedArguments) {
-        
-        // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
-        // If the 'readyState' is DONE then the server returned a response
-        if(xhr.readyState === xhr.DONE) {
-            
-            this._onTokenEndpointPost(xhr);
-            
-        }
-
     },
                                         
     /**
@@ -318,35 +325,31 @@ OAuth.Request.AngularRequestManager.prototype = {
             
             this._replayXhr.onreadystatechange = function() {
 
-                var xhr = requestContext.originalXhr.xhr;
+                var originalXhr = requestContext.originalXhr.xhr;
 
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
                 // If the 'readyState' is DONE then the server returned a response
-                if(This._replayXhr.readyState === This._replayXhr.DONE) {
+                if(This._replayXhr.readyState === XMLHttpRequest.DONE) {
 
-                    xhr.readyState = This._replayXhr.readyState;
-                    xhr.response = This._replayXhr.response;
-                    xhr.responseText = This._replayXhr.responseText;
-                    xhr.responseType = This._replayXhr.responseType;
-                    xhr.responseURL = This._replayXhr.responseURL;
-                    xhr.responseXML = This._replayXhr.responseXML;
-                    xhr.status = This._replayXhr.status;
-                    xhr.statusText = This._replayXhr.statusText;
-                    xhr.timeout = This._replayXhr.timeout;
-                    xhr.upload = This._replayXhr.upload;
-                    xhr.withCredentials = This._replayXhr.withCredentials;
+                    // Copy all the XMLHttpRequest attribute of the "replay xhr" to the "original xhr" to propagate its 
+                    // state 
+                    OAuth.XhrUtils.copyAttributes(This._replayXhr, originalXhr);
                     
-                    if(This._replayXhr.status === 200) {
-                        
-                        if(xhr.onreadystatechange) { 
-                            xhr.onreadystatechange();
+                    // The server returned a 2xx HTTP Response
+                    if(This._replayXhr.status >= 200 && This.__replayXhr < 300) {
+
+                        if(originalXhr.onreadystatechange) { 
+                            originalXhr.onreadystatechange();
+                        }
+
+                        if(originalXhr.onload) {
+                            originalXhr.onload();
                         }
                         
-                        if(xhr.onload) {
-                            xhr.onload();
-                        }
-                        
-                    } else {
+                    } 
+                    
+                    // The server returned an other HTTP Response
+                    else {
                     
                         console.log('Error after replay...');
 
@@ -409,7 +412,7 @@ OAuth.Request.AngularRequestManager.prototype = {
 
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
             // If the 'readyState' is DONE then the server returned a response
-            if(refreshXhr.readyState === refreshXhr.DONE) {
+            if(refreshXhr.readyState === XMLHttpRequest.DONE) {
 
                 This._onRefreshAccessTokenPost(refreshXhr, requestContext);
 
@@ -590,7 +593,7 @@ OAuth.Request.AngularRequestManager.prototype = {
             this.requestContext.originalXhr.args.setRequestHeader = slicedArguments;
             
             // Calls the OAuth.JS 'setRequestHeader' method
-            return This._setRequestHeader(this, slicedArguments);
+            return This._setRequestHeader(this.requestContext, this, slicedArguments);
             
         };
         
@@ -604,118 +607,121 @@ OAuth.Request.AngularRequestManager.prototype = {
             this.requestContext.originalXhr.args.send = slicedArguments;
 
             // Calls the OAuth.JS 'setRequestHeader' method
-            return This._send(this, slicedArguments);
+            return This._send(this.requestContext, this, slicedArguments);
             
         };
         
     },
-    
-    _setRequestHeader : function(xhr, slicedArguments) {
+
+    _setRequestHeader : function(requestContext, xhr, slicedArguments) {
         
         this._backupedSetRequestHeader.apply(this._realXhr, slicedArguments);
 
     },
-    
-    _send : function(xhr, slicedArguments) {
-        
+
+    _send : function(requestContext, xhr, slicedArguments) {
+
         this._backupedSend.apply(this._realXhr, slicedArguments);
         
     },
-    
-    // TODO: Méthode open permettant l'exécution de la requête avec 'access_token'
-    _open : function(requestContext, xhr, slicedArguments) {
 
-        // We ensure that if the provided arguments are modified somewhere in the code this has no impact on the 
-        // standard XMLHttpRequest behavior. So we clone the original HTMLHttpRequest arguments before working with 
-        // them.
-        var clonedOpenArguments = this._cloneOpenArguments(slicedArguments);
-        
-        // Augment the original XMLHttpRequest arguments by adding arguments specific to OAuth 2.0 / OAuth.JS
-        var augmentedOpenArguments = this._augmentOpenArguments(clonedOpenArguments);
-        
+    /**
+     * Overwritten {@link XMLHttpRequest} open method, this method is a part of what we call the "replaced xhr" object. 
+     * The purpose of the replaced xhr is to replace an original {@link XMLHttpRequest} object used by a developer or a 
+     * Framework (Backbone, Angular, React, etc.) to intercept server responses and execute actions before returning a 
+     * response to the original xhr object.
+     * 
+     * @param {OAuth.RequestContext} requestContext The {@link RequestContext} object is an object used to keep a trace 
+     *        of all the {@link XMLHttpRequest}, parameters and functions used to respond to an original request a 
+     *        developer or a Framework (Backbone, Angular, React, etc.) wants to execute.
+     * @param {XMLHttpRequest} originalXhr The original {@link XMLHttpRequest} slightly modified to change the behavior 
+     *        of some method to let OAuth.JS intercept its actions.
+     * @param {Array} openArguments The arguments to pass to the `open()` method of the replaced {@link XMLHttpRequest} 
+     *        object.
+     */
+    // TODO: A tester
+    _open : function(requestContext, originalXhr, openArguments) {
+
         // We create an other XMLHttpRequest object to execute the request
         this._realXhr = new XMLHttpRequest();
         this._realXhr.open = this._backupedOpen;
         this._realXhr.send = this._backupedSend;
         this._realXhr.setRequestHeader = this._backupedSetRequestHeader;
 
-        this._backupedOpen.apply(this._realXhr, slicedArguments);
+        this._backupedOpen.apply(this._realXhr, openArguments);
         
         var This = this;
         this._realXhr.onreadystatechange = function() {
             
-            // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
-            switch(this.readyState) {
-                case 1:
-                    console.log('OPENED');
-                break;
-                case 4:
-                    
-                    xhr.readyState = this.readyState;
-                    xhr.response = this.response;
-                    xhr.responseText = this.responseText;
-                    xhr.responseType = this.responseType;
-                    xhr.responseURL = this.responseURL;
-                    xhr.responseXML = this.responseXML;
-                    xhr.status = this.status;
-                    xhr.statusText = this.statusText;
-                    xhr.timeout = this.timeout;
-                    xhr.withCredentials = this.withCredentials;
-                    
-                    if(this.status === 200) {
+            // @see https://xhr.spec.whatwg.org/#states
+            // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects
+            // ).
+            if(this.readyState === XMLHttpRequest.DONE) {
+
+                // Copy all the XMLHttpRequest attribute of the "replaced xhr" to the "original xhr" to propagate its 
+                // state 
+                OAuth.XhrUtils.copyAttributes(this, originalXhr);
+                
+                // If the request is a protected OAuth 2.0 Resource Request
+                if(originalXhr.isResourceRequest()) {
+
+                    // The server returned a 2xx HTTP Response
+                    if(this.status >= 200 && this.status < 300) {
                         
-                        if(xhr.onreadystatechange) { 
-                            xhr.onreadystatechange();
+                        if(originalXhr.onreadystatechange) { 
+                            originalXhr.onreadystatechange();
                         }
                         
-                        if(xhr.onload) {
-                            xhr.onload();
+                        if(originalXhr.onload) {
+                            originalXhr.onload();
                         }
                         
-                    } else {
+                    } 
                     
-                        var action = This._parseErrorFn(xhr);
-                        
+                    // The server returned an other HTTP Response
+                    else {
+    
+                        var action = This._parseErrorFn(originalXhr);
+    
+                        // The error expresses an OAuth 2.0 Access Token Expired
                         if(action === 'refresh') {
+    
                             This._refreshAccessToken(requestContext);
+    
+                        } 
+                        
+                        // The error expresses an other kind of error which should be notified to the original 
+                        // XMLHttpRequest
+                        else {
 
-                        } else {
-
-                            // Reniew in all other cases...
-                            console.log('reniew');
+                            if(originalXhr.onreadystatechange) { 
+                                originalXhr.onreadystatechange();
+                            }
+                            
+                            if(originalXhr.onload) {
+                                originalXhr.onload();
+                            }
 
                         }
-                        
-
+    
                     }
+                    
+                } 
+                
+                // Otherwise if the request is a request internal to OAuth.JS we simply delegate the 
+                // 'onreadystatechange' call. 
+                // Please note that this is very important to not intercept 'sendCredentials' callbacks in the 
+                // 'parseErrorFn' function
+                else {
 
-                break;
-            
+                    originalXhr.onreadystatechange();
+
+                }
+
             }
             
         };
 
-    },
-    
-    _cloneOpenArguments : function(slicedArguments) {
-        
-        // TODO: Méthode à implémenter
-        return slicedArguments;
-        
-    },
-    
-    _augmentOpenArguments : function(openArguments) {
-        
-        // Try to get an OAuth 2.0 Access Token from the client storage
-        var accessToken = this._storageManager.getAccessToken();
-        
-        // Appends the 'access_token' URL parameter
-        if(accessToken) {
-    
-            // TODO: A implémenter...
-            
-        }
-    
     },
     
     /**

@@ -6,6 +6,9 @@ describe('OAuth.Request.AngularRequestManager', function() {
         
         it('should return a valid configuration object', function() {
             
+            // @see https://github.com/driverdan/node-XMLHttpRequest/issues/98
+            XMLHttpRequest.DONE = 4;
+            
             // Create an Angular Request Manager for our test
             var requestManager = new OAuth.Request.AngularRequestManager(
                 {
@@ -20,7 +23,7 @@ describe('OAuth.Request.AngularRequestManager', function() {
             // Create a fake XMLHttpRequest object and perist it with the Storage Manager attached to our Angular 
             // Request Manager. This will allow us to check if the 'access_token' parameter added to URLs is valid
             var xhr = new XMLHttpRequest();
-            xhr.readyState = xhr.DONE;
+            xhr.readyState = XMLHttpRequest.DONE;
             xhr.status = 200;
             xhr.statusText = 'OK';
             xhr.response = '{' +

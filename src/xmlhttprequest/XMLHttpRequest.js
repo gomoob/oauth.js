@@ -19,14 +19,25 @@
     //@see https://xhr.spec.whatwg.org
     var OXMLHttpRequest = XMLHttpRequest;
     
+    /**
+     * Modified {@link XMLHttpRequest} object used by OAuth.JS, this modified xhr has several purposes : 
+     *  * Most browsers do not allow a manual modification of an {@link XMLHttpRequest} object attributes, this is 
+     *    perfectly normal because the WhatWG specification indicates those attributes have to be in a readonly mode. 
+     *    But OAuth.JS requires those attributes to be writtable, so this modified {@link XMLHttpRequest} object allow 
+     *    most of its attributes to be updated manually. 
+     *  * The OAuth.JS have to be able to tag some {@link XMLHttpRequest} object it uses to work correctly and 
+     *    differenciate its owns requests from requests performed by a developer or a framework. This modified 
+     *    {@link XMLHttpRequest} object add a special `requestType` attribute to tag the type of the request.
+     * 
+     * @author Baptiste Gaillard (baptiste.gaillard@gomoob.com)
+     * 
+     * @returns {XMLHttpRequest} The created modified {@link XMLHttpRequest} object.
+     */
     XMLHttpRequest = function() {
         
-        this.DONE = 4;
-        this.HEADERS_RECEIVED = 2;
-        this.LOADING = 3;
-        this.OPENED = 1;
-        this.UNSENT = 0;
-        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Standard XMLHttpRequest elements
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         var This = this;
         
         this.oXMLHttpRequest = new OXMLHttpRequest(); 
@@ -85,9 +96,27 @@
             }
         };
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Specific OAuth.JS XMLHttpRequest elements
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        this.requestType = null;
+
+        this.isResourceRequest = function() {
+        
+            return this.requestType !== '__oauth_js_send_credentials__';
+
+        };
+        
     };
 
     XMLHttpRequest.prototype = {};
+    
+    XMLHttpRequest.DONE = 4;
+    XMLHttpRequest.HEADERS_RECEIVED = 2;
+    XMLHttpRequest.LOADING = 3;
+    XMLHttpRequest.OPENED = 1;
+    XMLHttpRequest.UNSENT = 0;
+    
     XMLHttpRequest.prototype.abort = function() {
         return this.oXMLHttpRequest.abort();
     };

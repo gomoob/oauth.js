@@ -77,7 +77,7 @@ describe('OAuth.StorageManager', function() {
             // Create a fake XMLHttpRequest object
             // @see https://github.com/driverdan/node-XMLHttpRequest/blob/master/lib/XMLHttpRequest.js
             var xhr = new XMLHttpRequest();
-            xhr.readyState = xhr.DONE;
+            xhr.readyState = XMLHttpRequest.DONE;
             xhr.status = 200;
             xhr.statusText = 'OK';
             xhr.response = '{' +
