@@ -432,130 +432,133 @@ OAuth.Request.AngularRequestManager.prototype = {
         
         this._$provide.decorator(
             '$http', 
-            function($delegate) {
-            
-                This._$http = $delegate;
+            [
+                '$delegate',
+                function($delegate) {
                 
-                // Create a wrapper which will proxy all its call to the original Angular JS '$http' service 
-                // configured in the request manager
-                var $httpWrapper = function() {
-                
-                    // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
-                    // parameter is true
-                    var updatedArguments = arguments; 
-                    updatedArguments[0] = This._updateAngularHttpConfig(updatedArguments[0]);
+                    This._$http = $delegate;
                     
-                    // Calls the Angular JS `$http` method with the updated arguments, when the `http` method will call 
-                    // an XMLHttpRequest it will call the methods overwritten by OAuth.JS to manage OAuth 2.0 Access 
-                    // Token refresh if necessary.
-                    return This._$http.apply(This._$http, updatedArguments);
- 
-                };
-
-                // Overwrite the Angular JS '$http.get(url, [config])' method
-                $httpWrapper.get = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[1]; 
-                    updatedArguments.method = 'GET';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-
-                // Overwrite the Angular JS '$http.head(url, [config])' method
-                $httpWrapper.head = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[1]; 
-                    updatedArguments.method = 'HEAD';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-                
-                // Overwrite the Angular JS '$http.post(url, data, [config])' method
-                $httpWrapper.post = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[2];
-                    updatedArguments.data = arguments[1];
-                    updatedArguments.method = 'POST';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-                
-                // Overwrite the Angular JS '$http.put(url, data, [config])' method
-                $httpWrapper.put = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[2];
-                    updatedArguments.data = arguments[1];
-                    updatedArguments.method = 'POST';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-                
-                // Overwrite the Angular JS '$http.delete(url, [config])' method
-                $httpWrapper.delete = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[1]; 
-                    updatedArguments.method = 'HEAD';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-                
-                // Overwrite the Angular JS '$http.jsonp(url, [config])' method
-                $httpWrapper.jsonp = function() {
-                        
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[1]; 
-                    updatedArguments.method = 'JSONP';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
+                    // Create a wrapper which will proxy all its call to the original Angular JS '$http' service 
+                    // configured in the request manager
+                    var $httpWrapper = function() {
                     
-                };
-                
-                // Overwrite the Angular JS '$http.patch(url, data, [config])' method
-                $httpWrapper.patch = function() {
+                        // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
+                        // parameter is true
+                        var updatedArguments = arguments; 
+                        updatedArguments[0] = This._updateAngularHttpConfig(updatedArguments[0]);
                         
-                    // Transform the parameters to parameters compliant with '$http(config)'
-                    // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                    var updatedArguments = arguments[2];
-                    updatedArguments.data = arguments[1];
-                    updatedArguments.method = 'POST';
-                    updatedArguments.url = arguments[0];
-
-                    // Delegate the call to '$http(config)'
-                    return new $httpWrapper(updatedArguments);
-
-                };
-
-                return $httpWrapper;
-                
-            }
+                        // Calls the Angular JS `$http` method with the updated arguments, when the `http` method will 
+                        // call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to manage OAuth 2.0 
+                        // Access Token refresh if necessary.
+                        return This._$http.apply(This._$http, updatedArguments);
+     
+                    };
+    
+                    // Overwrite the Angular JS '$http.get(url, [config])' method
+                    $httpWrapper.get = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'GET';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+    
+                    // Overwrite the Angular JS '$http.head(url, [config])' method
+                    $httpWrapper.head = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'HEAD';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+                    
+                    // Overwrite the Angular JS '$http.post(url, data, [config])' method
+                    $httpWrapper.post = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+                    
+                    // Overwrite the Angular JS '$http.put(url, data, [config])' method
+                    $httpWrapper.put = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+                    
+                    // Overwrite the Angular JS '$http.delete(url, [config])' method
+                    $httpWrapper.delete = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'HEAD';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+                    
+                    // Overwrite the Angular JS '$http.jsonp(url, [config])' method
+                    $httpWrapper.jsonp = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[1]; 
+                        updatedArguments.method = 'JSONP';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+                        
+                    };
+                    
+                    // Overwrite the Angular JS '$http.patch(url, data, [config])' method
+                    $httpWrapper.patch = function() {
+                            
+                        // Transform the parameters to parameters compliant with '$http(config)'
+                        // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
+                        var updatedArguments = arguments[2];
+                        updatedArguments.data = arguments[1];
+                        updatedArguments.method = 'POST';
+                        updatedArguments.url = arguments[0];
+    
+                        // Delegate the call to '$http(config)'
+                        return new $httpWrapper(updatedArguments);
+    
+                    };
+    
+                    return $httpWrapper;
+                    
+                }
+            ]
         );
 
         // Backup the original XHMLHttpRequest 'open' method to reuse it
