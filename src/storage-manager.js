@@ -43,7 +43,7 @@ OAuth.StorageManager = function(configuration) {
 
         // Configure the storage class
         if ((configuration.hasOwnProperty('storage')) &&
-            (typeof configuration.storage === 'Object')) {
+            (typeof configuration.storage === 'object')) {
 
             this._storage = configuration.storage;
 
