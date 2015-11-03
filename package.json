@@ -26,7 +26,7 @@
   },
   "github": "https://github.com/gomoob/oauth.js",
   "scripts": {
-    "test": "mocha -r ./test/setup/node.js ",
+    "test": "mocha -r ./test/setup/node.js --recursive \"test/spec/\"",
     "coveralls" : "grunt coveralls",
     "coverage-lcov": "mocha -r ./test/setup/node.js -R mocha-lcov-reporter --recursive \"test/spec/\" > coverage.lcov",
     "coverage-html": "mocha -r ./test/setup/node.js -R html-cov --recursive \"test/spec/\" > coverage.html"
