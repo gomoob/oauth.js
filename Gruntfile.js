@@ -20,31 +20,11 @@ module.exports = function(grunt) {
          */
         coveralls: {
             options: {
-                src: 'coverage/lcov.info',
+                src: 'coverage.lcov',
                 force: false
             },
             'default': {
-                src: 'coverage/lcov.info'
-            }
-        },
-        
-        /**
-         * Env Task.
-         */
-        env : {
-            coverage : {
-                APP_DIR_FOR_CODE_COVERAGE : '../../coverage/src/'
-            }
-        },
-        
-        /**
-         * Instrument Task.
-         */
-        instrument : {
-            files : 'src/**/*.js', 
-            options : {
-                lazy : true,
-                basePath : 'coverage'
+                src: 'coverage.lcov'
             }
         },
         
@@ -82,19 +62,7 @@ module.exports = function(grunt) {
                 ]
             }
         },
-        
-        /**
-         * Make Report Task.
-         */
-        makeReport: {
-            src: 'coverage/**/*.json',
-            options: {
-                type: 'lcov',
-                dir: 'coverage',
-                print: 'detail'
-            }
-        },
-        
+
         /**
          * Mocha Test Task.
          */
@@ -182,22 +150,6 @@ module.exports = function(grunt) {
         ]
     );
 
-    /**
-     * Task used to generate a coverage report.
-     */
-    grunt.registerTask(
-        'coverage', 
-        'Generate coverage report for the library', 
-        [
-            'env:coverage',
-            'instrument',
-            'mochaTest',
-            'storeCoverage',
-            'makeReport',
-            'coveralls'
-        ]
-    );
-    
     /**
      * Task used to build the library.
      */

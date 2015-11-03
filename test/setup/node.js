@@ -1,3 +1,6 @@
+var fs = require('fs'),
+    path = require('path');
+
 var sinon = require('sinon');
 var chai = require('chai');
 var sinonChai = require('sinon-chai');
@@ -23,25 +26,54 @@ if (typeof localStorage === 'undefined' || localStorage === null) {
 
 }
 
-OAuth = require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'umd-wrapper');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'abnf-utils');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'auth-status');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'login-context');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'object-utils');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'promise');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'storage-manager');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'function-utils');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'url-utils');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'xhr-utils');
+OAuth = require('../../src/umd-wrapper');
+
+var blanket = require('blanket')({
+    pattern : [
+        path.resolve(__dirname + '/../../src/abnf-utils.js'),
+        path.resolve(__dirname + '/../../src/auth-status.js'),
+        path.resolve(__dirname + '/../../src/login-context.js'),
+        path.resolve(__dirname + '/../../src/object-utils.js'),
+        path.resolve(__dirname + '/../../src/promise.js'),
+        path.resolve(__dirname + '/../../src/storage-manage.js'),
+        path.resolve(__dirname + '/../../src/function-utils.js'),
+        
+        // FIXME: Syntax errors on those 2 files
+        // path.resolve(__dirname + '/../../src/url-utils.js'),
+        // path.resolve(__dirname + '/../../src/xhr-utils.js'),
+
+        // OAuth.AccessToken namespace
+        path.resolve(__dirname + '/../../src/access-token/abstract-response'),
+        path.resolve(__dirname + '/../../src/access-token/critical-error-response'),
+        path.resolve(__dirname + '/../../src/access-token/error-response'),
+        path.resolve(__dirname + '/../../src/access-token/response-parser'),
+        path.resolve(__dirname + '/../../src/access-token/successful-response'),
+        
+        // OAuth.Request namespace
+        path.resolve(__dirname + '/../../src/request/abstract-request-manager'),
+        path.resolve(__dirname + '/../../src/request/angular-request-manager'),
+        path.resolve(__dirname + '/../../src/request/backbone-request-manager')
+    ]
+});
+
+require('../../src/abnf-utils');
+require('../../src/auth-status');
+require('../../src/login-context');
+require('../../src/object-utils');
+require('../../src/promise');
+require('../../src/storage-manager');
+require('../../src/function-utils');
+require('../../src/url-utils');
+require('../../src/xhr-utils');
 
 // OAuth.AccessToken namespace
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/abstract-response');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/critical-error-response');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/error-response');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/response-parser');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'access-token/successful-response');
+require('../../src/access-token/abstract-response');
+require('../../src/access-token/critical-error-response');
+require('../../src/access-token/error-response');
+require('../../src/access-token/response-parser');
+require('../../src/access-token/successful-response');
 
 // OAuth.Request namespace
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/abstract-request-manager');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/angular-request-manager');
-require((process.env.APP_DIR_FOR_CODE_COVERAGE || '../../src/') + 'request/backbone-request-manager');
+require('../../src/request/abstract-request-manager');
+require('../../src/request/angular-request-manager');
+require('../../src/request/backbone-request-manager');
