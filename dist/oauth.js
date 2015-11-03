@@ -1,53 +1,58 @@
 (function(root, factory) {
-    
+
     if (typeof define === 'function' && define.amd) {
-        
+
         define([], function() {
 
             return (root.OAuth = factory(root));
 
         });
-    
+
     }
-  
+
     else if (typeof exports !== 'undefined') {
-    
+
         module.exports = factory(root);
 
     }
-    
+
     else {
-    
+
         root.OAuth = factory(root);
-    
+
     }
-    
+
 }(this, function(root) {
 
     'use strict';
-    
+
     /**
      * @namespace OAuth
      */
     var OAuth = {
-             
+
           /**
            * @namespace OAuth.AccessToken
            */
           AccessToken : {},
-                 
+
           /**
            * @namespace OAuth.Error
            */
           Error : {},
-                  
+
           /**
            * @namespace OAuth.Request
            */
-          Request : {}
+          Request : {},
+
+          /**
+           * @namespace OAuth.Storage
+           */
+          Storage : {}
 
     };
-    
+
     (function () {
     
         'use strict';
@@ -773,9 +778,9 @@
     };
     
     /**
-     * Class which represents a Login Context, a login context is an object which transports informations to login to a 
+     * Class which represents a Login Context, a login context is an object which transports informations to login to a
      * server.
-     * 
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      * @class LoginContext
      * @memberof OAuth
@@ -784,154 +789,183 @@
     
         /**
          * The credentials provided.
-         * 
+         *
          * @var {Object}
          */
         this._credentials = null;
-        
+    
         /**
          * A reference to the callback function passed to the `OAuth.login(cb, opts)` method.
-         * 
+         *
          * @var {LoginContext~loginCb}
          */
         this._loginCb = null;
-        
+    
+        // TODO: To be documented
         this._loginFnCb = null;
-        
+    
+        // TODO: To be documented
         this._loginFnOpts = null;
-        
+    
         /**
          * A reference to the options passed to the `OAuth.login(cb, opts)` method.
-         * 
+         *
          * @var {Object}
          */
         this._loginOpts = null;
     
         /**
          * A reference to the OAuth.JS Request Manager which created this Login Context object.
-         * 
+         *
          * @var {OAuth.RequestManager}
          */
         this._requestManager = null;
-        
+    
     };
     
     OAuth.LoginContext.prototype = {
     
         /**
          * Gets the last credentials provided.
-         * 
+         *
          * @return {Object} The last credentials provided.
          */
         getCredentials : function() {
-            
+    
             return this._credentials;
-            
+    
         },
-        
+    
         /**
          * Gets a reference to the callback function passed to the `OAuth.login(loginCb, opts)` method.
-         * 
-         * @returns {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
+         *
+         * @returns {LoginContext~loginCb} loginCb A reference to the callback function passed to the
          *          `OAuth.login(cb, opts)` method.
          */
         getLoginCb : function() {
-            
+    
             return this._loginCb;
-            
+    
         },
-        
+    
+        // TODO: To be documented
         getLoginFnCb : function() {
-            
+    
             return this._loginFnCb;
-            
+    
         },
-                                          
+    
         /**
          * Function to call to send credentials to an OAuth 2.0 server.
-         * 
-         * @param {Object} credentials 
+         *
+         * @param {Object} credentials
          * @param {LoginContext~loginFnCb}
          * @param {Object} loginFnOpts
          */
         sendCredentials : function(credentials, loginFnCb, loginFnOpts) {
     
-            // Backups the provided credentials, login function callback and login function options. This is important 
+            // Backups the provided credentials, login function callback and login function options. This is important
             // because those information can then be used by the request manager
             this._credentials = credentials;
             this._loginFnCb = loginFnCb;
             this._loginFnOpts = loginFnOpts;
-            
+    
             // Sends the credentials with OAuth.JS
-            // TODO: Ici il serait beaucoup plus propre de lever un événement intercepté par le Request Manager pour ne pas 
+            // TODO: Ici il serait beaucoup plus propre de lever un événement intercepté par le Request Manager pour ne pas
             //       avoir de dépendance vers le Request Manager
             this._requestManager._login(this, credentials, loginFnCb);
     
-        }, 
-        
+        },
+    
         /**
          * Sets a reference to the callback function passed to the `OAuth.login(cb, opts)` method.
-         * 
-         * @param {LoginContext~loginCb} loginCb A reference to the callback function passed to the 
+         *
+         * @param {LoginContext~loginCb} loginCb A reference to the callback function passed to the
          *        `OAuth.login(cb, opts)` method.
          */
         _setLoginCb : function(loginCb) {
-            
+    
             this._loginCb = loginCb;
-            
+    
         },
-        
+    
         /**
          * Sets a reference to the options passed to the `OAuth.login(cb, opts)` method.
-         * 
+         *
          * @param {Object} loginOpts A reference to the options passed to the `OAuth.login(cb, opts)` method.
          */
         _setLoginOpts : function(loginOpts) {
-            
+    
             this._loginOpts = loginOpts;
     
         },
-        
+    
         /**
          * Sets the Request Manager which created this Login Context.
-         * 
+         *
          * @param {OAuth.RequestManager} requestManager The Request Manager which created this Login Context.
          */
         _setRequestManager : function(requestManager) {
-            
+    
             this._requestManager = requestManager;
-            
+    
         }
-                                     
+    
     };
     
     /**
      * Class used to provide utilities to manipulate objects.
-     * 
+     *
+     * Please note that several function defined here are copies of Underscore.js functions.
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      * @class ObjectUtils
      * @memberof OAuth
+     * @see http://underscorejs.org/underscore.js
      */
     OAuth.ObjectUtils = {
     
         /**
-         * Returns true if value is an Object. Note that JavaScript arrays and functions are objects, while (normal) strings 
+         * Copy all of the properties in the source objects over to the destination object, and return the destination
+         * object. It's in-order, so the last source will override properties of the same name in previous arguments.
+         *
+         * @param destination The destination object to copy properties to.
+         * @param source The source object from which one to copy properties.
+         *
+         * @returns The modified destination object.
+         */
+        extend : function(destination, source) {
+    
+            for(var propertyName in source) {
+    
+                destination[propertyName] = source[propertyName];
+    
+            }
+    
+            return destination;
+    
+        },
+    
+        /**
+         * Returns true if value is an Object. Note that JavaScript arrays and functions are objects, while (normal) strings
          * and numbers are not.
-         * 
+         *
+         * Note that JavaScript arrays and functions are objects, while (normal) strings and numbers are not.
+         *
          * @param {*} obj The value to check.
-         * 
          * @returns {Boolean} True if the value is an object or a function, false otherwise.
          */
         isObject : function(obj) {
-            
+    
             // Do not modify this peace of code because its a pure copy of Underscore JS '_.isObject(value)'
             // @see http://underscorejs.org/#isObject
             var type = typeof obj;
             return type === 'function' || type === 'object' && !!obj;
     
         }
-                         
+    
     };
+    
     /**
      * Class which "simulates" an ES6 promise, this class is only used internally and does not implement all aspects of ES6 
      * promises. In fact its a very naive implementation, so DO NEVER use this class and believe its behavior is the same as 
@@ -1068,223 +1102,6 @@
                 setRequestHeader : null
             }
         };
-        
-    };
-    /**
-     * Component used to manage persistance of a user connection state on client side.
-     * 
-     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
-     */
-    OAuth.StorageManager = function(configuration) {
-    
-        /**
-         * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
-         * 
-         * @instance
-         * @private
-         * @type {OAuth.AccessToken.ResponseParser}
-         */
-        this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
-        
-        /**
-         * The storage used to store the Access Token Response, 2 kinds of storage are supported. 
-         * 
-         *  * 'local'   : To use the browser local storage.
-         *  * 'session' : To use the browser session storage.
-         *  
-         * @property {Storage}
-         */
-        this._storage = localStorage;
-        
-        /**
-         * The key used to store the Access Token Response inside the Web Storage.
-         * 
-         * @param {String}
-         */
-        this._storageKey = 'oauth.js';
-    
-        // If no Web Storage is available in the browser
-        if(typeof Storage === 'undefined') {
-    
-            throw new Error('Your browser does not support HTML5 Web Storage !');
-    
-        }
-        
-        // If a specific configuration is provided
-        if(OAuth.ObjectUtils.isObject(configuration)) {
-    
-            // Configure the storage class
-            if ((configuration.hasOwnProperty('storage')) &&
-                (typeof configuration.storage === 'object')) {
-    
-                this._storage = configuration.storage;
-    
-            }
-            
-            // Configure the storage key
-            this._storageKey = typeof configuration.storageKey === 'string' ? configuration.storageKey : 'oauth.js';
-    
-        }
-        
-    };
-    
-    OAuth.StorageManager.prototype = {
-    
-        /**
-         * Clear all the informations stored using this storage manage.
-         */
-        clear : function() {
-            
-            this._storage.removeItem(this._storageKey + '.authStatus');
-            
-        },
-                                      
-        /**
-         * Gets the last Access Token stored.
-         * 
-         * @return {String} The last Access Token stored or null if no Access Token is stored.
-         */
-        getAccessToken : function() {
-            
-            var accessTokenResponse = this.getAccessTokenResponse(), 
-                accessToken = accessTokenResponse !== null ? accessTokenResponse.access_token : null;
-            
-            // Returns null or a valid token (undefined is always converted to null)
-            return accessToken === null || accessToken === undefined ? null : accessToken;
-    
-        },
-    
-        /**
-         * Gets the last Access Token Response stored.
-         * 
-         * @param {AccessTokenResponse} The last Access Token Response stored. 
-         */
-        getAccessTokenResponse : function() {
-            
-            var rawAccessTokenResponse = this._storage.getItem(this._storageKey + '.accessTokenResponse');
-    
-            return rawAccessTokenResponse !== null ? JSON.parse(rawAccessTokenResponse) : null;
-    
-        },
-    
-        // TODO: A documenter et tester...
-        getAuthStatus : function() {
-    
-            var authStatus = null, 
-                authStatusString = null;
-            
-            // Retrieve the AuthStatus string representation from the storage
-            authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
-    
-            // If an AuthStatus string has been found on the storage
-            if(authStatusString) {
-    
-                // Creates the AuthStatus object by parsing the AuthStatus string
-                authStatus = OAuth.AuthStatus.createFromString(authStatusString);
-    
-            } 
-            
-            // Create a disconnected AuthStatus
-            else {
-                
-                authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
-                
-            }
-            
-            // We always update the AuthStatus in the storage. This is VERY IMPORTANT because if the AuthStatus has been 
-            // manually updated outside the application and the data in the storage are corrupted we have to refresh those 
-            // data to valid values. 
-            this.persistAuthStatus(authStatus);
-            
-            return authStatus;
-    
-        },
-    
-        /**
-         * Gets the last Refresh Token stored.
-         * 
-         * @return {String} The last Refresh Token stored.
-         */
-        getRefreshToken : function() {
-    
-            var accessTokenResponse = this.getAccessTokenResponse(), 
-                refreshToken = accessTokenResponse !== null ? accessTokenResponse.refresh_token : null;
-    
-            // Returns null or a valid token (undefined is always converted to null)
-            return refreshToken === null || refreshToken === undefined ? null : refreshToken;
-    
-        },
-    
-        /**
-         * Persists the Raw Access Token Response.
-         * 
-         * @param {String} rawAccessTokenResponse The raw Access Token Response returned from the server, this must be a raw 
-         *        string.
-         */
-        persistRawAccessTokenResponse : function(rawAccessTokenResponse) {
-    
-            // TODO: Valider la réponse...
-    
-            this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
-    
-        },
-        
-        // TODO: A blinder, documenter et tester...
-        persistAuthStatus : function(authStatus) {
-            
-            this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
-            
-        },
-        
-        /**
-         * Function used to persist an Access Token Response from a specified {@link XMLHttpRequest} object. 
-         * 
-         * @param {XMLHttpRequest} xhr An {@link XMLHttpRequest} object which was used to send a POST HTTP request to an 
-         *        OAuth 2.0 Token Endpoint.
-         *        
-         * @return {OAuth.AuthStatus} A resulting {@link OAuth.Status} object which describe the user connection state which 
-         *         has been persisted on the storage.
-         */
-        persistAccessTokenResponse : function(xhr) {
-            
-            // The 'xhr' parameter must be an object
-            if(typeof xhr !== 'object') {
-                
-                throw new Error(
-                    'The provided XHMLHttpRequest object is invalid !'
-                );
-                
-            }
-            
-            // The XMLHttpRequest object must be in the 'DONE' state
-            if(xhr.readyState !== XMLHttpRequest.DONE) {
-    
-                throw new Error(
-                    'The provided XHMLHttpRequest object must be in the DONE state before used for persistance !'
-                );
-    
-            }
-            
-            var accessTokenResponse = null, 
-                authStatus = null;
-    
-            // Parse the Access Token Response
-            accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
-    
-            // Creates the AuthStatus object
-            authStatus = new OAuth.AuthStatus(
-                {
-                    status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
-                    accessTokenResponse : accessTokenResponse
-                }
-            );
-            
-            // Persists the new AuthStatus object
-            this.persistAuthStatus(authStatus);
-    
-            return authStatus;
-    
-        }
         
     };
     /**
@@ -1529,7 +1346,7 @@
         }
     
     };
-    
+
     /**
      * Class used to represent an OAuth 2.0 Access Token response.
      * 
@@ -2497,35 +2314,260 @@
         return valid;
     
     };
-    
+
     /**
-     * Abstract class common to all OAuth.JS Request Managers.
-     * 
+     * Component used to manage persistance of a user connection state on client side.
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
-    OAuth.Request.AbstractRequestManager = function(configuration) {
-        
+    OAuth.Storage.WebStorage = function(configuration) {
+    
         /**
          * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
-         * 
+         *
          * @instance
          * @private
          * @type {OAuth.AccessToken.ResponseParser}
          */
         this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
-        
+    
+        /**
+         * The storage used to store the Access Token Response, 2 kinds of storage are supported.
+         *
+         *  * `localStorage`   : To use the browser local storage.
+         *  * `sessionStorage` : To use the browser session storage.
+         *
+         * @property {Storage}
+         */
+        this._storage = localStorage;
+    
+        /**
+         * The key used to store the Access Token Response inside the Web Storage.
+         *
+         * @param {String}
+         */
+        this._storageKey = 'oauth.js';
+    
+        // If no Web Storage is available in the browser
+        if(typeof Storage === 'undefined') {
+    
+            throw new Error('Your browser does not support HTML5 Web Storage !');
+    
+        }
+    
+        // If a specific configuration is provided
+        if(OAuth.ObjectUtils.isObject(configuration)) {
+    
+            // Configure the storage class
+            if ((configuration.hasOwnProperty('storage')) &&
+                (typeof configuration.storage === 'object')) {
+    
+                this._storage = configuration.storage;
+    
+            } else {
+    
+                this._storage = localStorage;
+    
+            }
+    
+            // Configure the storage key
+            this._storageKey = typeof configuration.storageKey === 'string' ? configuration.storageKey : 'oauth.js';
+    
+        }
+    
+    };
+    
+    OAuth.Storage.WebStorage.prototype = {
+    
+        /**
+         * Clear all the informations stored using this storage manage.
+         */
+        clear : function() {
+    
+            this._storage.removeItem(this._storageKey + '.authStatus');
+    
+        },
+    
+        /**
+         * Gets the last Access Token stored.
+         *
+         * @return {String} The last Access Token stored or null if no Access Token is stored.
+         */
+        getAccessToken : function() {
+    
+            var accessTokenResponse = this.getAccessTokenResponse(),
+                accessToken = accessTokenResponse !== null ? accessTokenResponse.access_token : null;
+    
+            // Returns null or a valid token (undefined is always converted to null)
+            return accessToken === null || accessToken === undefined ? null : accessToken;
+    
+        },
+    
+        /**
+         * Gets the last Access Token Response stored.
+         *
+         * @param {AccessTokenResponse} The last Access Token Response stored.
+         */
+        getAccessTokenResponse : function() {
+    
+            var rawAccessTokenResponse = this._storage.getItem(this._storageKey + '.accessTokenResponse');
+    
+            return rawAccessTokenResponse !== null ? JSON.parse(rawAccessTokenResponse) : null;
+    
+        },
+    
+        // TODO: A documenter et tester...
+        getAuthStatus : function() {
+    
+            var authStatus = null,
+                authStatusString = null;
+    
+            // Retrieve the AuthStatus string representation from the storage
+            authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+    
+            // If an AuthStatus string has been found on the storage
+            if(authStatusString) {
+    
+                // Creates the AuthStatus object by parsing the AuthStatus string
+                authStatus = OAuth.AuthStatus.createFromString(authStatusString);
+    
+            }
+    
+            // Create a disconnected AuthStatus
+            else {
+    
+                authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
+    
+            }
+    
+            // We always update the AuthStatus in the storage. This is VERY IMPORTANT because if the AuthStatus has been
+            // manually updated outside the application and the data in the storage are corrupted we have to refresh those
+            // data to valid values.
+            this.persistAuthStatus(authStatus);
+    
+            return authStatus;
+    
+        },
+    
+        /**
+         * Gets the last Refresh Token stored.
+         *
+         * @return {String} The last Refresh Token stored.
+         */
+        getRefreshToken : function() {
+    
+            var accessTokenResponse = this.getAccessTokenResponse(),
+                refreshToken = accessTokenResponse !== null ? accessTokenResponse.refresh_token : null;
+    
+            // Returns null or a valid token (undefined is always converted to null)
+            return refreshToken === null || refreshToken === undefined ? null : refreshToken;
+    
+        },
+    
+        /**
+         * Persists the Raw Access Token Response.
+         *
+         * @param {String} rawAccessTokenResponse The raw Access Token Response returned from the server, this must be a raw
+         *        string.
+         */
+        persistRawAccessTokenResponse : function(rawAccessTokenResponse) {
+    
+            // TODO: Valider la réponse...
+    
+            this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
+    
+        },
+    
+        // TODO: A blinder, documenter et tester...
+        persistAuthStatus : function(authStatus) {
+    
+            this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+    
+        },
+    
+        /**
+         * Function used to persist an Access Token Response from a specified {@link XMLHttpRequest} object.
+         *
+         * @param {XMLHttpRequest} xhr An {@link XMLHttpRequest} object which was used to send a POST HTTP request to an
+         *        OAuth 2.0 Token Endpoint.
+         *
+         * @return {OAuth.AuthStatus} A resulting {@link OAuth.Status} object which describe the user connection state which
+         *         has been persisted on the storage.
+         */
+        persistAccessTokenResponse : function(xhr) {
+    
+            // The 'xhr' parameter must be an object
+            if(typeof xhr !== 'object') {
+    
+                throw new Error(
+                    'The provided XHMLHttpRequest object is invalid !'
+                );
+    
+            }
+    
+            // The XMLHttpRequest object must be in the 'DONE' state
+            if(xhr.readyState !== XMLHttpRequest.DONE) {
+    
+                throw new Error(
+                    'The provided XHMLHttpRequest object must be in the DONE state before used for persistance !'
+                );
+    
+            }
+    
+            var accessTokenResponse = null,
+                authStatus = null;
+    
+            // Parse the Access Token Response
+            accessTokenResponse = this._accessTokenResponseParser.parse(xhr);
+    
+            // Creates the AuthStatus object
+            authStatus = new OAuth.AuthStatus(
+                {
+                    status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
+                    accessTokenResponse : accessTokenResponse
+                }
+            );
+    
+            // Persists the new AuthStatus object
+            this.persistAuthStatus(authStatus);
+    
+            return authStatus;
+    
+        }
+    
+    };
+
+    /**
+     * Abstract class common to all OAuth.JS Request Managers.
+     *
+     * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
+     */
+    /**
+     * @param configuration
+     */
+    OAuth.Request.AbstractRequestManager = function(configuration) {
+    
+        /**
+         * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
+         *
+         * @instance
+         * @private
+         * @type {OAuth.AccessToken.ResponseParser}
+         */
+        this._accessTokenResponseParser = new OAuth.AccessToken.ResponseParser();
+    
         /**
          * The function used to retrieve credentials to get an OAuth 2.0 Access Token.
-         * 
+         *
          * @instance
          * @private
          */
         // TODO: A documenter mieux que celà (notamment le type)...
         this._loginFn = null;
-        
+    
         /**
          * The function used to parse errors returned by the Web Services.
-         * 
+         *
          * @instance
          * @private
          */
@@ -2534,49 +2576,57 @@
     
         /**
          * The storage manager used to manage persistence of OAuth 2.0 tokens on client side.
-         * 
+         *
          * @instance
          * @private
-         * @type {OAuth.StorageManager}
+         * @type {OAuth.Storage.IStorageManager}
          */
         this._storageManager = null;
-        
+    
         /**
          * The URL to the token endpoint used to retrieve an access and a refresh token.
-         * 
+         *
          * @instance
          * @private
          * @type {String}
          */
         this._tokenEndpoint = null;
-        
+    
         /**
-         * Function used to determine if a user is logged in to your application. 
-         * 
+         * The function used to transform / process Ajax query data / URL parameters.
+         *
+         * @instance
+         * @private
+         */
+        this._transformDataFn = configuration && configuration.transformDataFn || function(data) { return data; };
+    
+        /**
+         * Function used to determine if a user is logged in to your application.
+         *
          * @param {Function} cb TODO A DOCUMENTER
          * @returns {Boolean} forceServerCall TODO A DOCUMENTER
          */
         this.getLoginStatus = function(cb, forceServerCall) {
     
-            // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une 
-            //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus 
-            //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si 
+            // TODO: Pour le moment on utilise pas le tag 'forceServerCall', ce tag est défini de manière à avoir une
+            //       fonction 'getLoginStatus' très similaire à ce que défini le client Facebook FB.getLoginStatus()... Plus
+            //       tard il faudra même que la date côté client soit comparée à la date d'expiration du Token pour voir si
             //       on considère que le client est connecté ou non...
-            // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait 
+            // TODO: Il faudrait également que l'on prévoit des événements Javascript de la même manière que ce que fait
             //       Facebook
     
             // Very simple, simply call the provided callback with the stored AuthStatus
             cb(this._storageManager.getAuthStatus());
     
         };
-        
+    
         /**
          * Function used to logout a user.
-         * 
+         *
          * @param logoutCb A callback to be called after the logout is done.
          */
         this.logout = function(logoutCb) {
-          
+    
             // Clears the storage manage by the storage manager
             // FIXME: Le logout devrait persister un AuthStatus disconnected à la place...
             this._storageManager.clear();
@@ -2589,36 +2639,36 @@
     };
     
     /**
-     * 
-     * 
+     *
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
     OAuth.Request.AngularRequestManager = function(configuration) {
-        
+    
         // The AngularRequestManager extends the AbstractRequestManager
         OAuth.Request.AbstractRequestManager.apply(this, arguments);
-        
+    
         /**
-         * A reference to the original AngularJS `$http` service, this reference is backuped before OAuth.JS creates a 
+         * A reference to the original AngularJS `$http` service, this reference is backuped before OAuth.JS creates a
          * decorator around this `$http` service to modify its default behavior.
-         * 
+         *
          * @instance
          * @private
          * @type {service.$http}
          * @see https://docs.angularjs.org/api/ng/service/$http
          */
         this._$http = null;
-        
+    
         /**
-         * A reference to the AngularJS `$provide` service, this is used by OAuth.JS to create a decorator around the 
+         * A reference to the AngularJS `$provide` service, this is used by OAuth.JS to create a decorator around the
          * `$http` service to overwrite default request behavior.
-         * 
+         *
          * @instance
          * @private
          * @type {auto.$provide}
          * @see https://docs.angularjs.org/api/auto/service/$provide
          */
-        // FIXME: Il est peut-être plus logique de configurer le Request Manager avec l'$injector plustôt car il permet de 
+        // FIXME: Il est peut-être plus logique de configurer le Request Manager avec l'$injector plustôt car il permet de
         //        récupérer le '$provide'. Regarder aussi le rôle de 'window.angular'...
         this._$provide = configuration.$provide;
     
@@ -2627,11 +2677,11 @@
     
             // The login function is required
             if(typeof configuration.loginFn !== 'function') {
-                
+    
                 throw new Error('No login function is provided !');
-                
+    
             }
-            
+    
             this._loginFn = configuration.loginFn;
     
             // The client id is required
@@ -2645,11 +2695,11 @@
     
             // The token endpoint is required
             if(typeof configuration.tokenEndpoint !== 'string') {
-                
+    
                 throw new Error('No token endpoint is provided or its valued is invalid !');
-                
+    
             }
-            
+    
             this._tokenEndpoint = configuration.tokenEndpoint;
     
             // The parse error function is required
@@ -2657,31 +2707,28 @@
     
                 throw new Error('No parse error function is provided !');
     
-            } 
-            
+            }
+    
             this._parseErrorFn = configuration.parseErrorFn;
     
-            // Instanciate the OAuth 2.0 Access Token response storage
-            this._storageManager = new OAuth.StorageManager({
-                storage : configuration.storage,
-                storageKey : configuration.storageKey
-            });
-            
+            // Instanciate the OAuth 2.0 Access Token response storage manager
+            this._storageManager = configuration.storageManager || new OAuth.Storage.WebStorage();
+    
         }
-        
+    
         // Otherwise the request manager uses a default configuration
         else {
-            
+    
             throw new Error('A configuration object is required !');
     
         }
-        
+    
     };
     OAuth.Request.AngularRequestManager.prototype = {
     
         /**
          * Function used to send credentials use the configured OAuth 2.0 Token Endpoint.
-         * 
+         *
          * @param {Object} credentials TODO A DOCUMENTER
          * @param {Function} cb TODO A DOCUMENTER
          * @param {Object} opts TODO A DOCUMENTER
@@ -2699,17 +2746,17 @@
     
             switch(credentials.grant_type) {
                 case 'password':
-                    
+    
                     // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
                     xhr.open(
                         'POST',                // Method
                         this._tokenEndpoint,   // URL
                         true                   // Async
                     );
-                    
+    
                     // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
                     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                    
+    
                     // Firefox bug
                     // @see https://bugzilla.mozilla.org/show_bug.cgi?id=416178
                     // @see http://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-encoding-algorithm
@@ -2717,30 +2764,7 @@
                     if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
                     {
                         var sData = OAuth.UrlUtils.toQueryString(
-                            {
-                                grant_type : credentials.grant_type,
-                                client_id : this._clientId,
-                                username : credentials.username,
-                                password : credentials.password
-                            }
-                        );                  
-                        
-                        var nBytes = sData.length, 
-                            ui8Data = new Uint8Array(nBytes);
-                        
-                        for (var nIdx = 0; nIdx < nBytes; nIdx++) {
-                            ui8Data[nIdx] = sData.charCodeAt(nIdx) & 0xff;
-                        }
-                                        
-                        xhr.send(ui8Data);
-                        
-                    } 
-                    
-                    // All other browsers
-                    else {
-                    
-                        xhr.send(
-                            OAuth.UrlUtils.toQueryString(
+                            this._transformDataFn(
                                 {
                                     grant_type : credentials.grant_type,
                                     client_id : this._clientId,
@@ -2749,7 +2773,34 @@
                                 }
                             )
                         );
-                        
+    
+                        var nBytes = sData.length,
+                            ui8Data = new Uint8Array(nBytes);
+    
+                        for (var nIdx = 0; nIdx < nBytes; nIdx++) {
+                            ui8Data[nIdx] = sData.charCodeAt(nIdx) & 0xff;
+                        }
+    
+                        xhr.send(ui8Data);
+    
+                    }
+    
+                    // All other browsers
+                    else {
+    
+                        xhr.send(
+                            OAuth.UrlUtils.toQueryString(
+                                this._transformDataFn(
+                                    {
+                                        grant_type : credentials.grant_type,
+                                        client_id : this._clientId,
+                                        username : credentials.username,
+                                        password : credentials.password
+                                    }
+                                )
+                            )
+                        );
+    
                     }
     
                     var This = this;
@@ -2759,51 +2810,51 @@
                         // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
                         // If the 'readyState' is DONE then the server returned a response
                         if(xhr.readyState === XMLHttpRequest.DONE) {
-                            
+    
                             This._onTokenEndpointPost(xhr);
     
                         }
     
                     };
-                    
+    
                     break;
                 default:
                     throw new Error('Invalid credentials \'grant_type\' provided !');
             }
-            
+    
         },
-        
+    
         /**
-         * Callback function called when an HTTP POST request is sent to the configured OAuth 2.0 Token Endpoint. This 
-         * function is called if the POST is successful or in error, then an Access Token Response Parser (see 
-         * {@link OAuth.AccessToken.ResponseParser) is used to know if the response is successful or not. 
-         * 
-         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send an HTTP POST request to the OAuth 2.0 Token 
+         * Callback function called when an HTTP POST request is sent to the configured OAuth 2.0 Token Endpoint. This
+         * function is called if the POST is successful or in error, then an Access Token Response Parser (see
+         * {@link OAuth.AccessToken.ResponseParser) is used to know if the response is successful or not.
+         *
+         * @param {XMLHttpRequest} xhr The XMLHttpRequest object used to send an HTTP POST request to the OAuth 2.0 Token
          *        Endpoint.
          */
-        // TODO: Renommer cette méthode car elle doit être appelée uniquement après un login et pas pour un rafraichissement 
+        // TODO: Renommer cette méthode car elle doit être appelée uniquement après un login et pas pour un rafraichissement
         //       de token
         _onTokenEndpointPost : function(xhr) {
     
-            // TODO: Les callbacks de login sont appelés dans tous les cas, il est souvent fréquent que l'on ne souhaite pas 
-            //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour 
-            //       ceci. 
+            // TODO: Les callbacks de login sont appelés dans tous les cas, il est souvent fréquent que l'on ne souhaite pas
+            //       appeler le callback tant que le formulaire de login n'est pas rempli. Il nous faudrait une option pour
+            //       ceci.
     
-            var authStatus = null, 
+            var authStatus = null,
                 loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
     
             // Persists the response as an OAuthStatus object
             authStatus = this._storageManager.persistAccessTokenResponse(xhr);
     
-            // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then 
-            // when its called we call the login callback.  
+            // If the 'loginFn' or 'sendCredentials' function has provided a 'loginFnCb' callback we call it first, then
+            // when its called we call the login callback.
             if(typeof loginFnCb === 'function') {
-                
+    
                 var promise = new OAuth.Promise(
                     function(resolve, reject) {
-                        
-                        // Calls the 'loginFnCb' callback with the 'resolve' and 'reject' to allow the developer to fullfill 
+    
+                        // Calls the 'loginFnCb' callback with the 'resolve' and 'reject' to allow the developer to fullfill
                         // the promise or reject it.
                         //  - If the promise is fullfilled this indicates that the login form has been successfully filled
                         //  - If the promise is rejected this indicates that the login form has not been successfully filled
@@ -2813,70 +2864,70 @@
                 );
                 promise.then(
                     function(value) {
-                        
+    
                         // The form has been successfully filled
                         loginCb(authStatus);
     
-                    }, 
+                    },
                     function(reason) {
-                        
+    
                         // The form has not been successfully filled
                         loginCb(authStatus);
     
                     }
                 );
     
-            } 
-            
+            }
+    
             // Otherwise we call the 'login' function callback directly
             else {
     
                 loginCb(authStatus);
     
             }
-            
+    
         },
-                                            
+    
         /**
-         * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
-         * configured 'loginFn' function is not called and the provided 'loginCb' callback is directly called. Otherwise the 
-         * 'loginFn' callback function is called before calling the provided callback. 
-         * 
+         * Function used to login a user, by default this function checks if the user is already logged in, if it is the
+         * configured 'loginFn' function is not called and the provided 'loginCb' callback is directly called. Otherwise the
+         * 'loginFn' callback function is called before calling the provided callback.
+         *
          * @param loginCb A callback function to be called when a login action has been done.
          * @param opts Options used to configure the login.
          */
         login : function(loginCb, opts) {
-        
-            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method and is also 
+    
+            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method and is also
             // used in the Request Manager
             this._loginContext = new OAuth.LoginContext();
             this._loginContext._setLoginCb(loginCb);
             this._loginContext._setLoginOpts(opts);
             this._loginContext._setRequestManager(this);
-            
+    
             // If the client is considered disconnected
             if(this._storageManager.getAuthStatus().isDisconnected()) {
-        
-                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+    
+                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing
                 // credentials
                 this._loginFn(this._loginContext);
-        
-                // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de 
-                //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la 
+    
+                // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de
+                //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la
                 //        Credentials Promise n'aurait pas à dépendre du Request Manager
-        
+    
             }
-            
+    
             // Otherwise if the user is considered connected we call the callback directly
-            // Please note that even if the client is considered connected the 'loginCb' callback can execute secured 
-            // OAuth 2.0 HTTP requests which will change the current AuthStatus state to a 'disconnected' status if an error 
+            // Please note that even if the client is considered connected the 'loginCb' callback can execute secured
+            // OAuth 2.0 HTTP requests which will change the current AuthStatus state to a 'disconnected' status if an error
             // is encountered
             else {
     
                 loginCb(this._storageManager.getAuthStatus());
     
             }
-            
+    
         },
     
         _onRefreshAccessTokenPost : function(xhr, requestContext) {
@@ -2884,35 +2935,35 @@
             // Persists the response as an OAuthStatus object
             var authStatus = this._storageManager.persistAccessTokenResponse(xhr);
     
-            // If the user is considered connected (i.e the OAuth 2.0 Access Token refresh was successful) the replay the 
+            // If the user is considered connected (i.e the OAuth 2.0 Access Token refresh was successful) the replay the
             // original request
             if(authStatus.isConnected()) {
-                
+    
                 this._replayXhr = new XMLHttpRequest();
-                
+    
                 this._replayXhr.open = this._backupedOpen;
                 this._replayXhr.send = this._backupedSend;
                 this._replayXhr.setRequestHeader = this._backupedSetRequestHeader;
-                
-                // Updates the original XMLHttpRequest URL used to modify the 'access_token' parameter with the new one we 
+    
+                // Updates the original XMLHttpRequest URL used to modify the 'access_token' parameter with the new one we
                 // retrieved
                 requestContext.originalXhr.args.open[1] = OAuth.UrlUtils.addArgument(
-                    requestContext.originalXhr.args.open[1], 
+                    requestContext.originalXhr.args.open[1],
                     'access_token',
                     authStatus.getAccessTokenResponse().getJsonResponse().access_token
                 );
-                
+    
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
                 this._replayXhr.open.apply(this._replayXhr, requestContext.originalXhr.args.open);
-                
+    
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
                 this._replayXhr.setRequestHeader.apply(this._replayXhr, requestContext.originalXhr.args.setRequestHeader);
-                
+    
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
                 this._replayXhr.send.apply(this._replayXhr, requestContext.originalXhr.args.send);
-                
+    
                 var This = this;
-                
+    
                 this._replayXhr.onreadystatechange = function() {
     
                     var originalXhr = requestContext.originalXhr.xhr;
@@ -2921,83 +2972,86 @@
                     // If the 'readyState' is DONE then the server returned a response
                     if(This._replayXhr.readyState === XMLHttpRequest.DONE) {
     
-                        // Copy all the XMLHttpRequest attribute of the "replay xhr" to the "original xhr" to propagate its 
-                        // state 
+                        // Copy all the XMLHttpRequest attribute of the "replay xhr" to the "original xhr" to propagate its
+                        // state
                         OAuth.XhrUtils.copyAttributes(This._replayXhr, originalXhr);
-                        
+    
                         // The server returned a 2xx HTTP Response
                         if(This._replayXhr.status >= 200 && This._replayXhr.status < 300) {
     
-                            if(originalXhr.onreadystatechange) { 
+                            if(originalXhr.onreadystatechange) {
                                 originalXhr.onreadystatechange();
                             }
     
                             if(originalXhr.onload) {
                                 originalXhr.onload();
                             }
-                            
-                        } 
-                        
+    
+                        }
+    
                         // The server returned an other HTTP Response
                         else {
-                        
+    
                             console.log('Error after replay...');
     
                         }
     
                     }
-                    
+    
                 };
     
-            } 
-            
-            // Otherwise if the AuthStatus is disconnected it means that the refresh token request returned an error, in 
-            // this case we redirect the user to the login form 
+            }
+    
+            // Otherwise if the AuthStatus is disconnected it means that the refresh token request returned an error, in
+            // this case we redirect the user to the login form
             else {
     
-                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing
                 // credentials
                 this._loginFn(this._loginContext);
     
             }
-            
+    
         },
-        
+    
+        // TODO: To be documented
         _refreshAccessToken : function(requestContext) {
     
             var This = this;
-            
+    
             // Gets the current authentication status
             var authStatus = this._storageManager.getAuthStatus();
     
-            // Refresh the Access Token, if the refresh is successful then the 'replacedHttpPromise' will be 
+            // Refresh the Access Token, if the refresh is successful then the 'replacedHttpPromise' will be
             // resolved, otherwise the 'replacedHttpPromise' will be rejected
             var refreshXhr = new XMLHttpRequest();
             refreshXhr.open = this._backupedOpen;
             refreshXhr.send = this._backupedSend;
             refreshXhr.setRequestHeader = this._backupedSetRequestHeader;
-            
+    
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L91
             refreshXhr.open(
                 'POST',                // Method
                 this._tokenEndpoint,   // URL
                 true                   // Async
             );
-            
+    
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L330
             refreshXhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            
+    
             // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L263
             refreshXhr.send(
                 OAuth.UrlUtils.toQueryString(
-                    {
-                        grant_type : 'refresh_token',
-                        client_id : this._clientId,
-                        refresh_token : authStatus.getAccessTokenResponse().getJsonResponse().refresh_token
-                    }
+                    this._transformDataFn(
+                        {
+                            grant_type : 'refresh_token',
+                            client_id : this._clientId,
+                            refresh_token : authStatus.getAccessTokenResponse().getJsonResponse().refresh_token
+                        }
+                    )
                 )
             );
-            
+    
             refreshXhr.onreadystatechange = function() {
     
                 // @see https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js#L57
@@ -3007,146 +3061,146 @@
                     This._onRefreshAccessTokenPost(refreshXhr, requestContext);
     
                 }
-                
+    
             };
     
         },
-        
+    
         /**
-         * Start the AngularJS Request Manager, the purpose of the start method is to overwrites the Angular JS HTTP service 
+         * Start the AngularJS Request Manager, the purpose of the start method is to overwrites the Angular JS HTTP service
          * to manage OAuth 2.0 Access Token operations transparently.
          */
         start : function() {
-            
+    
             var This = this;
-            
+    
             this._$provide.decorator(
-                '$http', 
+                '$http',
                 [
                     '$delegate',
                     function($delegate) {
-                    
+    
                         This._$http = $delegate;
-                        
-                        // Create a wrapper which will proxy all its call to the original Angular JS '$http' service 
+    
+                        // Create a wrapper which will proxy all its call to the original Angular JS '$http' service
                         // configured in the request manager
                         var $httpWrapper = function() {
-                        
-                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured' 
+    
+                            // Update the arguments to add or update the 'access_token' URL argument if the 'secured'
                             // parameter is true
-                            var updatedArguments = arguments; 
+                            var updatedArguments = arguments;
                             updatedArguments[0] = This._updateAngularHttpConfig(updatedArguments[0]);
-                            
-                            // Calls the Angular JS `$http` method with the updated arguments, when the `http` method will 
-                            // call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to manage OAuth 2.0 
+    
+                            // Calls the Angular JS `$http` method with the updated arguments, when the `http` method will
+                            // call an XMLHttpRequest it will call the methods overwritten by OAuth.JS to manage OAuth 2.0
                             // Access Token refresh if necessary.
                             return This._$http.apply(This._$http, updatedArguments);
-         
+    
                         };
-        
+    
                         // Overwrite the Angular JS '$http.get(url, [config])' method
                         $httpWrapper.get = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                            var updatedArguments = arguments[1]; 
+                            var updatedArguments = arguments[1];
                             updatedArguments.method = 'GET';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-        
+    
                         // Overwrite the Angular JS '$http.head(url, [config])' method
                         $httpWrapper.head = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                            var updatedArguments = arguments[1]; 
+                            var updatedArguments = arguments[1];
                             updatedArguments.method = 'HEAD';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-                        
+    
                         // Overwrite the Angular JS '$http.post(url, data, [config])' method
                         $httpWrapper.post = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
                             var updatedArguments = arguments[2];
                             updatedArguments.data = arguments[1];
                             updatedArguments.method = 'POST';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-                        
+    
                         // Overwrite the Angular JS '$http.put(url, data, [config])' method
                         $httpWrapper.put = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
                             var updatedArguments = arguments[2];
                             updatedArguments.data = arguments[1];
                             updatedArguments.method = 'POST';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-                        
+    
                         // Overwrite the Angular JS '$http.delete(url, [config])' method
                         $httpWrapper.delete = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                            var updatedArguments = arguments[1]; 
+                            var updatedArguments = arguments[1];
                             updatedArguments.method = 'HEAD';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-                        
+    
                         // Overwrite the Angular JS '$http.jsonp(url, [config])' method
                         $httpWrapper.jsonp = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
-                            var updatedArguments = arguments[1]; 
+                            var updatedArguments = arguments[1];
                             updatedArguments.method = 'JSONP';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-                            
+    
                         };
-                        
+    
                         // Overwrite the Angular JS '$http.patch(url, data, [config])' method
                         $httpWrapper.patch = function() {
-                                
+    
                             // Transform the parameters to parameters compliant with '$http(config)'
                             // TODO: Créer une méthode '_transformHttpShortcutMethodArguments(arguments)'
                             var updatedArguments = arguments[2];
                             updatedArguments.data = arguments[1];
                             updatedArguments.method = 'POST';
                             updatedArguments.url = arguments[0];
-        
+    
                             // Delegate the call to '$http(config)'
                             return new $httpWrapper(updatedArguments);
-        
+    
                         };
-        
+    
                         return $httpWrapper;
-                        
+    
                     }
                 ]
             );
@@ -3156,58 +3210,58 @@
             this._backupedSend = XMLHttpRequest.prototype.send;
             this._backupedSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
     
-            // Change the reference to the HTMLHttpRequest 'open' method to use the OAuth.JS custom 'open' method 
-            // instead            
+            // Change the reference to the HTMLHttpRequest 'open' method to use the OAuth.JS custom 'open' method
+            // instead
             XMLHttpRequest.prototype.open = function() {
-                
+    
                 // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
                 // This is because the special 'arguments' Javascript object is not an array
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
-                
+    
                 var requestContext = new OAuth.RequestContext();
                 requestContext.originalXhr.xhr = this;
                 requestContext.originalXhr.args.open = slicedArguments;
     
                 this.requestContext = requestContext;
-                
+    
                 // Calls the OAuth.JS 'open' method
                 return This._open(requestContext, this, slicedArguments);
-                
+    
             };
-            
+    
             XMLHttpRequest.prototype.setRequestHeader = function(key, value) {
-                
+    
                 // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
                 // This is because the special 'arguments' Javascript object is not an array
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
-                
+    
                 this.requestContext.originalXhr.args.setRequestHeader = slicedArguments;
-                
+    
                 // Calls the OAuth.JS 'setRequestHeader' method
                 return This._setRequestHeader(this.requestContext, this, slicedArguments);
-                
+    
             };
-            
+    
             XMLHttpRequest.prototype.send = function(key, value) {
-                
+    
                 // Remove the 'callee', 'caller', 'set_callee', 'get_collee', 'set_caller' and 'get_caller' methods
                 // This is because the special 'arguments' Javascript object is not an array
                 // @see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Fonctions/arguments
                 var slicedArguments = [].slice.call(arguments);
-                
+    
                 this.requestContext.originalXhr.args.send = slicedArguments;
     
                 // Calls the OAuth.JS 'setRequestHeader' method
                 return This._send(this.requestContext, this, slicedArguments);
-                
+    
             };
-            
+    
         },
     
         _setRequestHeader : function(requestContext, xhr, slicedArguments) {
-            
+    
             this._backupedSetRequestHeader.apply(this._realXhr, slicedArguments);
     
         },
@@ -3215,21 +3269,21 @@
         _send : function(requestContext, xhr, slicedArguments) {
     
             this._backupedSend.apply(this._realXhr, slicedArguments);
-            
+    
         },
     
         /**
-         * Overwritten {@link XMLHttpRequest} open method, this method is a part of what we call the "replaced xhr" object. 
-         * The purpose of the replaced xhr is to replace an original {@link XMLHttpRequest} object used by a developer or a 
-         * Framework (Backbone, Angular, React, etc.) to intercept server responses and execute actions before returning a 
+         * Overwritten {@link XMLHttpRequest} open method, this method is a part of what we call the "replaced xhr" object.
+         * The purpose of the replaced xhr is to replace an original {@link XMLHttpRequest} object used by a developer or a
+         * Framework (Backbone, Angular, React, etc.) to intercept server responses and execute actions before returning a
          * response to the original xhr object.
-         * 
-         * @param {OAuth.RequestContext} requestContext The {@link RequestContext} object is an object used to keep a trace 
-         *        of all the {@link XMLHttpRequest}, parameters and functions used to respond to an original request a 
+         *
+         * @param {OAuth.RequestContext} requestContext The {@link RequestContext} object is an object used to keep a trace
+         *        of all the {@link XMLHttpRequest}, parameters and functions used to respond to an original request a
          *        developer or a Framework (Backbone, Angular, React, etc.) wants to execute.
-         * @param {XMLHttpRequest} originalXhr The original {@link XMLHttpRequest} slightly modified to change the behavior 
+         * @param {XMLHttpRequest} originalXhr The original {@link XMLHttpRequest} slightly modified to change the behavior
          *        of some method to let OAuth.JS intercept its actions.
-         * @param {Array} openArguments The arguments to pass to the `open()` method of the replaced {@link XMLHttpRequest} 
+         * @param {Array} openArguments The arguments to pass to the `open()` method of the replaced {@link XMLHttpRequest}
          *        object.
          */
         // TODO: A tester
@@ -3242,68 +3296,68 @@
             this._realXhr.setRequestHeader = this._backupedSetRequestHeader;
     
             this._backupedOpen.apply(this._realXhr, openArguments);
-            
+    
             var This = this;
             this._realXhr.onreadystatechange = function() {
-                
+    
                 // @see https://xhr.spec.whatwg.org/#states
                 // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects
                 // ).
                 if(this.readyState === XMLHttpRequest.DONE) {
     
-                    // Copy all the XMLHttpRequest attribute of the "replaced xhr" to the "original xhr" to propagate its 
-                    // state 
+                    // Copy all the XMLHttpRequest attribute of the "replaced xhr" to the "original xhr" to propagate its
+                    // state
                     OAuth.XhrUtils.copyAttributes(this, originalXhr);
-                    
+    
                     // If the request is a protected OAuth 2.0 Resource Request
                     if(originalXhr.isResourceRequest()) {
     
                         // The server returned a 2xx HTTP Response
                         if(this.status >= 200 && this.status < 300) {
-                            
-                            if(originalXhr.onreadystatechange) { 
+    
+                            if(originalXhr.onreadystatechange) {
                                 originalXhr.onreadystatechange();
                             }
-                            
+    
                             if(originalXhr.onload) {
                                 originalXhr.onload();
                             }
-                            
-                        } 
-                        
+    
+                        }
+    
                         // The server returned an other HTTP Response
                         else {
-        
+    
                             var action = This._parseErrorFn(originalXhr);
-        
+    
                             // The error expresses an OAuth 2.0 Access Token Expired
                             if(action === 'refresh') {
-        
+    
                                 This._refreshAccessToken(requestContext);
-        
-                            } 
-                            
-                            // The error expresses an other kind of error which should be notified to the original 
+    
+                            }
+    
+                            // The error expresses an other kind of error which should be notified to the original
                             // XMLHttpRequest
                             else {
     
-                                if(originalXhr.onreadystatechange) { 
+                                if(originalXhr.onreadystatechange) {
                                     originalXhr.onreadystatechange();
                                 }
-                                
+    
                                 if(originalXhr.onload) {
                                     originalXhr.onload();
                                 }
     
                             }
-        
+    
                         }
-                        
-                    } 
-                    
-                    // Otherwise if the request is a request internal to OAuth.JS we simply delegate the 
-                    // 'onreadystatechange' call. 
-                    // Please note that this is very important to not intercept 'sendCredentials' callbacks in the 
+    
+                    }
+    
+                    // Otherwise if the request is a request internal to OAuth.JS we simply delegate the
+                    // 'onreadystatechange' call.
+                    // Please note that this is very important to not intercept 'sendCredentials' callbacks in the
                     // 'parseErrorFn' function
                     else {
     
@@ -3312,38 +3366,38 @@
                     }
     
                 }
-                
+    
             };
     
         },
-        
+    
         /**
-         * Utility function used to update a configuration object passed to the Angular JS `$http(config)` method. The 
-         * purpose of this method is to automatically update the URL provided with the arguments to append the OAuth 2.0 
-         * 'access_token' URL parameter. The 'access_token' URL parameter is only appended to the URL is the 'secured' 
+         * Utility function used to update a configuration object passed to the Angular JS `$http(config)` method. The
+         * purpose of this method is to automatically update the URL provided with the arguments to append the OAuth 2.0
+         * 'access_token' URL parameter. The 'access_token' URL parameter is only appended to the URL is the 'secured'
          * configuration parameter is found.
-         * 
+         *
          * @param {Object} config A configuration object passed to the Angular JS `$http(config)` method.
-         *        
-         * @return {Object} The updated configuration object. The provided `config` object is not modified, the returned 
-         *         object is a modified copy of the provided `config` object. The returned configuration object has no 
-         *         'secured' property because the returned configuration MUST BE 100% compliant with the Angular JS 
-         *         framework. The URL could have been updated, this update is only applied if the 'secured' parameter is 
-         *         true. If the URL associated to the `config` object already contained an 'access_token' URL parameter then 
-         *         its value is updated to the 'access_token' associated to the Storage Manager attached to this Request 
+         *
+         * @return {Object} The updated configuration object. The provided `config` object is not modified, the returned
+         *         object is a modified copy of the provided `config` object. The returned configuration object has no
+         *         'secured' property because the returned configuration MUST BE 100% compliant with the Angular JS
+         *         framework. The URL could have been updated, this update is only applied if the 'secured' parameter is
+         *         true. If the URL associated to the `config` object already contained an 'access_token' URL parameter then
+         *         its value is updated to the 'access_token' associated to the Storage Manager attached to this Request
          *         Manager.
          */
         _updateAngularHttpConfig : function(config) {
     
             var updatedConfig = config;
     
-            // If the AngularJS $http.get(url, config) is called with a 'config' parameter and this 'config' 
+            // If the AngularJS $http.get(url, config) is called with a 'config' parameter and this 'config'
             // parameter indicates the request has to be secured
             if(config.secured === true) {
     
                 // Gets the current AuthStatus
                 var authStatus = this._storageManager.getAuthStatus();
-                
+    
                 // Updates the URL to append the 'access_token' parameter
                 config.url = OAuth.UrlUtils.addArgument(
                     config.url,
@@ -3352,10 +3406,10 @@
                 );
     
             }
-            
-            // Now the 'secured' parameter is not needed anymore, we delete it because its not useful for Angular  
+    
+            // Now the 'secured' parameter is not needed anymore, we delete it because its not useful for Angular
             delete updatedConfig.secured;
-            
+    
             return updatedConfig;
     
         }
@@ -3365,19 +3419,20 @@
     /**
      *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
-     */ 
+     */
     OAuth.Request.BackboneRequestManager = function(configuration) {
     
         // The BackboneRequestManager extends the AbstractRequestManager
         OAuth.Request.AbstractRequestManager.apply(this, arguments);
-        
+    
         /**
          * A reference to the original `Backbone.ajax` method.
          */
         this._backupedBackboneDotAjax = null;
-        
+    
+        // TODO: To be documented
         this._loginContext = null;
-        
+    
         /**
          * A string which identify the type of client this request manager is overwriting.
          */
@@ -3390,23 +3445,23 @@
     
         // Backup the global 'Backbone.ajax' method
         if(typeof Backbone !== 'undefined' && Backbone !== null) {
-            
+    
             // The existing 'Backbone.ajax' method must exist and being valid
             if(typeof Backbone.ajax !== 'function') {
-                
+    
                 throw new Error('No valid \'Backbone.ajax\' method has been found !');
-                
+    
             }
-            
+    
             this._backupedBackboneDotAjax = Backbone.ajax;
     
-        } 
-        
+        }
+    
         // If no global Backbone is available and no 'Backbone.ajax' method is provided this is an error
         else {
-            
+    
             throw new Error('Backbone is not available !');
-            
+    
         }
     
         // If a specific configuration is provided
@@ -3414,11 +3469,11 @@
     
             // The login function is required
             if(typeof configuration.loginFn !== 'function') {
-                
+    
                 throw new Error('No login function is provided !');
-                
+    
             }
-            
+    
             this._loginFn = configuration.loginFn;
     
             // The client id is required
@@ -3432,11 +3487,11 @@
     
             // The token endpoint is required
             if(typeof configuration.tokenEndpoint !== 'string') {
-                
+    
                 throw new Error('No token endpoint is provided or its valued is invalid !');
-                
+    
             }
-            
+    
             this._tokenEndpoint = configuration.tokenEndpoint;
     
             // The parse error function is required
@@ -3444,21 +3499,18 @@
     
                 throw new Error('No parse error function is provided !');
     
-            } 
-            
+            }
+    
             this._parseErrorFn = configuration.parseErrorFn;
     
-            // Instanciate the OAuth 2.0 Access Token response storage
-            this._storageManager = new OAuth.StorageManager({
-                storage : configuration.storage,
-                storageKey : configuration.storageKey
-            });
-            
-        } 
-        
+            // Instanciate the OAuth 2.0 Access Token response storage manager
+            this._storageManager = configuration.storageManager || new OAuth.Storage.WebStorage();
+    
+        }
+    
         // Otherwise the request manager uses a default configuration
         else {
-            
+    
             throw new Error('A configuration object is required !');
     
         }
@@ -3468,7 +3520,7 @@
     
         /**
          * Gets the storage manager linked to this request manager.
-         * 
+         *
          * @returns {StorageManager} The storage manager linked to this request manager.
          */
         getStorageManager : function() {
@@ -3480,7 +3532,7 @@
         /**
          * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned an
          * error response.
-         * 
+         *
          * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param errorThrown The textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
@@ -3489,13 +3541,13 @@
     
             var loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
-            
-            // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format 
+    
+            // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format
             //       spécifié par OAuth 2.0.
     
             // If the 'loginFn' function has provided a callback 'loginFnCb' callback
             if(typeof loginFnCb === 'function') {
-            
+    
                 var deferred = $.Deferred();
     
                 loginFnCb(
@@ -3505,7 +3557,7 @@
                     },
                     function() { deferred.resolve(); }
                 );
-                
+    
                 // When the callback function has ended
                 deferred.done(function() {
     
@@ -3518,8 +3570,8 @@
     
                 });
     
-            } 
-            
+            }
+    
             // Otherwise we call the 'login' function callback directly
             else {
     
@@ -3533,33 +3585,33 @@
             }
     
         },
-        
+    
         /**
-         * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned a 
+         * Function called when a POST request has been sent on the OAuth 2.0 Token Endpoint and the server returned a
          * successful response.
-         * 
+         *
          * @param data The raw data received from server side after posting informations to the OAuth 2.0 Token endpoint.
          * @param textStatus A string categorizing the status of the request, this is always equal to "success" here.
          * @param jqXHR The jQuery XHR object used to execute the HTTP POST request on the OAuth 2.0 Token endpoint.
          */
         _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
-            
+    
             var loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
-            
-            // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le 
+    
+            // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
     
             // Store the refreshed OAuth 2.0 in the local storage
-            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
-            //          response also contain a 'user_id' field which is specific to the project and 
+            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
+            //          response also contain a 'user_id' field which is specific to the project and
             //          contains the technical identifier of the user on the platform
             this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
-            
-            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token 
+    
+            // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token
             // retrieval we call it
             if(typeof loginFnCb === 'function') {
-            
+    
                 var deferred = $.Deferred();
     
                 loginFnCb(
@@ -3569,7 +3621,7 @@
                     },
                     function() { deferred.resolve(); }
                 );
-                
+    
                 // When the callback function has ended
                 deferred.done(function() {
     
@@ -3582,8 +3634,8 @@
     
                 });
     
-            } 
-            
+            }
+    
             // Otherwise we call the 'login' function callback directly
             else {
     
@@ -3595,182 +3647,186 @@
                 );
     
             }
-            
+    
         },
     
         /**
-         * Function called after a 'loginFn' function is called and the 'LoginContext.sendCredentials' is called. 
-         * 
-         * @param loginCb A callback function to be called when a login action has been done, please note that this callback 
-         *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'. 
+         * Function called after a 'loginFn' function is called and the 'LoginContext.sendCredentials' is called.
+         *
+         * @param loginCb A callback function to be called when a login action has been done, please note that this callback
+         *        is the one passed to 'OAuth.login(loginCb)' and is note the one passed to the 'loginFn'.
          */
         _login : function(loginContext) {
     
             // FIXME: Normalement ici les 2 objet sont toujours égaux !!!
             this._loginContext = loginContext;
-            
-            var ajaxPromise = null, 
+    
+            var ajaxPromise = null,
                 credentials = this._loginContext.getCredentials();
-            
+    
             if(credentials.grant_type === 'password') {
-            
+    
                 ajaxPromise = $.ajax(
                     {
                         contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                        data : {
-                            grant_type : credentials.grant_type,
-                            client_id : this._clientId,
-                            username : credentials.username,
-                            password : credentials.password
-                        },
+                        data : this._transformDataFn(
+                            {
+                                grant_type : credentials.grant_type,
+                                client_id : this._clientId,
+                                username : credentials.username,
+                                password : credentials.password
+                            }
+                        ),
                         type : 'POST',
-                        url: this._tokenEndpoint        
+                        url: this._tokenEndpoint
                     }
                 );
-                
+    
             } else if(credentials.grant_type === 'gomoob_facebook_access_token') {
-                
+    
                 ajaxPromise = $.ajax(
                     {
                         contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                        data : {
-                            grant_type : credentials.grant_type,
-                            client_id : this._clientId,
-                            facebook_access_token : credentials.facebook_access_token,
-                            facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
-                        },
+                        data : this._transformDataFn(
+                            {
+                                grant_type : credentials.grant_type,
+                                client_id : this._clientId,
+                                facebook_access_token : credentials.facebook_access_token,
+                                facebook_app_scoped_user_id : credentials.facebook_app_scoped_user_id
+                            }
+                        ),
                         type : 'POST',
-                        url: this._tokenEndpoint        
+                        url: this._tokenEndpoint
                     }
                 );
-                
+    
             } else {
-                
+    
                 throw new Error('Unknown \'grant_type\' = \'' + credentials.grant_type + '\' !');
-                
+    
             }
-            
+    
             // TODO: Message d'erreur clair si 'grant_type' non supporté...
     
             ajaxPromise.done($.proxy(this._onTokenEndpointPostSuccess, this));
             ajaxPromise.fail($.proxy(this._onTokenEndpointPostError, this));
     
         },
-        
+    
         /**
-         * Function used to login a user, by default this function checks if the user is already logged in, if it is the 
-         * configured 'loginFn' function is not called and the provided 'loginCb' callback is directly called. Otherwise the 
-         * 'loginFn' callback function is called before calling the provided callback. 
-         * 
+         * Function used to login a user, by default this function checks if the user is already logged in, if it is the
+         * configured 'loginFn' function is not called and the provided 'loginCb' callback is directly called. Otherwise the
+         * 'loginFn' callback function is called before calling the provided callback.
+         *
          * @param loginCb A callback function to be called when a login action has been done.
          * @param opts Options used to configure the login.
          */
         login : function(loginCb, opts) {
     
-            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method and is also 
+            // Creates and configures a Login Conext which is then received by the configured 'loginFn' method and is also
             // used in the Request Manager
             this._loginContext = new OAuth.LoginContext();
             this._loginContext._setLoginCb(loginCb);
             this._loginContext._setLoginOpts(opts);
             this._loginContext._setRequestManager(this);
-            
+    
             // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
             // So in this case we call the 'loginFn' function
             if(this._storageManager.getAccessTokenResponse() === null) {
     
-                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing 
+                // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing
                 // credentials
                 this._loginFn(this._loginContext);
     
-                // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de 
-                //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la 
+                // FIXME: Ici il serait beaucoup plus propre que la credentials promise lève un événement une fois la fin de
+                //        l'exécution de 'sendCredentials' et que le Request Manager écoute cet événement. Ainsi la
                 //        Credentials Promise n'aurait pas à dépendre du Request Manager
     
             }
-            
+    
             // Otherwise we directly call the callback.
             else {
-                
+    
                 loginCb(
                     {
                         status : 'connected',
                         authResponse : this._storageManager.getAccessTokenResponse()
                     }
                 );
-                
+    
             }
-            
+    
         },
     
         /**
          * Starts the request manager.
          */
         start : function() {
-            
-            // Closure used to change the context of the overwritten Backbone.ajax function to that it can access the 
+    
+            // Closure used to change the context of the overwritten Backbone.ajax function to that it can access the
             // attributes and methods of this request manager
             var This = this;
-            
-            // Overwrites the 'Backbone.ajax' method 
-            Backbone.ajax = function() { 
-                
+    
+            // Overwrites the 'Backbone.ajax' method
+            Backbone.ajax = function() {
+    
                 return This._overwrittenBackboneDotAjax.apply(This, arguments);
     
             };
     
         },
-        
+    
         /**
-         * Utility function used to clone arguments passed to the jQuery 'ajax' function. Here arguments is the special 
+         * Utility function used to clone arguments passed to the jQuery 'ajax' function. Here arguments is the special
          * Javascript variable which corresponds to the arguments passed to the 'ajax' method inside this method.
-         * 
+         *
          * @param {array} ajaxArguments The jQuery 'ajax' arguments to clone.
-         * 
+         *
          * @returns {array} The cloned jQuery 'ajax' arguments.
-         * 
+         *
          * @see https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Fonctions/arguments
          */
         _cloneAjaxArguments : function(ajaxArguments) {
     
             var clonedAjaxArguments = {};
-            
+    
             // The jQuery 'ajax' method has been called with a URL string as first argument
             if(typeof ajaxArguments[0] === 'string') {
-                
+    
                 clonedAjaxArguments[0] = ajaxArguments[0];
-                
+    
                 if(clonedAjaxArguments.length === 2) {
-                    
+    
                     clonedAjaxArguments[1] = this._cloneAjaxSettings(ajaxArguments[1]);
     
                 }
-                
-            } 
-            
+    
+            }
+    
             // The jQuery 'ajax' method has been called with a settings object as first argument
             else {
-            
+    
                 clonedAjaxArguments[0] = this._cloneAjaxSettings(ajaxArguments[0]);
-                
+    
             }
-                
+    
             return clonedAjaxArguments;
-            
+    
         },
     
         /**
-         * Utility function used to clone the settings object as a parameter of the jQuery 'ajax' method. This allow to keep 
+         * Utility function used to clone the settings object as a parameter of the jQuery 'ajax' method. This allow to keep
          * an untouched settings object before modifying it to configure it with an OAuth 2.0 Access Token.
-         * 
+         *
          * @param {Object} ajaxSettings The jQuery 'ajax' settings object to clone.
-         * 
+         *
          * @returns {Object} The resulting clone object.
-         * 
+         *
          * @see http://api.jquery.com/jQuery.ajax
          */
         _cloneAjaxSettings : function(ajaxSettings) {
-            
-            // see http://api.jquery.com/jQuery.ajax to know what are the names of the properties allowed by the jQuery 
+    
+            // see http://api.jquery.com/jQuery.ajax to know what are the names of the properties allowed by the jQuery
             // 'ajax' settings object
             var settingsAttributes = [
                 'accepts',
@@ -3807,88 +3863,88 @@
                 'xhr',
                 'xhrFields'
             ];
-            
+    
             var clonedAjaxSettings = {};
-            
+    
             for(var i = 0; i < settingsAttributes.length; ++i) {
-            
+    
                 if(typeof ajaxSettings[settingsAttributes[i]] !== 'undefined') {
-                    
+    
                     clonedAjaxSettings[settingsAttributes[i]] = ajaxSettings[settingsAttributes[i]];
-                
+    
                 }
-            
+    
             }
-            
+    
             return clonedAjaxSettings;
-            
+    
         },
-        
+    
         /**
-         * Utility function used to create an OAuth 2.0 promise which is similar to a jQuery AJAX promise and which is 
-         * returned by the overwritten AJAX method. This function allows the created OAuth 2.0 promise to has the same 
+         * Utility function used to create an OAuth 2.0 promise which is similar to a jQuery AJAX promise and which is
+         * returned by the overwritten AJAX method. This function allows the created OAuth 2.0 promise to has the same
          * functions and properties as the promise returned by '$.ajax()'.
-         * 
-         * @param {jqXHR} jQueryAjaxPromise The jQuery AJAX promise to call and from which one to copy properties and 
+         *
+         * @param {jqXHR} jQueryAjaxPromise The jQuery AJAX promise to call and from which one to copy properties and
          *        delegate function calls.
          * @returns {jqXHR} A new promise which is very similar to the provide jQuery AJAX promise.
-         * 
+         *
          * @see https://github.com/jquery/jquery/blob/master/src/ajax.js
          */
         _createOAuthPromise : function(jQueryAjaxPromise) {
-            
+    
             var oAuthPromise = $.Deferred();
-            
+    
             // Builds headers hashtable if needed
             oAuthPromise.getResponseHeader = function(key) {
-                return jQueryAjaxPromise.getResponseHeader(key);    
+                return jQueryAjaxPromise.getResponseHeader(key);
             };
-            
+    
             // Raw string
             oAuthPromise.getAllResponseHeaders = function() {
                 return jQueryAjaxPromise.getAllResponseHeaders();
             };
-            
+    
             // Caches the header
             oAuthPromise.setRequestHeader = function(name, value) {
                 jQueryAjaxPromise.setRequestHeader(name, value);
                 return this;
             };
-            
+    
             // Overrides response content-type header
             oAuthPromise.overrideMimeType = function(type) {
                 jQueryAjaxPromise.overrideMimeType(type);
                 return this;
             };
-            
+    
             // Status-dependent callbacks
             oAuthPromise.statusCode = function(map) {
                 jQueryAjaxPromise.statusCode(map);
                 return this;
             };
-            
+    
             // Cancel the request
             oAuthPromise.abort = function(statusText) {
                 jQueryAjaxPromise.abort(statusText);
                 return this;
             };
-            
+    
             oAuthPromise.success = oAuthPromise.done;
             oAuthPromise.error = oAuthPromise.fail;
-            
+    
             oAuthPromise.readyState = jQueryAjaxPromise.readyState;
             oAuthPromise.status = jQueryAjaxPromise.status;
             oAuthPromise.statusText = jQueryAjaxPromise.statusText;
     
             return oAuthPromise;
-            
+    
         },
-        
+    
         /**
          * Function called when a request to a Web Service is successful.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwrittent Backbone.ajax method.
-         * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          * @param {Object} data The data returned from the Web Service.
          * @param {string} textStatus The status of the HTTP request.
@@ -3896,20 +3952,20 @@
          */
         _jQueryAjaxPromiseDone : function(originalAjaxArguments, oauthPromise, data, textStatus, jqXHR) {
     
-            // Resolves the OAuth promise wih exactly the same arguments as those passes to the resolve function of the 
+            // Resolves the OAuth promise wih exactly the same arguments as those passes to the resolve function of the
             // promise return by 'Backbone.ajax'
             oauthPromise.resolve(data, textStatus, jqXHR);
     
         },
     
         /**
-         * Function called when a request to a Web Service has failed. This function inspects the error response by parsing 
-         * it with an error parser. If the parser returns 'refresh' then the Access Token is refreshed, if the parser 
-         * returns 'reniew' then the Access Token is reniewed. In all other cases the wrapping Ajax promise is rejected with 
+         * Function called when a request to a Web Service has failed. This function inspects the error response by parsing
+         * it with an error parser. If the parser returns 'refresh' then the Access Token is refreshed, if the parser
+         * returns 'reniew' then the Access Token is reniewed. In all other cases the wrapping Ajax promise is rejected with
          * the encountered error.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwrittent Backbone.ajax method.
-         * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oauthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          * @param {XMLHttpRequest} jqXHR The jQuery XML HTTP request which failed.
          * @param {string} status The status of the error.
@@ -3919,21 +3975,21 @@
     
             // Parse the received error to know if its a known OAuth 2.0 error
             var action = this._parseErrorFn(jqXHR);
-            
+    
             // If the parse result is not 'undefined' then this is a known OAuth 2.0 error
             if(action !== undefined) {
-                
+    
                 switch(action) {
                     case 'refresh' :
-                        
-                        // Refresh the Access Token, if the refresh is successful then the promise will be resolved, 
+    
+                        // Refresh the Access Token, if the refresh is successful then the promise will be resolved,
                         // otherwise the promise will be rejected
                         this._refreshAccessToken(originalAjaxArguments, oauthPromise);
                         break;
     
                     case 'reniew' :
-                    
-                        // Reniew the Access Token, if the reniewal is successful then the promise will be resolved, 
+    
+                        // Reniew the Access Token, if the reniewal is successful then the promise will be resolved,
                         // otherwise the promise will be rejected
                         this._reniewAccessToken(originalAjaxArguments, oauthPromise);
                         break;
@@ -3942,44 +3998,44 @@
                         throw new Error('Action \'' + action + '\' is invalid !');
                 }
     
-            } 
-            
+            }
+    
             // Otherwise we are on an other kind of error
             else {
-                
-                // Rejects the OAuth promise with exactly the same arguments as those passed to the reject method call on 
-                // the promise returned by 'Backbone.ajax' 
+    
+                // Rejects the OAuth promise with exactly the same arguments as those passed to the reject method call on
+                // the promise returned by 'Backbone.ajax'
                 oauthPromise.reject(jqXHR, status, errorThrown);
     
             }
     
         },
-        
+    
         /**
-         * Utility function used to modify the settings object passed to the jQuery 'ajax' method by adding to it an OAuth 
+         * Utility function used to modify the settings object passed to the jQuery 'ajax' method by adding to it an OAuth
          * 2.0 Access Token URL parameter.
-         * 
+         *
          * @param {array} ajaxArguments The Javascript arguments variable get inside the overwritten Backbone.ajax method.
          */
         _updateAjaxArgumentsWithAccessToken : function(ajaxArguments) {
-            
+    
             // Try to get an OAuth 2.0 Access Token from the client storage
             var accessToken = this._storageManager.getAccessToken();
-            
+    
             // Appends the 'access_token' URL parameter
             if(accessToken) {
     
                 // The '$.ajax' method is called with a URL directly provided
                 if(typeof ajaxArguments[0] === 'string') {
-                    
-                    // FIXME: Ici on considère de manière systématique que la requête est authentifié ce qui n'est pas 
-                    //        toujours ce que voudra le dévelopeur. Il nous faudrait peut-être un paramètre de configuration 
+    
+                    // FIXME: Ici on considère de manière systématique que la requête est authentifié ce qui n'est pas
+                    //        toujours ce que voudra le dévelopeur. Il nous faudrait peut-être un paramètre de configuration
                     //        'securedByDefault'.
                     ajaxArguments[0] = OAuth.UrlUtils.addArgument(ajaxArguments[0], 'access_token', accessToken);
     
                 }
-                
-                // The '$.ajax' method is called with a URL inside a configuration object, in this case we add the 
+    
+                // The '$.ajax' method is called with a URL inside a configuration object, in this case we add the
                 // 'access_token' argument to the URL only if the 'secured' special parameter is true
                 else if(ajaxArguments[0].secured) {
     
@@ -3988,121 +4044,121 @@
                 }
     
             }
-            
+    
         },
     
         /**
          * The overwritten 'Backbone.ajax' method.
-         * 
-         * @returns {$.Deferred} A JQuery promise which is resolved when the secured Web Service request has been 
-         *          successfully executed. This promise is rejected if the Web Service returns an error which does not 
+         *
+         * @returns {$.Deferred} A JQuery promise which is resolved when the secured Web Service request has been
+         *          successfully executed. This promise is rejected if the Web Service returns an error which does not
          *          corresponds to a 'refresh' or 'reniew' action.
          */
         _overwrittenBackboneDotAjax : function() {
     
             // The original AJAX arguments describes the initial user request
             var originalAjaxArguments = this._cloneAjaxArguments(arguments);
-            
+    
             // Updates the AJAX arguments by adding the OAuth 2.0 Access Token stored in the client storage
             this._updateAjaxArgumentsWithAccessToken(arguments);
     
-            // The promise used to directly request the Web Service is not the returned promise. The returned promise is an 
-            // other promise which is rejected when we are sure an Access Token refresh or reniewal is not useful to solve 
-            // the problem. 
-            var jQueryAjaxPromise = Backbone.$.ajax.apply(Backbone.$, arguments), 
+            // The promise used to directly request the Web Service is not the returned promise. The returned promise is an
+            // other promise which is rejected when we are sure an Access Token refresh or reniewal is not useful to solve
+            // the problem.
+            var jQueryAjaxPromise = Backbone.$.ajax.apply(Backbone.$, arguments),
                 oAuthPromise = this._createOAuthPromise(jQueryAjaxPromise);
     
             // The fail callback has 2 different behaviors
-            //  - If the response returned from the server indicates that the OAuth 2.0 Access Token is expired or needs a 
+            //  - If the response returned from the server indicates that the OAuth 2.0 Access Token is expired or needs a
             //    reniewal then the refresh or reniew operation is done before calling 'Backbone.ajax' again with this URL
-            //  - If the response returned is not associated to OAuth 2.0 or cannot be solved using an Access Token refresh 
+            //  - If the response returned is not associated to OAuth 2.0 or cannot be solved using an Access Token refresh
             //    or reniewal then this callback rejects the returned promise
             jQueryAjaxPromise.fail($.proxy(this._jQueryAjaxPromiseFail, this, originalAjaxArguments, oAuthPromise));
             jQueryAjaxPromise.done($.proxy(this._jQueryAjaxPromiseDone, this, originalAjaxArguments, oAuthPromise));
     
             return oAuthPromise;
-        
+    
         },
-        
+    
         /**
-         * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the 
+         * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the
          * original Web Service request has been replayed successfully.
-         * 
-         * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been 
+         *
+         * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been
          *        successfully executed or rejected when the original Web Service request returns an error.
          * @param {Object} data The data returned by the original Web Service request.
          * @param {string} textStatus Always 'success' here because we are on the promise success callback.
          * @param {jqXHR} jqXHR The jquery XMLHttpRequest object used to execute the request.
          */
         _onOriginalRequestReplayedDone : function(oAuthPromise, data, textStatus, jqXHR) {
-            
+    
             oAuthPromise.resolve(data, textStatus, jqXHR);
-            
+    
         },
-        
+    
         /**
-         * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the 
+         * Callback function called after an OAuth 2.0 Access Token has been successfully refreshed or reniewed and the
          * original Web Service request has been replayed with an error.
-         * 
-         * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been 
+         *
+         * @param {$.Deferred} oAuthPromise The jQuery promise resolved when the original Web Service request has been
          *        successfully executed or rejected when the original Web Service request returns an error.
          * @param {Object} data The data returned by the original Web Service request.
          * @param {string} textStatus Always 'success' here because we are on the promise success callback.
          * @param {jqXHR} jqXHR The jquery XMLHttpRequest object used to execute the request.
          */
         _onOriginalRequestReplayedFail : function(oAuthPromise, jqXHR, status, errorThrown) {
-            
+    
             oAuthPromise.reject(jqXHR, status, errorThrown);
-            
+    
         },
-        
+    
         /**
          * Callback function called when the refresh of an OAuth 2.0 Access Token is successful.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
-         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          * @param {Object} data The data returned from the OAuth 2.0 token endpoint.
          * @param {string} textStatus The status of the HTTP token refresh request.
          * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to execute the token refresh request.
          */
         _onRefreshAccessTokenSuccess : function(originalAjaxArguments, oAuthPromise, data, textStatus, jqXHR) {
-            
+    
             // Store the refresed OAuth 2.0 in the local storage
-            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
-            //          response also contain a 'user_id' field which is specific to the project and 
+            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
+            //          response also contain a 'user_id' field which is specific to the project and
             //          contains the technical identifier of the user on the platform
             this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
     
             var overwittenAjaxArguments = this._cloneAjaxArguments(originalAjaxArguments);
             overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
-            
+    
             // Updates the AJAX arguments by adding the OAuth 2.0 Access Token stored in the client storage
             // FIXME: Ici il se peut que les arguments AJAX aient déjà un token OAuth 2.0 et qu'il faille le remplacer....
             this._updateAjaxArgumentsWithAccessToken(overwittenAjaxArguments);
-            
+    
             // Re-executes the orginial request
             var ajaxPromise = $.ajax(overwittenAjaxArguments[0]);
             ajaxPromise.done($.proxy(this._onOriginalRequestReplayedDone, this, oAuthPromise));
             ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oAuthPromise));
     
         },
-        
+    
         /**
          * Callback function called when the reniewal of an OAuth 2.0 Access Token is successful.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
-         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          * @param {Object} data The data returned from the OAuth 2.0 token endpoint.
          * @param {string} textStatus The status of the HTTP token refresh request.
          * @param {XMLHttpRequest} jqXHR The XML HTTP request object used to execute the token refresh request.
          */
         _onReniewAccessTokenSuccess : function(originalAjaxArguments, oAuthPromise, data, textStatus, jqXHR) {
-            
+    
             // Store the refresed OAuth 2.0 in the local storage
-            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the 
-            //          response also contain a 'user_id' field which is specific to the project and 
+            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
+            //          response also contain a 'user_id' field which is specific to the project and
             //          contains the technical identifier of the user on the platform
             this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
     
@@ -4112,31 +4168,33 @@
             ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oAuthPromise));
     
         },
-        
+    
         /**
          * Function used to refresh the OAuth 2.0 Access Token using the refresh token stored in the associated storage.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
-         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          */
         _refreshAccessToken : function(originalAjaxArguments, oAuthPromise) {
-            
+    
             // Try to get an OAuth 2.0 Refresh Token from the client storage
             var refreshToken = this._storageManager.getRefreshToken();
-            
-            // If a refresh token is stored on the client storage we try to refresh the access token using this refresh 
+    
+            // If a refresh token is stored on the client storage we try to refresh the access token using this refresh
             // token
             if(refreshToken) {
     
                 var ajaxPromise = $.ajax(
                     {
-                        url : this._tokenEndpoint, 
-                        data : {
-                            grant_type : 'refresh_token', 
-                            refresh_token : refreshToken,
-                            client_id : this._clientId
-                        }, 
+                        url : this._tokenEndpoint,
+                        data : this._transformDataFn(
+                            {
+                                grant_type : 'refresh_token',
+                                refresh_token : refreshToken,
+                                client_id : this._clientId
+                            }
+                        ),
                         dataType : 'json',
                         type: 'POST'
                     }
@@ -4153,13 +4211,13 @@
     
             }
     
-        }, 
-        
+        },
+    
         /**
          * Function used to reniew the OAuth 2.0 Access Token using the refresh token stored in the associated storage.
-         * 
+         *
          * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
-         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is 
+         * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
          *        successful.
          */
         _reniewAccessToken : function(originalAjaxArguments, oAuthPromise) {
@@ -4172,28 +4230,28 @@
             }
     
             console.log('_reniewAccessToken');
-            
+    
             // TODO: Créer un modèle de récupération de login / mdp ou credentials
     
             // A jQuery promise resolved when the 'loginFn' function calls the 'login' method of the Credentials Promise
             var deferred = $.Deferred();
-            
+    
             // Creates and configures a Login Context which is then received by the configured 'loginFn' method
             // var loginContext = new OAuth.LoginContext();
             // loginContext._setLoginCb(loginCb);
             // loginContext._setLoginOpts(opts);
             this._loginContext._setRequestManager(this);
-            
+    
             this._loginFn(this._loginContext);
     
             deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
             deferred.fail($.proxy(function() {
-                
+    
                 // TODO: Erreur à gérer correctement
                 console.log('_reniewAccessToken Error !');
-                
+    
             }, this));
-            
+    
             /*
             var deferred = $.Deferred(),
                 loginContext = function(credentials, callback) {
@@ -4204,18 +4262,18 @@
     
             deferred.done($.proxy(this._onCredentialsPromiseDone, this, originalAjaxArguments, oAuthPromise));
             deferred.fail(function() {
-                
+    
                 // TODO: ???
     
             });
             */
-            
-        }, 
-        
+    
+        },
+    
         _onCredentialsPromiseDone : function(originalAjaxArguments, oauthPromise, credentialsSettings) {
     
             switch(credentialsSettings.grant_type) {
-                
+    
                 // Resource Owner Password Credentials
                 // see: http://tools.ietf.org/html/rfc6749#section-1.3.3
                 // see: http://tools.ietf.org/html/rfc6749#section-4.3
@@ -4223,22 +4281,24 @@
                     var ajaxPromise = $.ajax(
                         {
                             contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data : {
-                                grant_type : 'password',
-                                username : credentialsSettings.username,
-                                password : credentialsSettings.password,
-                                client_id : this._clientId
-                            },
+                            data : this._transformDataFn(
+                                {
+                                    grant_type : 'password',
+                                    username : credentialsSettings.username,
+                                    password : credentialsSettings.password,
+                                    client_id : this._clientId
+                                }
+                            ),
                             type : 'POST',
                             url: this._tokenEndpoint
                         }
                     );
                     ajaxPromise.done($.proxy(this._onReniewAccessTokenSuccess, this, originalAjaxArguments, oauthPromise));
-                    
+    
                     // TODO: Echec complet ???
                     // ajaxPromise.fail($.proxy(this._onOriginalRequestReplayedFail, this, oauthPromise));
                     break;
-                    
+    
                 // Client Credentials
                 // see: http://tools.ietf.org/html/rfc6749#section-1.3.4
                 // see: http://tools.ietf.org/html/rfc6749#section-4.4
@@ -4246,28 +4306,30 @@
                     $.ajax(
                         {
                             contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data : {
-                                grant_type : 'client_credentials',
-                                client_id : this._clientId
-                            },
+                            data : this._transformDataFn(
+                                {
+                                    grant_type : 'client_credentials',
+                                    client_id : this._clientId
+                                }
+                            ),
                             type : 'POST',
-                            url: this._tokenEndpoint        
+                            url: this._tokenEndpoint
                         }
                     );
                     break;
             }
-            
+    
         }
     
     };
 
     /**
-     * Function used to create an OAuth.JS request manager which will overwrite the request function associated to a 
+     * Function used to create an OAuth.JS request manager which will overwrite the request function associated to a
      * specified framework.
-     * 
+     *
      * @param {string} framework The name of the framework for which one to overwrite the request function.
      * @param {object} settings A settings object used to configure the associated request manager.
-     * 
+     *
      * @return {OAuth.Request.RequestManager} The created request manager.
      */
     OAuth.init = function(framework, settings) {
@@ -4286,43 +4348,43 @@
         OAuth._requestManager.start();
 
     };
-    
+
     // TODO: Ajouter la méthode 'getAuthResponse()'
     //       @see https://developers.facebook.com/docs/reference/javascript/FB.getAuthResponse
-    
+
     OAuth.getLoginStatus = function(cb, forceServerCall) {
-        
+
         return OAuth._requestManager.getLoginStatus(cb, forceServerCall);
-        
+
     };
 
     /**
-     * Function used to login a user. 
-     * 
+     * Function used to login a user.
+     *
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
     // FIXME: A renommer en 'requireConnection' ou 'secured()' ou 'authorized()', etc...
     OAuth.login = function(cb, opts) {
-    
+
         return OAuth._requestManager.login(cb, opts);
 
     };
-    
+
     /**
      * Function used to logout a user.
-     * 
+     *
      * @param cb A callback to be called after the logout is done.
      */
     OAuth.logout = function(cb) {
-        
+
         return OAuth._requestManager.logout(cb);
-        
+
     };
-    
+
     // FIXME: A renommer en 'login' (Pas sûr que ce soit bien car on est pas vraiment identique au SDK Facebook ici).
     OAuth.sendCredentials = function(credentials, cb, opts) {
-        
+
         return OAuth._requestManager.sendCredentials(credentials, cb, opts);
 
     };

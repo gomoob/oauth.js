@@ -1,6 +1,6 @@
 /*jshint -W030 */
 
-describe('OAuth.StorageManager', function() {
+describe('OAuth.Storage.WebStorage', function() {
     
     beforeEach(function() {
         localStorage.clear();
@@ -14,7 +14,7 @@ describe('OAuth.StorageManager', function() {
             Storage = undefined;
             
             expect(function() {
-                return new OAuth.StorageManager({});
+                return new OAuth.Storage.WebStorage({});
             }).to.throw(
                 Error, 
                 'Your browser does not support HTML5 Web Storage !'
@@ -32,7 +32,7 @@ describe('OAuth.StorageManager', function() {
 
             expect(localStorage.getItem('oauth.js.authStatus')).to.be.null;
             
-            var storageManager = new OAuth.StorageManager();
+            var storageManager = new OAuth.Storage.WebStorage();
             
             // Test without any parameter
             expect(function() {
@@ -96,7 +96,7 @@ describe('OAuth.StorageManager', function() {
             
             var accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse(), 
                 expectedAuthStatus = null,
-                storageManager = new OAuth.StorageManager(),
+                storageManager = new OAuth.Storage.WebStorage(),
                 authStatus = storageManager.persistAccessTokenResponse(xhr);
 
             accessTokenResponse.setJsonResponse({
@@ -144,7 +144,7 @@ describe('OAuth.StorageManager', function() {
 
             expect(localStorage.getItem('oauth.js.accessTokenResponse')).to.be.null;
 
-            var storageManager = new OAuth.StorageManager();
+            var storageManager = new OAuth.Storage.WebStorage();
             storageManager.persistRawAccessTokenResponse(
                 '{' + 
                     '"access_token" : "ACCESS_TOKEN",' +

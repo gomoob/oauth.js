@@ -33,7 +33,7 @@ inside your `bower.json` file.
 # Usage
 
 Using OAuth.JS is very easy and is done in 2 steps : 
- * First initialize the OAuth.JS client using the `OAuth.init(opts)` method (the name `init` has been choosen to be 
+ * First initialize the OAuth.JS client using the `OAuth.init(opts)` method (the name `init` has been chosen to be 
    similar to Facebook's `FB.init(opts)` method). 
  * Call your secured Web Services using the `secured` additional parameter.
 
@@ -48,7 +48,7 @@ OAuth.init(
     {
         clientId : 'my-app'
         tokenEndpoint : 'https://myserver.com/token',
-        loginFn : function(credentialsPromise) { ... 
+        loginFn : function(loginContext) { ... 
             // Open a login view and resolve the promise with the provided credentials
             // Then OAuth.JS will do what's necessary to get an OAuth 2.0 Access Token automatically
         },
@@ -60,17 +60,17 @@ OAuth.init(
 );
 ```
 
-The OAuth.JS client requires 4 parameters described in the following sub-sections.
+The OAuth.JS `init` options are described in the following sub-sections.
 
-### `clientId`
+### `clientId` (required)
 
 The OAuth 2.0 Client Credentials `client_id` parameter to be sent by the OAuth.JS client to get new Access Tokens.
 
-### `tokenEndpoint`
+### `tokenEndpoint` (required)
 
 The absolute URL to your OAuth 2.0 token endpoint.
 
-### `loginFn`
+### `loginFn` (required)
 
 The `loginFn` function is used to display a login dialog or page to the user. We could compare this login modal dialog 
 to the Facebook Javascript SDK Login Modal Dialog. But with OAuth.JS you create your own Login Modal Dialog, then the 
@@ -87,9 +87,9 @@ This could appear in the following situations :
 The `loginFn(credentialsPromise)` function takes only 1 parameter which we call a credentials promise. This credentials 
 promise must be called / resolved when your user provides its credentials in your Login Modal Box.
 
-#### The `CredentialsPromise` object
+#### The `LoginContext` object
 
-The `CredentialsPromise` object is an object you have to keep while OAuth.JS did not return a successful login response.
+The `LoginContext` object is an object you have to keep while OAuth.JS did not return a successful login response.
 This object has only one method `sendCredentials`.
 
 The `sendCredentials` method is used to send credentials entered by your users to your OAuth 2.0 server, this method can 
@@ -101,10 +101,10 @@ be called with the following parameters :
 
 Here is a sample function (we suppose our application provides a simple Login Modal) : 
 ```javascript
-function(credentialsPromise) {
+function(loginContext) {
     
     // Show our custom Login Modal dialog and pass it the OAuth.JS Credentials Promise object
-    showLoginModal(new LoginModal({ credentialsPromise : credentialsPromise }));
+    showLoginModal(new LoginModal({ loginContext : loginContext }));
 
 }
 ```
@@ -113,7 +113,7 @@ Our Login Modal could contain the following code.
 ```javascript
 {
     initialize : function(options) {
-        this._credentialsPromise = options.credentialsPromise;
+        this._loginContext = options.loginContext;
     },
 
     _onLoginButtonClick : function(clickEvent) {
@@ -123,7 +123,7 @@ Our Login Modal could contain the following code.
         this.showWaitingIndicator();
         
         // We transmit the credentials to OAuth.JS to let it get a new OAuth 2.0 Access Token with those credentials
-        this._credentialsPromise.sendCredentials(
+        this._loginContext.sendCredentials(
             {
                 // Indicates to OAuth.JS which OAuth 2.0 grant type to use to get an OAuth 2.0 Access Token
                 'grand_type' : 'password',
@@ -152,11 +152,87 @@ Our Login Modal could contain the following code.
 }
 ```
 
-### `parseErrorFn`
+### `parseErrorFn` (required)
 
 Callback function called by the OAuth.JS client when an error is returned from your Web Services. The purpose of this 
 function is to decode the error payload received and indicate to the OAuth.JS client if the error received should 
 trigger an OAuth 2.0 token refresh or reniewal.
+
+### `storageManager` (optional) 
+
+When OAuth.js successfully retrives an OAuth 2.0 Access Token it has to store it somewhen in a client side memory or 
+database to reuse it and authorize requests. 
+
+For this purpose a storage manager object is used, the library is provided with an HTML 5 storage manager which is 
+implemented in the `OAuth.Storage.WebStorage` class. This is the default storage manager used if no specific storage 
+manager is configured, in this case the HTML 5 local storage is used with a key equal to `oauth.js`. 
+
+You can configure the `OAuth.Storage.WebStorage` used if you want, here is a sample.
+
+```javascript
+OAuth.init(
+    {
+        ...
+        storageManager : new OAuth.Storage.WebStorage(
+            {
+                storage : sessionStorage,
+                storageKey : 'myapp'
+            }
+        )
+    }
+);
+```
+
+### `transformDataFn` (optional)
+
+When OAuth.js send a request to your configured token endpoint it sends several query / URL parameters (internally those
+parameters are transmitted to the `XmlHttpRequest.send(data)` method). 
+
+For example if your token endpoint is equal to `https://myserver.com/token` at login the following data could be 
+provided by OAuth.js. 
+
+```javascript
+{
+    grant_type : 'password',
+    client_id : 'my-app',
+    username : 'john',
+    password : 'doe'
+}
+```
+
+In rare cases you would like to ask OAuth.js to send additional data when it executes Ajax requests. For example if you 
+are working on a mobile application it could be useful to track when your users connect to your application and with 
+which devices. 
+
+In this case it would be useful to send the following data instead. 
+
+```javascript
+{
+    grant_type : 'password',
+    client_id : 'my-app',
+    username : 'john',
+    password : 'doe',
+    os : 'Android', 
+    deviceUuid : 'xxxxxxxx'
+}
+```
+
+The `transformDataFn(data)` allows you to do exactly that, it receives the original `data` object OAuth.js would 
+normally and return an updated data object to be used instead.
+
+``` 
+tranformDataFn : function(data) {
+    
+    return OAuth.ObjectUtils.extend(
+        data, 
+        {
+            os : MyApp.DeviceManager.getOs(),
+            deviceUuid : MyApp.DeviceManager.getUuid()
+        }
+    );
+    
+}
+```
 
 ## Login your user
 
@@ -348,4 +424,22 @@ OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) 
 
 ## My browser always complains about a "Access-Control-Allow-Origin" header, why ?
 
+# Release history
+
+## 0.2.0 (2015-11-03)
+ * **BREAKING CHANGE** Remove the `storage` configuration option and prefer the new `storageManager` option instead ; 
+ * **BREAKING CHANGE** Remove the `storageKey` configuration option, now users have to explicitly instanciate an 
+   `OAuth.Storage.WebStorage` storage manager if they want to configure a specific storage key ; 
+ * Add a new `storageManager` option which will allow a developer to develop new storage manager (which could have 
+   different APIs different from standard HTML 5 storages) ; 
+ * Implement a request Manager for Angular JS ; 
+ * Add a new `transformDataFn(data)` option function which can be used to modify the data sent by the library ;
+ * Add a new `storage` option object which allow to specify a custom storage to the library.
+
+## 0.1.1 (2015-03-10)
+ * Fix bower.json package name.
+
+## 0.1.0 (2015-03-10)
+ * First release, not perfect but working as expected in one of our Backbone.Marionette Mobile Application ;
+ * This release will allow to make appear the library in the Bower registry.
 

@@ -49,6 +49,9 @@ var blanket = require('blanket')({
         path.resolve(__dirname + '/../../src/access-token/response-parser'),
         path.resolve(__dirname + '/../../src/access-token/successful-response'),
         
+        // OAuth.Storage namespace
+        path.resolve(__dirname + '/../../src/storage/web-storage'),
+        
         // OAuth.Request namespace
         path.resolve(__dirname + '/../../src/request/abstract-request-manager'),
         path.resolve(__dirname + '/../../src/request/angular-request-manager'),
@@ -61,7 +64,6 @@ require('../../src/auth-status');
 require('../../src/login-context');
 require('../../src/object-utils');
 require('../../src/promise');
-require('../../src/storage-manager');
 require('../../src/function-utils');
 require('../../src/url-utils');
 require('../../src/xhr-utils');
@@ -72,6 +74,9 @@ require('../../src/access-token/critical-error-response');
 require('../../src/access-token/error-response');
 require('../../src/access-token/response-parser');
 require('../../src/access-token/successful-response');
+
+// OAuth.Storage namespace
+require('../../src/storage/web-storage');
 
 // OAuth.Request namespace
 require('../../src/request/abstract-request-manager');
