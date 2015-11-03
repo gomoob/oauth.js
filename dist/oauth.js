@@ -1112,19 +1112,13 @@
         
         // If a specific configuration is provided
         if(OAuth.ObjectUtils.isObject(configuration)) {
-         
-            // Configure the storage to use
-            switch(configuration.storage) {
-                case 'local':
-                case null:
-                case undefined:
-                    this._storage = localStorage;
-                    break;
-                case 'session':
-                    this._storage = sessionStorage;
-                    break;
-                default:
-                    throw new Error('Invalid storage value provided !');
+    
+            // Configure the storage class
+            if ((configuration.hasOwnProperty('storage')) &&
+                (typeof configuration.storage === 'object')) {
+    
+                this._storage = configuration.storage;
+    
             }
             
             // Configure the storage key
