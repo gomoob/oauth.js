@@ -1,3 +1,5 @@
+/*jshint -W030 */
+
 describe('OAuth : ', function() {
     
     it('create request manager with invalid framework', function() {
@@ -24,6 +26,7 @@ describe('OAuth : ', function() {
         OAuth.init(
             'angular', 
             {
+                $provide : { decorator: function(name, decorator) {} },
                 clientId : 'my-app',
                 loginFn : function(credentialsPromise) {},
                 parseErrorFn : function(xmlHttpRequest) {},
@@ -45,7 +48,7 @@ describe('OAuth : ', function() {
             }
         );
         
-        expect(requestManager).to.not.be.null();
+        expect(requestManager).to.not.be.null;
 
     });
     

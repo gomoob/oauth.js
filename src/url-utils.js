@@ -70,6 +70,42 @@ OAuth.UrlUtils = {
 
         return updatedUrl;
 
+    },
+    
+    /**
+     * Utility function used to convert an object to a Query string.
+     * 
+     * @param {Object} object The javascript object to convert.
+     * 
+     * @return {String} The resulting query string
+     */
+    toQueryString : function(object) {
+        
+        var queryString = '';
+        
+        // The provided argument must be an object
+        if(typeof object !== 'object') {
+
+            throw new Error('The provided argument must be an object !');
+            
+        }
+        
+        for(var key in object) {
+            
+            if(queryString.length > 0) {
+                
+                queryString += '&';
+                
+            }
+            
+            queryString += key;
+            queryString += '=';
+            queryString += object[key];
+            
+        }
+        
+        return queryString;
+        
     }
                   
 };

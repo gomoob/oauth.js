@@ -30,22 +30,44 @@
      * @namespace OAuth
      */
     var OAuth = {
-                  
+             
           /**
-           * @namespace Editor.Error
+           * @namespace OAuth.AccessToken
+           */
+          AccessToken : {},
+                 
+          /**
+           * @namespace OAuth.Error
            */
           Error : {},
                   
           /**
-           * @namespace Editor.Request
+           * @namespace OAuth.Request
            */
           Request : {}
 
     };
+    
+    // @include xmlhttprequest/XMLHttpRequest.js
 
+    // @include abnf-utils.js
+    // @include auth-status.js
+    // @include function-utils.js
     // @include login-context.js
+    // @include object-utils.js
+    // @include promise.js
+    // @include request-context.js
     // @include storage-manager.js
     // @include url-utils.js
+    // @include xhr-utils.js
+    
+    // @include access-token/abstract-response.js
+    // @include access-token/critical-error-response.js
+    // @include access-token/error-response.js
+    // @include access-token/response-parser.js
+    // @include access-token/successful-response.js
+    
+    // @include request/abstract-request-manager.js
     // @include request/angular-request-manager.js
     // @include request/backbone-request-manager.js
 
@@ -74,6 +96,15 @@
         OAuth._requestManager.start();
 
     };
+    
+    // TODO: Ajouter la méthode 'getAuthResponse()'
+    //       @see https://developers.facebook.com/docs/reference/javascript/FB.getAuthResponse
+    
+    OAuth.getLoginStatus = function(cb, forceServerCall) {
+        
+        return OAuth._requestManager.getLoginStatus(cb, forceServerCall);
+        
+    };
 
     /**
      * Function used to login a user. 
@@ -81,9 +112,10 @@
      * @param cb A callback function to be called when a login action has been done.
      * @param opts Options used to configure the login.
      */
+    // FIXME: A renommer en 'requireConnection' ou 'secured()' ou 'authorized()', etc...
     OAuth.login = function(cb, opts) {
     
-        OAuth._requestManager.login(cb, opts);
+        return OAuth._requestManager.login(cb, opts);
 
     };
     
@@ -94,8 +126,15 @@
      */
     OAuth.logout = function(cb) {
         
-        OAuth._requestManager.logout(cb);
+        return OAuth._requestManager.logout(cb);
         
+    };
+    
+    // FIXME: A renommer en 'login' (Pas sûr que ce soit bien car on est pas vraiment identique au SDK Facebook ici).
+    OAuth.sendCredentials = function(credentials, cb, opts) {
+        
+        return OAuth._requestManager.sendCredentials(credentials, cb, opts);
+
     };
 
     return OAuth;
