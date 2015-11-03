@@ -426,7 +426,7 @@ OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) 
 
 # Release history
 
-## 0.2.0 (2015-11-03)
+## 0.2.0 (2015-11-XX)
  * **BREAKING CHANGE** Remove the `storage` configuration option and prefer the new `storageManager` option instead ; 
  * **BREAKING CHANGE** Remove the `storageKey` configuration option, now users have to explicitly instanciate an 
    `OAuth.Storage.WebStorage` storage manager if they want to configure a specific storage key ; 
