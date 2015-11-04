@@ -244,24 +244,28 @@ have to ask your users to login into your app. After a first successful login an
 cached on client side, this cached OAuth 2.0 Access Token is then transparently used by OAuth.JS to keep a secured 
 connection opened between your app and your server (automatic Access Token refresh). 
 
-OAuth.JS provided the `OAuth.login(cb)` function to check if it has a valid OAuth 2.0 Access Token (please note thate 
-the `OAuth.login(cb)` function is very similar to the Facebook Javascript SDK `FB.login(cb)` function, but instead of 
-opening a Facebook login modal box OAuth.JS will open your own login modal or view). If the `OAuth.login(cb)` function 
-detects that no OAuth 2.0 Access Token is available or the one available is invalid then it will automatically open your 
-`loginFn` callback function. If OAuth.JS detects that a valid OAuth 2.0 Access Token is available it calls the login 
-callback directly without requesting your server.
+OAuth.JS provides an `OAuth.login(cb)` function to check if a valid OAuth 2.0 Access Token is available. The 
+`OAuth.login(cb)` function is very similar to the Facebook Javascript SDK `FB.login(cb)` function, but instead 
+of opening a Facebook login modal box OAuth.JS will open your own login modal or view. 
+
+If the `OAuth.login(cb)` function detects that no OAuth 2.0 Access Token is available or the one available is invalid 
+then it will automatically call your `loginFn` callback function. If OAuth.JS detects that a valid OAuth 2.0 Access 
+Token is available it calls the login callback (i.e `cb` parameter of the `login` method) directly without requesting 
+your server.
 
 Here is a sample.
 
 ```javascript
-OAuth.login(function(response) {
-    
-    // Here we can be sure OAuth.JS has a valid OAuth 2.0 Access Token, so we can requet a secured Web Service
-    // In general each time you plan to display a view which requires data get from a secured Web Service you have to 
-    // wrap you view opening code inside the login function
-    Backbone.Radio.channel('app-view').command('show-center-view', new MyAccountView());
+OAuth.login(
+    function(authStatus) {
 
-});
+        // Here we can be sure OAuth.JS has a valid OAuth 2.0 Access Token, so we can requet a secured Web Service
+        // In general each time you have to display a view which requires data from a secured Web Service you have to 
+        // wrap you view opening code inside the login function
+        Backbone.Radio.channel('app-view').command('show-center-view', new MyAccountView());
+
+    }
+);
 ```
 
 ## Call your secured Web Services
@@ -408,6 +412,150 @@ library will automatically add whats necessary to authorize you requests.
 }
 ```
 
+# Reference
+
+This section document the main functions and objects used in the OAuth.js library.
+
+## Namespaces
+
+The OAuth.js library defines several "namespaces" used to organize its source code and clearly identify responsibilities
+, here are the namespaces available : 
+
+ * The `OAuth.AccessToken` namespace contains classes used to manipulate and parse OAuth 2.0 access tokens (this also 
+   include refresh tokens) ; 
+ * The `OAuth.Model` namespace define classes used by the OAuth.js library ;
+ * The `OAuth.Request` namespace contains classes used to manage OAuth 2.0 requests ; 
+ * The `OAuth.Storage` namespace contains classes used to manage storage of OAuth 2.0 access tokens and more generally 
+   connection states on client side ; 
+ * The `OAuth.Utils` namespace contains several utility classes which are not strictly related to OAuth 2.0.
+
+## Namespace `OAuth.AccessToken`
+
+## Namespace `OAuth.Model`
+
+### Class `OAuth.Model.AuthStatus`
+
+The `OAuth.Model.AuthStatus` class is used to represent the full user authentication state on client side. 
+
+#### Method `OAuth.Model.AuthStatus.getAccessTokenResponse()`
+
+#### Method `OAuth.Model.AuthStatus.isConnected()`
+
+Method used to check if the current user is **considered** to be connected. 
+
+```javascript
+    // The user is considered connected
+    if(authStatus.isConnected()) {
+
+        console.log('Welcome John Doe !');
+
+    } 
+
+    // The user is considered disconnected
+    else {
+
+        console.log('Oups it seems your not connected, please login first to view this page.');
+
+    }
+```
+
+**WARNING** : At any time a user can be *considered* connected on client side but being disconnected in fact (i.e its 
+OAuth 2.0 Access Token is invalid or expired). The `AuthStatus` is generally retrieved from a client side storage and 
+transport informations about the last successfully retrieved OAuth 2.0 Access Token. In the meantime this OAuth 2.0 
+Access Token could have been expired or invalidated.
+
+#### Method `OAuth.Model.AuthStatus.isDisconnected()`
+
+Method used to check if the current user is **considered** to be disconnected. 
+
+```javascript
+    // The user is considered disconnected
+    if(authStatus.isDisconnected()) {
+
+        console.log('Oups it seems your not connected, please login first to view this page.');
+
+    } 
+
+    // The user is considered connected
+    else {
+
+        console.log('Welcome John Doe !');
+
+    }
+```
+
+**WARNING** : At any time a user can be *considered* connected on client side but being disconnected in fact (i.e its 
+OAuth 2.0 Access Token is invalid or expired). The `AuthStatus` is generally retrieved from a client side storage and 
+transport informations about the last successfully retrieved OAuth 2.0 Access Token. In the meantime this OAuth 2.0 
+Access Token could have been expired or invalidated.
+
+#### Method `OAuth.Model.AuthStatus.toJSON()`
+
+#### Method `OAuth.Model.AuthStatus.toString()`
+
+### Class `OAuth.Model.LoginContext`
+
+The `OAuth.Model.LoginContext` object transports informations used to login a user on an OAuth 2.0 server. In Auth.js 
+what we call a "login" is an HTTP POST requests to an OAuth 2.0 token endpoint. 
+
+In your application when you configure the OAuth.js library your define a `loginFn(loginContext)` function which is 
+automatically called when the library detects a new login is required.
+
+The received `OAuth.Model.LoginContext` object can then be used to transmit credentials to OAuth.js which will then 
+automatically execute an HTTP POST request to your configured OAuth 2.0 token endpoint. 
+
+```javascript
+OAuth.init(
+    {
+        ...
+        loginFn : function(loginContext) {
+        
+            ...
+            
+            // Asks OAuth.js to login our user
+            loginContext.sendCredentials(
+                {
+                    grant_type : 'password',
+                    username : 'jdoe',
+                    password : 'xxxxxxxx'                
+                },
+                function(authStatus) {
+                
+                    // Check the AuthStatus object to see if login was successful
+                
+                }
+            );
+
+        }
+        ...
+    }
+);
+```
+
+#### Method `OAuth.Model.LoginContext.sendCredentials(credentials, loginFnCb, loginFnOpts)`
+
+
+
+### Class `OAuth.Model.RequestContext`
+
+## Namespace `OAuth.Request`
+
+## Namespace `OAuth.Storage`
+
+### Class `OAuth.Storage.WebStorage`
+
+## Namespace `OAuth.Utils` 
+
+### Class `OAuth.Utils.ABNFUtils`
+
+### Class `OAuth.Utils.FunctionUtils`
+
+### Class `OAuth.Utils.ObjectUtils`
+
+### Class `OAuth.Utils.UrlUtils`
+
+### Class `OAuth.Utils.XhrUtils`
+
 # FAQ
 
 ## What's the difference between a token refresh and reniewal ?
@@ -427,6 +575,10 @@ OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) 
 # Release history
 
 ## 0.2.0 (2015-11-XX)
+ * **BREAKING CHANGE** Now the Backbone request manager use `AuthStatus` objects the same was as the Angular request 
+   manager. It implies that the structure of the object stored on the storage changes and is more detailed. Also it 
+   means that now with Backbone the `OAuth.login(...)` method receives an `AuthStatus` object instead of a "raw" JSON 
+   response object ;
  * **BREAKING CHANGE** Remove the `storage` configuration option and prefer the new `storageManager` option instead ; 
  * **BREAKING CHANGE** Remove the `storageKey` configuration option, now users have to explicitly instanciate an 
    `OAuth.Storage.WebStorage` storage manager if they want to configure a specific storage key ; 

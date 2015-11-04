@@ -37,11 +37,6 @@
           AccessToken : {},
 
           /**
-           * @namespace OAuth.Error
-           */
-          Error : {},
-
-          /**
            * @namespace OAuth.Request
            */
           Request : {},
