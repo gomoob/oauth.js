@@ -1636,10 +1636,6 @@
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsetext-attribute
         valid = valid && typeof jsonXhr.responseText === 'string';
     
-        // The object MUST HAVE a 'responseXML' string property
-        // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsexml-attribute
-        valid = valid && (jsonXhr.responseXML === null || typeof jsonXhr.responseXML === 'string');
-    
         return valid;
     
     };

@@ -358,33 +358,6 @@ describe('OAuth.AccessToken.AbstractResponse', function() {
                     }
                 )
             ).to.be.false;
-
-            // Test with a missing 'responseXML' parameter
-            expect(
-                OAuth.AccessToken.AbstractResponse.isJsonXhrValid(
-                    {
-                        readyState : 4,
-                        status : 200,
-                        statusText : 'OK',
-                        response : 'THE_RESPONSE',
-                        responseText : 'THE_RESPONSE',
-                    }
-                )
-            ).to.be.false;
-            
-            // Test with a bad 'responseXML' parameter
-            expect(
-                OAuth.AccessToken.AbstractResponse.isJsonXhrValid(
-                    {
-                        readyState : 4,
-                        status : 200,
-                        statusText : 'OK',
-                        response : 'THE_RESPONSE',
-                        responseText : 'THE_RESPONSE',
-                        responseXML : 98769
-                    }
-                )
-            ).to.be.false;
             
         });
         
