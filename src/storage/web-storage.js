@@ -71,31 +71,9 @@ OAuth.Storage.WebStorage.prototype = {
 
     },
 
-    /**
-     * Gets the last Access Token stored.
-     *
-     * @return {String} The last Access Token stored or null if no Access Token is stored.
-     */
-    getAccessToken : function() {
+    getAuthStatusKey : function() {
 
-        var accessTokenResponse = this.getAccessTokenResponse(),
-            accessToken = accessTokenResponse !== null ? accessTokenResponse.access_token : null;
-
-        // Returns null or a valid token (undefined is always converted to null)
-        return accessToken === null || accessToken === undefined ? null : accessToken;
-
-    },
-
-    /**
-     * Gets the last Access Token Response stored.
-     *
-     * @param {AccessTokenResponse} The last Access Token Response stored.
-     */
-    getAccessTokenResponse : function() {
-
-        var rawAccessTokenResponse = this._storage.getItem(this._storageKey + '.accessTokenResponse');
-
-        return rawAccessTokenResponse !== null ? JSON.parse(rawAccessTokenResponse) : null;
+        return this._storageKey + '.authStatus';
 
     },
 
@@ -106,7 +84,7 @@ OAuth.Storage.WebStorage.prototype = {
             authStatusString = null;
 
         // Retrieve the AuthStatus string representation from the storage
-        authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+        authStatusString = this._storage.getItem(this.getAuthStatusKey());
 
         // If an AuthStatus string has been found on the storage
         if(authStatusString) {
@@ -119,7 +97,7 @@ OAuth.Storage.WebStorage.prototype = {
         // Create a disconnected AuthStatus
         else {
 
-            authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
+            authStatus = new OAuth.AuthStatus({ status : OAuth.AuthStatus.DISCONNECTED });
 
         }
 
@@ -147,24 +125,10 @@ OAuth.Storage.WebStorage.prototype = {
 
     },
 
-    /**
-     * Persists the Raw Access Token Response.
-     *
-     * @param {String} rawAccessTokenResponse The raw Access Token Response returned from the server, this must be a raw
-     *        string.
-     */
-    persistRawAccessTokenResponse : function(rawAccessTokenResponse) {
-
-        // TODO: Valider la réponse...
-
-        this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
-
-    },
-
     // TODO: A blinder, documenter et tester...
     persistAuthStatus : function(authStatus) {
 
-        this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+        this._storage.setItem(this.getAuthStatusKey(), authStatus.toString());
 
     },
 
@@ -206,7 +170,7 @@ OAuth.Storage.WebStorage.prototype = {
         // Creates the AuthStatus object
         authStatus = new OAuth.AuthStatus(
             {
-                status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
+                status : accessTokenResponse.isSuccessful() ? OAuth.AuthStatus.CONNECTED : OAuth.AuthStatus.DISCONNECTED,
                 accessTokenResponse : accessTokenResponse
             }
         );

@@ -135,7 +135,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
             loginFnCb(
                 {
                     status : jqXHR.responseJSON.error,
-                    authResponse : jqXHR.responseJSON
+                    accessTokenResponse : jqXHR.responseJSON
                 },
                 function() { deferred.resolve(); }
             );
@@ -146,7 +146,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
                 loginCb(
                     {
                         status : jqXHR.responseJSON.error,
-                        authResponse : jqXHR.responseJSON
+                        accessTokenResponse : jqXHR.responseJSON
                     }
                 );
 
@@ -160,7 +160,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
             loginCb(
                 {
                     status : jqXHR.responseJSON.error,
-                    authResponse : jqXHR.responseJSON
+                    accessTokenResponse : jqXHR.responseJSON
                 }
             );
 
@@ -178,17 +178,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
      */
     _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
 
-        var loginCb = this._loginContext.getLoginCb(),
+        var authStatus = null,
+            loginCb = this._loginContext.getLoginCb(),
             loginFnCb = this._loginContext.getLoginFnCb();
 
         // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le
         //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
 
-        // Store the refreshed OAuth 2.0 in the local storage
-        // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
-        //          response also contain a 'user_id' field which is specific to the project and
-        //          contains the technical identifier of the user on the platform
-        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+        // Persists the response as an OAuthStatus object
+        authStatus = this._storageManager.persistAccessTokenResponse(jqXHR);
 
         // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token
         // retrieval we call it
@@ -196,23 +194,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
             var deferred = $.Deferred();
 
-            loginFnCb(
-                {
-                    status : 'connected',
-                    authResponse : data
-                },
-                function() { deferred.resolve(); }
-            );
+            loginFnCb(authStatus, function() { deferred.resolve(); });
 
             // When the callback function has ended
             deferred.done(function() {
 
-                loginCb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    }
-                );
+                loginCb(authStatus);
 
             });
 
@@ -221,12 +208,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // Otherwise we call the 'login' function callback directly
         else {
 
-            loginCb(
-                {
-                    status : 'connected',
-                    authResponse : data
-                }
-            );
+            loginCb(authStatus);
 
         }
 
@@ -314,7 +296,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
         // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
         // So in this case we call the 'loginFn' function
-        if(this._storageManager.getAccessTokenResponse() === null) {
+        if(this._storageManager.getAuthStatus().isDisconnected()) {
 
             // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing
             // credentials
@@ -329,12 +311,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // Otherwise we directly call the callback.
         else {
 
-            loginCb(
-                {
-                    status : 'connected',
-                    authResponse : this._storageManager.getAccessTokenResponse()
-                }
-            );
+            loginCb(this._storageManager.getAuthStatus());
 
         }
 
@@ -601,11 +578,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
      */
     _updateAjaxArgumentsWithAccessToken : function(ajaxArguments) {
 
-        // Try to get an OAuth 2.0 Access Token from the client storage
-        var accessToken = this._storageManager.getAccessToken();
+        var authStatus = this._storageManager.getAuthStatus();
 
-        // Appends the 'access_token' URL parameter
-        if(accessToken) {
+        // If the user is considered connected (i.e the OAuth 2.0 Access Token is available)
+        if(authStatus.isConnected()) {
+
+            var accessToken = authStatus.getAccessTokenResponse().getJsonResponse().access_token;
 
             // The '$.ajax' method is called with a URL directly provided
             if(typeof ajaxArguments[0] === 'string') {
@@ -710,7 +688,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
         //          response also contain a 'user_id' field which is specific to the project and
         //          contains the technical identifier of the user on the platform
-        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+        this._storageManager.persistAccessTokenResponse(jqXHR);
 
         var overwittenAjaxArguments = this._cloneAjaxArguments(originalAjaxArguments);
         overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
@@ -742,7 +720,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
         //          response also contain a 'user_id' field which is specific to the project and
         //          contains the technical identifier of the user on the platform
-        this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+        this._storageManager.persistAccessTokenResponse(jqXHR);
 
         // Re-executes the orginial request
         var ajaxPromise = $.ajax(originalAjaxArguments);
@@ -760,12 +738,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
      */
     _refreshAccessToken : function(originalAjaxArguments, oAuthPromise) {
 
-        // Try to get an OAuth 2.0 Refresh Token from the client storage
-        var refreshToken = this._storageManager.getRefreshToken();
+        // Gets the current authentication status
+        var authStatus = this._storageManager.getAuthStatus();
 
         // If a refresh token is stored on the client storage we try to refresh the access token using this refresh
         // token
-        if(refreshToken) {
+        if(authStatus.isConnected() && authStatus.getAccessTokenResponse().getJsonResponse().refresh_token !== null) {
 
             var ajaxPromise = $.ajax(
                 {
@@ -773,7 +751,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
                     data : this._transformDataFn(
                         {
                             grant_type : 'refresh_token',
-                            refresh_token : refreshToken,
+                            refresh_token : authStatus.getAccessTokenResponse().getJsonResponse().refresh_token,
                             client_id : this._clientId
                         }
                     ),
@@ -852,6 +830,12 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
     },
 
+    /**
+     *
+     * @param originalAjaxArguments
+     * @param oauthPromise
+     * @param credentialsSettings
+     */
     _onCredentialsPromiseDone : function(originalAjaxArguments, oauthPromise, credentialsSettings) {
 
         switch(credentialsSettings.grant_type) {

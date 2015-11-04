@@ -174,38 +174,69 @@ env(
                     var requestManager = new OAuth.Request.BackboneRequestManager(
                         {
                             clientId : 'my-app',
-                            loginFn : function(credentialsPromise) {
+                            loginFn : function(loginContext) {
                                 
-                                credentialsPromise.sendCredentials(
+                                loginContext.sendCredentials(
                                     {
-                                        grant_type : 'password'
+                                        grant_type : 'password',
+                                        username: 'john',
+                                        password : 'doe'
                                     }
                                 );
-                                
+
                             },
                             parseErrorFn : function(xmlHttpRequest) {},
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
-                    
-                    // At the begining we have no OAuth 2.0 Access Token response stored on client side
-                    expect(requestManager.getStorageManager().getAccessTokenResponse()).to.be.null;
-                    
-                    requestManager.login(function(response) {
-                        
-                        // Checks the login response
-                        expect(response.status).to.equal('connected');
-                        expect(response.authResponse).to.equal('authResponse');
 
-                        // After login the OAuth 2.0 response must have been stored on client side
-                        expect(requestManager.getStorageManager().getAccessTokenResponse()).to.not.be.null;
+                    // At the begining we the Auth Status expresses a disconnected state
+                    expect(requestManager.getStorageManager().getAuthStatus().isConnected()).to.be.false;
+
+                    requestManager.login(
+                        function(authStatus) {
+
+                            // Checks the received AuthStatus
+                            expect(authStatus.isConnected()).to.be.true;
+                            expect(authStatus.getAccessTokenResponse().isError()).to.be.false;
+                            expect(authStatus.getAccessTokenResponse().isSuccessful()).to.be.true;
+                            
+                            // Checks the Access Token response body
+                            var jsonResponse = authStatus.getAccessTokenResponse().getJsonResponse();
+                            
+                            expect(jsonResponse.access_token).to.equal('access_token');
+                            expect(jsonResponse.refresh_token).to.equal('refresh_token');
+                            expect(jsonResponse.token_type).to.equal('Bearer');
+                            expect(jsonResponse.expires_in).to.equal(3600);
+                            
+                            // The received AuthStatus object must be the same as the one managed by the Storage Manager
+                            expect(requestManager.getStorageManager().getAuthStatus().toString()).to.equal(
+                                authStatus.toString()
+                            );
+
+                            done();
                         
-                        done();
-                        
-                    });
+                        }
+                    );
                     
-                    ajaxDeferred.resolve('authResponse', 'textStatus', 'jqXHR');
-                    
+                    ajaxDeferred.resolve(
+                        null, // This should be equal to a JSON response but its not used in new versions of OAuth.js
+                        'textStatus', 
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            status : 200,
+                            statusText : 'OK',
+                            responseText : '{' + 
+                                '"access_token" : "access_token",' +
+                                '"refresh_token" : "refresh_token",' +
+                                '"token_type" : "Bearer",' +
+                                '"expires_in" : 3600' +
+                            '}',
+                            responseXML : ''
+                        }
+                    );
+
                 });
                 
                 after(function() {
@@ -236,9 +267,22 @@ env(
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
-                    requestManager.getStorageManager().persistRawAccessTokenResponse(
-                        '{"access_token" : "ACCESS_TOKEN"}'
+                    requestManager.getStorageManager().persistAccessTokenResponse(
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            status : 200,
+                            statusText : 'OK',
+                            responseText : '{' + 
+                                '"access_token" : "ACCESS_TOKEN",' +
+                                '"refresh_token" : "refresh_token",' +
+                                '"token_type" : "Bearer",' +
+                                '"expires_in" : 3600' +
+                            '}',
+                            responseXML : ''
+                        }
                     );
+
                     requestManager.start();
 
                     // Test with a URL directly provided
@@ -292,7 +336,13 @@ env(
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
-                    requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
+                    requestManager.getStorageManager().persistAccessTokenResponse(
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            responseText : '{"access_token":"ACCESS_TOKEN"}'
+                        }
+                    );
                     requestManager.start();
                     
                     var oauthPromise = Backbone.ajax('http://test1.com');
@@ -349,7 +399,13 @@ env(
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
-                    requestManager.getStorageManager().persistRawAccessTokenResponse('{"access_token":"ACCESS_TOKEN"}');
+                    requestManager.getStorageManager().persistAccessTokenResponse(
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            responseText : '{"access_token":"ACCESS_TOKEN"}'
+                        }
+                    );
                     requestManager.start();
                     
                     var oauthPromise = Backbone.ajax('http://test1.com');
@@ -430,26 +486,39 @@ env(
                             tokenEndpoint : 'https://test.com/token'
                         }
                     );
-                    requestManager.getStorageManager().persistRawAccessTokenResponse(
-                        '{' + 
-                            '"access_token":"ACCESS_TOKEN",' + 
-                            '"refresh_token":"REFRESH_TOKEN"' + 
-                        '}'
+                    requestManager.getStorageManager().persistAccessTokenResponse(
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            status : 200,
+                            statusText : 'OK',
+                            responseText : '{' + 
+                                '"access_token" : "ACCESS_TOKEN",' +
+                                '"refresh_token" : "REFRESH_TOKEN",' +
+                                '"token_type" : "Bearer",' +
+                                '"expires_in" : 3600' +
+                            '}',
+                            responseXML : ''
+                        }
                     );
                     requestManager.start();
                     
                     // At the beginning we have specific OAuth 2.0 Access and Refresh tokens in the client storage, this 
                     // test should change them.
-                    expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN');
-                    expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN');
+                    var authStatus = requestManager.getStorageManager().getAuthStatus();
+                    
+                    expect(authStatus.getAccessTokenResponse().getJsonResponse().access_token).to.equal('ACCESS_TOKEN');
+                    expect(authStatus.getAccessTokenResponse().getJsonResponse().refresh_token).to.equal('REFRESH_TOKEN');
 
                     // Calls our test Web Service, this one will return a token expired error
                     var oauthPromise = Backbone.ajax('http://test1.com');
                     oauthPromise.done(function(data, textStatus, jqXHR) {
                         
                         // Checks that the OAuth 2.0 Access and Refresh tokens have been update in the client storage
-                        expect(requestManager.getStorageManager().getAccessToken()).to.equal('ACCESS_TOKEN_2');
-                        expect(requestManager.getStorageManager().getRefreshToken()).to.equal('REFRESH_TOKEN_2');
+                        authStatus = requestManager.getStorageManager().getAuthStatus();
+                        
+                        expect(authStatus.getAccessTokenResponse().getJsonResponse().access_token).to.equal('ACCESS_TOKEN_2');
+                        expect(authStatus.getAccessTokenResponse().getJsonResponse().refresh_token).to.equal('REFRESH_TOKEN_2');
                         
                         expect(data).to.equal('ws_data');
                         expect(textStatus).to.equal('ws_textStatus');
@@ -467,9 +536,13 @@ env(
                     // Simulates the response of the original Web Service request, here the response indicates that the 
                     // OAuth 2.0 Access Token is expired
                     ajaxDeferred1.reject(
+                        // Fake xhr
                         {
+                            readyState : XMLHttpRequest.DONE, 
                             status : 401,
-                            responseText : 'token_expired'
+                            statusText : 'KO',
+                            responseText : 'token_expired',
+                            responseXML : ''
                         },
                         'textStatus', 
                         'errorThrown'
@@ -479,12 +552,21 @@ env(
                     
                     // Simulates the response of the token refresh request
                     ajaxDeferred2.resolve(
-                        {
-                            access_token : 'ACCESS_TOKEN_2', 
-                            refresh_token : 'REFRESH_TOKEN_2'
-                        },
+                        null, // This should be equal to a JSON response but its not used in new versions of OAuth.js
                         'token_refresh_textStatus',
-                        'token_refresh_jqXHR'
+                        // Fake xhr
+                        {
+                            readyState : XMLHttpRequest.DONE, 
+                            status : 200,
+                            statusText : 'OK',
+                            responseText : '{' + 
+                                '"access_token" : "ACCESS_TOKEN_2",' +
+                                '"refresh_token" : "REFRESH_TOKEN_2",' +
+                                '"token_type" : "Bearer",' +
+                                '"expires_in" : 3600' +
+                            '}',
+                            responseXML : ''
+                        }
                     );
 
                     clock.tick(1);
@@ -577,11 +659,14 @@ env(
                         tokenEndpoint : 'https://test.com/token'
                     }
                 );
-                requestManager.getStorageManager().persistRawAccessTokenResponse(
-                    '{' + 
-                        '"access_token":"ACCESS_TOKEN",' + 
-                        '"refresh_token":"REFRESH_TOKEN"' + 
-                    '}'
+                requestManager.getStorageManager().persistAccessTokenResponse(
+                    // Fake xhr
+                    {
+                        responseText : '{' + 
+                                       '"access_token":"ACCESS_TOKEN",' + 
+                                       '"refresh_token":"REFRESH_TOKEN"' + 
+                                       '}'
+                    }
                 );
                 requestManager.start();
                 

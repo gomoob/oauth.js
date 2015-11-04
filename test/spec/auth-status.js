@@ -42,7 +42,7 @@ describe('OAuth.AuthStatus : ', function() {
             expect(function() {
                 return new OAuth.AuthStatus(
                     { 
-                        status : 'connected' 
+                        status : OAuth.AuthStatus.CONNECTED 
                     }
                 );
             }).to.throw(
@@ -54,7 +54,7 @@ describe('OAuth.AuthStatus : ', function() {
             expect(function() {
                 return new OAuth.AuthStatus(
                     { 
-                        status : 'connected',
+                        status : OAuth.AuthStatus.CONNECTED,
                         accessTokenResponse : 'bad_type'
                     }
                 );
@@ -73,7 +73,7 @@ describe('OAuth.AuthStatus : ', function() {
             
             new OAuth.AuthStatus(
                 {
-                    status : 'connected', 
+                    status : OAuth.AuthStatus.CONNECTED, 
                     accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
                 }
             );
@@ -169,7 +169,7 @@ describe('OAuth.AuthStatus : ', function() {
             var accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse(),
                 authStatus = new OAuth.AuthStatus(
                     {
-                        status : 'connected', 
+                        status : OAuth.AuthStatus.CONNECTED, 
                         accessTokenResponse : accessTokenResponse
                     }
                 );
@@ -186,7 +186,7 @@ describe('OAuth.AuthStatus : ', function() {
             
             var authStatus = new OAuth.AuthStatus(
                 {
-                    status : 'connected', 
+                    status : OAuth.AuthStatus.CONNECTED, 
                     accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
                 }
             );
@@ -203,7 +203,7 @@ describe('OAuth.AuthStatus : ', function() {
             
             var authStatus = new OAuth.AuthStatus(
                 {
-                    status : 'disconnected', 
+                    status : OAuth.AuthStatus.DISCONNECTED, 
                     accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
                 }
             );
@@ -220,7 +220,7 @@ describe('OAuth.AuthStatus : ', function() {
             
             var authStatus = new OAuth.AuthStatus(
                 {
-                    status : 'connected', 
+                    status : OAuth.AuthStatus.CONNECTED, 
                     accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
                 }
             );
@@ -237,7 +237,7 @@ describe('OAuth.AuthStatus : ', function() {
             
             var authStatus = new OAuth.AuthStatus(
                 {
-                    status : 'disconnected', 
+                    status : OAuth.AuthStatus.DISCONNECTED, 
                     accessTokenResponse : new OAuth.AccessToken.SuccessfulResponse()
                 }
             );

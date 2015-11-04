@@ -459,24 +459,24 @@
                        
     };
     /**
-     * Class which represents an Authentication Status, an authentication status describes the authentication state of the 
+     * Class which represents an Authentication Status, an authentication status describes the authentication state of the
      * user using an app.
-     * 
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      * @class AuthStatus
      * @memberof OAuth
      */
     OAuth.AuthStatus = function(settings) {
-        
+    
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // PRIVATE MEMBERS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+    
         /**
-         * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access 
-         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
+         * The Access Token Response object which was used to created this AuthStatus object. In most cases this Access
+         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful
          * internally but the developer can only call the {@link #isConnected()} function.
-         * 
+         *
          * @instance
          * @private
          * @type {OAuth.AccessToken.Response}
@@ -484,30 +484,30 @@
         var _accessTokenResponse = null;
     
         /**
-         * The status of the current user connection, this status can only be equal to 2 values : 
-         *  * `connected`    : The user is currently connected (here "currently" means in fact it was connected the last 
+         * The status of the current user connection, this status can only be equal to 2 values :
+         *  * `connected`    : The user is currently connected (here "currently" means in fact it was connected the last
          *                     time this AuthStatus was created or refreshed / updated).
          *  * `disconnected` : The user is currently disconnected.
-         *  
+         *
          * @instance
          * @private
          * @type {String}
          */
-        var _status = 'disconnected';
-        
+        var _status = OAuth.AuthStatus.DISCONNECTED;
+    
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // PUBLIC MEMBERS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
         /**
-         * Gets the Access Token Response object which was used to create this AuthStatus object. In most cases this Access 
-         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful 
+         * Gets the Access Token Response object which was used to create this AuthStatus object. In most cases this Access
+         * Token Response object is only useful by the developer to inspect error responses. Successful responses are useful
          * internally but the developer can only call the {@link #isConnected()} function.
-         * 
-         * The Access Token Response can be null when the user is disconnected and the disconnection operation was a manual 
+         *
+         * The Access Token Response can be null when the user is disconnected and the disconnection operation was a manual
          * disconnection (i.e not an automatic disconnection following an error).
-         * 
-         * @return {OAuth.AccessToken.Response} The Access Token Response object which as used to create this OAuthStatus 
+         *
+         * @return {OAuth.AccessToken.Response} The Access Token Response object which as used to create this OAuthStatus
          *         object.
          */
         this.getAccessTokenResponse = function() {
@@ -517,92 +517,92 @@
         };
     
         /**
-         * Function used to indicate if the user is currently connected (here "currently" means in fact it was connected the 
-         * last time this AuthStatus was created or refreshed / updated). 
-         * 
-         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an 
+         * Function used to indicate if the user is currently connected (here "currently" means in fact it was connected the
+         * last time this AuthStatus was created or refreshed / updated).
+         *
+         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an
          * {@link OAuth.AccessToken.SuccessfulResponse} object.
-         * 
+         *
          * @return {Boolean} True if the user is currently connected, false otherwise.
          */
         this.isConnected = function() {
     
-            return _status === 'connected';
+            return _status === OAuth.AuthStatus.CONNECTED;
     
         };
-        
+    
         /**
-         * Function used to indicate if the user is currently disconnected (here "currently" means in fact it was 
+         * Function used to indicate if the user is currently disconnected (here "currently" means in fact it was
          * disonnected the last time this AuthStatus was created or refreshed / updated).
-         * 
-         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an 
+         *
+         * If this function returns true then the {@link #getAccessTokenResponse()} function will always return an
          * {@link OAuth.AccessToken.ErrorResponse} object.
-         * 
+         *
          * @return {Boolean} True if the user is currently disconnected, false otherwise.
          */
         this.isDisconnected = function() {
     
-            return _status === 'disconnected';
+            return _status === OAuth.AuthStatus.DISCONNECTED;
     
         };
     
         /**
-         * Function used to create a JSON representation of this {@link AuthStatus}. This JSON representation can then be 
+         * Function used to create a JSON representation of this {@link AuthStatus}. This JSON representation can then be
          * used to persist this {@link AuthStatus} on a storage.
-         * 
+         *
          * @return {Object} A javascript object which represents a JSON representation of this {@link AuthStatus}.
          */
         this.toJSON = function() {
-            
+    
             return {
                 status : _status,
                 accessTokenResponse : _accessTokenResponse ? _accessTokenResponse.toJSON() : null
             };
     
         };
-        
+    
         /**
-         * Function used to create a string representation of this {@link AuthStatus}. This string representation can then 
+         * Function used to create a string representation of this {@link AuthStatus}. This string representation can then
          * be used to persist this {@link AuthStatus} on a storage.
-         * 
+         *
          * @return {String} A string representation of this {@link AuthStatus}.
          */
         this.toString = function() {
-            
+    
             return JSON.stringify(this.toJSON());
-            
+    
         };
-        
+    
         // The settings object is mandatory
         if(typeof settings !== 'object') {
-         
+    
             throw new Error('This object must be initialized with a settings object !');
-            
+    
         }
-        
+    
         // A valid status is mandatory
-        if(settings.status !== 'connected' && settings.status !== 'disconnected') {
-            
+        if(settings.status !== OAuth.AuthStatus.CONNECTED && settings.status !== OAuth.AuthStatus.DISCONNECTED) {
+    
             throw new Error('The settings object has no status property or an invalid status property !');
-            
+    
         }
-        
+    
         // If no access token response is provided than the status MUST BE equal to 'disconnected'
-        if(!settings.accessTokenResponse && settings.status !== 'disconnected') {
-            
+        if(!settings.accessTokenResponse && settings.status !== OAuth.AuthStatus.DISCONNECTED) {
+    
             throw new Error('An AuthStatus without an access token response must always be disconnected !');
-            
+    
         }
     
         // If an access token response is provided it must be an object
         else if(settings.accessTokenResponse && typeof settings.accessTokenResponse !== 'object') {
-            
+    
             throw new Error(
                 'The settings object has an invalid access token response object !'
             );
     
         }
-        
+    
         _status = settings.status;
         _accessTokenResponse = settings.accessTokenResponse ? settings.accessTokenResponse : null;
     
@@ -613,82 +613,96 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /**
-     * Function used to create an {@link OAuth.AuthStatus} object which indicate that the content of the storage has been 
-     * corrupted. A storage content is corrupted when a malicious user manually update its content. 
-     * 
-     * @return {OAuth.AuthStatus} An {@link OAuth.AuthStatus} object which indicate that the content of the storage has been 
+     * Constant which represents the connected status.
+     *
+     * @var String
+     */
+    OAuth.AuthStatus.CONNECTED = 'connected';
+    
+    /**
+     * Constant which represents the disconnected status.
+     *
+     * @var String
+     */
+    OAuth.AuthStatus.DISCONNECTED = 'disconnected';
+    
+    /**
+     * Function used to create an {@link OAuth.AuthStatus} object which indicate that the content of the storage has been
+     * corrupted. A storage content is corrupted when a malicious user manually update its content.
+     *
+     * @return {OAuth.AuthStatus} An {@link OAuth.AuthStatus} object which indicate that the content of the storage has been
      *         corrupted.
      */
     OAuth.AuthStatus.createCorrupted = function() {
-        
-        var accessTokenResponse = null, 
+    
+        var accessTokenResponse = null,
             authStatus = null;
-        
+    
         accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
         accessTokenResponse.setError('__oauth_js__storage_corrupted__');
         authStatus = new OAuth.AuthStatus(
             {
-                status : 'disconnected',
+                status : OAuth.AuthStatus.DISCONNECTED,
                 accessTokenResponse : accessTokenResponse
             }
         );
-        
+    
         return authStatus;
-        
+    
     };
     
     /**
-     * Function used to create an {@link OAuth.AuthStatus} object from a JSON string representation. In most cases this 
-     * function is used to create an {@link OAuth.AuthStatus} javascript object from data pulled from a specific storage 
-     * mechanism. 
-     * 
+     * Function used to create an {@link OAuth.AuthStatus} object from a JSON string representation. In most cases this
+     * function is used to create an {@link OAuth.AuthStatus} javascript object from data pulled from a specific storage
+     * mechanism.
+     *
      * @param {String} string The string to convert into an {@link OAuth.AuthStatus} object.
-     * 
+     *
      * @return {OAuth.AuthStatus} The created {@link OAuth.AuthStatus} object.
      */
     OAuth.AuthStatus.createFromString = function(string) {
     
         var authStatus = null;
-        
+    
         // The provided parameter must be a string
         if(typeof string !== 'string') {
     
             authStatus = OAuth.AuthStatus.createCorrupted();
-            
-        } 
+    
+        }
     
         // The provided parameter is a string, convert it to a JSON representation and validates this representation
         else {
     
             // The provided parameter must be a valid JSON object
-            var authStatusJson = null; 
-        
+            var authStatusJson = null;
+    
             try {
                 authStatusJson = JSON.parse(string);
-                
+    
                 // The AuthStatus JSON representation is valid
                 if(OAuth.AuthStatus.isJsonValid(authStatusJson)) {
-                    
+    
                     authStatus = new OAuth.AuthStatus(
                         {
-                            status : authStatusJson.status, 
+                            status : authStatusJson.status,
                             accessTokenResponse : OAuth.AccessToken.AbstractResponse.createFromJson(
                                 authStatusJson.accessTokenResponse
                             )
                         }
                     );
-                    
+    
                 }
     
                 // The AuthStatus JSON representation is invalid
                 else {
-                    
+    
                     authStatus = OAuth.AuthStatus.createCorrupted();
     
                 }
-                
+    
             } catch(syntaxError) {
-                
+    
                 authStatus = OAuth.AuthStatus.createCorrupted();
     
             }
@@ -699,31 +713,31 @@
     };
     
     /**
-     * Function used to check if a JSON object corresponds to a valid {@link OAuth.AuthStatus} JSON representation. The 
+     * Function used to check if a JSON object corresponds to a valid {@link OAuth.AuthStatus} JSON representation. The
      * purpose of this function is to validate what would be returned by the {@link OAuth.AuthStatus#toJSON()} method.
-     * 
+     *
      * @param {Object} jsonObject The JSON representation to validate.
-     * 
-     * @return {Boolean} True if the provided JSON representation is a valid representation of an {@link OAuth.AuthStatus} 
+     *
+     * @return {Boolean} True if the provided JSON representation is a valid representation of an {@link OAuth.AuthStatus}
      *         object, false otherwise.
      */
     OAuth.AuthStatus.isJsonValid = function(jsonObject) {
-        
+    
         // The parameter MUST BE a JSON object
         var valid = OAuth.ObjectUtils.isObject(jsonObject);
-        
+    
         // The 'status' parameter MUST BE equal to 'connected' or 'disconnected'
-        valid = valid && (jsonObject.status === 'connected' || jsonObject.status === 'disconnected');
-        
+        valid = valid && (jsonObject.status === OAuth.AuthStatus.CONNECTED || jsonObject.status === OAuth.AuthStatus.DISCONNECTED);
+    
         // If the 'accessTokenResponse' is provided and not null it MUST BE valid
         if(jsonObject.accessTokenResponse !== null) {
     
             valid = valid && OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject.accessTokenResponse);
     
         }
-        
+    
         return valid;
-        
+    
     };
     /**
      * Class used to provide function utilities.
@@ -1349,12 +1363,12 @@
 
     /**
      * Class used to represent an OAuth 2.0 Access Token response.
-     * 
-     * If the access token request is valid and authorized, the authorization server issues an access token and optional 
-     * refresh token as described in [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1").  If the 
-     * request failed client authentication or is invalid, the authorization server returns an error response as described 
+     *
+     * If the access token request is valid and authorized, the authorization server issues an access token and optional
+     * refresh token as described in [Section 5.1](https://tools.ietf.org/html/rfc6749#section-5.1 "Section 5.1").  If the
+     * request failed client authentication or is invalid, the authorization server returns an error response as described
      * in [Section 5.2](https://tools.ietf.org/html/rfc6749#section-5.2 "Section 5.2").
-     * 
+     *
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
     OAuth.AccessToken.AbstractResponse = function() {
@@ -1364,127 +1378,127 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
         /**
-         * An object or array which represents the JSON response returned from the server. This attribute can null when the 
-         * server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
-         * corrupted storage (in this case the response is a critical one with a code equals to 
+         * An object or array which represents the JSON response returned from the server. This attribute can null when the
+         * server returned a response which did not represent a valid JSON type or if an error is encountered in the
+         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a
+         * corrupted storage (in this case the response is a critical one with a code equals to
          * '__oauth_js__storage_corrupted__')
-         * 
-         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
-         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
-         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
-         * set with this bad object (in this case the response is a critical one with a code equals to 
-         * '__oauth_js__entity_body_invalid_json__'). 
-         * 
+         *
+         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON
+         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__').
+         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is
+         * set with this bad object (in this case the response is a critical one with a code equals to
+         * '__oauth_js__entity_body_invalid_json__').
+         *
          * @instance
          * @private
          * @type {Object | Array}
          */
         var _jsonResponse = null;
-        
+    
         /**
-         * The XMLHttpRequest object which was used to send a request on server side and which led to the creation of this 
+         * The XMLHttpRequest object which was used to send a request on server side and which led to the creation of this
          * OAuth 2.0 Access Token response.
-         * 
-         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
-         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+         *
+         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this
+         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an
          * {@link XMLHttpRequest} object having a specific state from scratch.
-         * 
-         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+         *
+         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in
          * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
-         * 
+         *
          * @instance
          * @private
          * @type {XHMLHttpRequest}
          */
         var _xhr = null;
-        
+    
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // PUBLIC MEMBERS
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+    
         /**
-         * Gets an object or array which represents the JSON response returned from the server. This attribute can null when 
-         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
-         * corrupted storage (in this case the response is a critical one with a code equals to 
+         * Gets an object or array which represents the JSON response returned from the server. This attribute can null when
+         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the
+         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a
+         * corrupted storage (in this case the response is a critical one with a code equals to
          * '__oauth_js__storage_corrupted__')
-         * 
-         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
-         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
-         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
-         * set with this bad object (in this case the response is a critical one with a code equals to 
-         * '__oauth_js__entity_body_invalid_json__'). 
-         * 
+         *
+         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON
+         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__').
+         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is
+         * set with this bad object (in this case the response is a critical one with a code equals to
+         * '__oauth_js__entity_body_invalid_json__').
+         *
          * @return {Object | Array} The JSON response returned by the server.
          */
         this.getJsonResponse = function() {
-            
+    
             return _jsonResponse;
-            
+    
         };
-        
+    
         /**
-         * Gets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
+         * Gets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of
          * this OAuth 2.0 Access Token response.
-         * 
-         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
-         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+         *
+         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this
+         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an
          * {@link XMLHttpRequest} object having a specific state from scratch.
-         * 
-         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+         *
+         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in
          * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
-         * 
-         * @return {XHMLHttpRequest} The XMLHttpRequest object which was used to send a request on server side and which led 
+         *
+         * @return {XHMLHttpRequest} The XMLHttpRequest object which was used to send a request on server side and which led
          *         to the creation of this OAuth 2.0 Access Token response.
          */
         this.getXhr = function() {
-            
+    
             return _xhr;
-            
+    
         };
-        
+    
         /**
-         * Sets an object or array which represents the JSON response returned from the server. This attribute can null when 
-         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the 
-         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a 
-         * corrupted storage (in this case the response is a critical one with a code equals to 
+         * Sets an object or array which represents the JSON response returned from the server. This attribute can null when
+         * the server returned a response which did not represent a valid JSON type or if an error is encountered in the
+         * response headers. This attribute can also be null when OAuth.JS tried to create an Access Token Response from a
+         * corrupted storage (in this case the response is a critical one with a code equals to
          * '__oauth_js__storage_corrupted__').
-         * 
-         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON 
-         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__'). 
-         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is 
-         * set with this bad object (in this case the response is a critical one with a code equals to 
-         * '__oauth_js__entity_body_invalid_json__'). 
-         * 
+         *
+         * If you server implementation is bad this value can also be an array (because your server returned a valid JSON
+         * array, in this case the response is a critical one with a code equals to '__oauth_js__entity_body_not_json__').
+         * If your server returned a JSON object which is not compliant with the OAuth 2.0 specification this attribute is
+         * set with this bad object (in this case the response is a critical one with a code equals to
+         * '__oauth_js__entity_body_invalid_json__').
+         *
          * @return {Object | Array} jsonResponse The JSON response returned by the server.
          */
         this.setJsonResponse = function(jsonResponse) {
-            
+    
             _jsonResponse = jsonResponse;
-            
+    
         };
-        
+    
         /**
-         * Sets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of 
+         * Sets the XMLHttpRequest object which was used to send a request on server side and which led to the creation of
          * this OAuth 2.0 Access Token response.
-         * 
-         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this 
-         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an 
+         *
+         * When the Access Token Response is built from a string / JSON representation retrieved from a storage this
+         * attribute is a "fake" {@link XMLHttpRequest} object. This is because it is normally not possible to re-build an
          * {@link XMLHttpRequest} object having a specific state from scratch.
-         * 
-         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in 
+         *
+         * This attribute can be null when OAuth.JS tried to create an Access Token Response from a corrupted storage (in
          * this case the response is a critical one with a code equals to '__oauth_js__storage_corrupted__').
-         * 
-         * @param {XHMLHttpRequest} xhr The XMLHttpRequest object which was used to send a request on server side and which 
+         *
+         * @param {XHMLHttpRequest} xhr The XMLHttpRequest object which was used to send a request on server side and which
          *        led to the creation of this OAuth 2.0 Access Token response.
          */
         this.setXhr = function(xhr) {
-            
+    
             _xhr = xhr;
-            
+    
         };
-        
+    
     };
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1493,112 +1507,112 @@
     
     /**
      * Function used to create an OAuth 2.0 Access Token Response object using a JSON representation.
-     * 
-     * @param {Object} jsonObject A JSON representation used to create a {@link OAuth.AccessToken.ErrorResponse} or 
+     *
+     * @param {Object} jsonObject A JSON representation used to create a {@link OAuth.AccessToken.ErrorResponse} or
      *        {@link OAuth.AccessToken.SuccessfulResponse} object.
-     * 
-     * @return {OAuth.AccessToken.ErrorResponse | OAuth.AccessToken.SuccessfulResponse} The resulting Access Token Response 
+     *
+     * @return {OAuth.AccessToken.ErrorResponse | OAuth.AccessToken.SuccessfulResponse} The resulting Access Token Response
      *         object.
      * @throws Error If the provided JSON does not represents a valid Access Token Response object.
      */
     OAuth.AccessToken.AbstractResponse.createFromJson = function(jsonObject) {
-        
+    
         // The JSON object must be valid
         if(!OAuth.AccessToken.AbstractResponse.isJsonValid(jsonObject)) {
-            
+    
             throw new Error('The provided JSON object does not correspond to a valid Access Token Response !');
     
         }
-        
+    
         var accessTokenResponse = null;
-        
+    
         // The JSON object represents an Error Access Token Response
         if(typeof jsonObject.jsonResponse.error === 'string') {
-            
+    
             // Critical error
             if(OAuth.AccessToken.ErrorResponse.isCriticalErrorCode(jsonObject.jsonResponse.error )) {
-                
+    
                 accessTokenResponse = new OAuth.AccessToken.CriticalErrorResponse();
-            
+    
             }
-            
+    
             // Standard error
             else {
-                
+    
                 accessTokenResponse = new OAuth.AccessToken.ErrorResponse();
-                
+    
             }
-            
+    
             accessTokenResponse.setError(jsonObject.jsonResponse.error );
-            
-        } 
-        
+    
+        }
+    
         // The JSON object represents a Successful Access Token Response
         else {
-            
+    
             accessTokenResponse = new OAuth.AccessToken.SuccessfulResponse();
-            
+    
         }
-        
+    
         // Sets the 'jsonResponse'
         accessTokenResponse.setJsonResponse(jsonObject.jsonResponse);
     
-        // Sets a "fake" XMLHttpRequest object, here the XMLHttpRequest is "fake" because it is normally not possible to 
+        // Sets a "fake" XMLHttpRequest object, here the XMLHttpRequest is "fake" because it is normally not possible to
         // re-build an {@link XMLHttpRequest} object having a specific state from scratch.
         accessTokenResponse.setXhr(OAuth.XhrUtils.fromJSON(jsonObject.xhr));
-        
+    
         return accessTokenResponse;
     
     };
     
     /**
-     * Function used to check if a JSON object corresponds to a valid Access Token Response JSON representation. A JSON 
-     * representation of an Access Token Response to keep a description of the last OAuth 2.0 Access Token Response built 
-     * from the last server request. This function validates the objects which are produced by the 
+     * Function used to check if a JSON object corresponds to a valid Access Token Response JSON representation. A JSON
+     * representation of an Access Token Response to keep a description of the last OAuth 2.0 Access Token Response built
+     * from the last server request. This function validates the objects which are produced by the
      * {@link OAuth.AccessToken.ErrorResponse#toJSON()} and {@link OAuth.AccessToken.SuccessfulResponse#toJSON()} functions.
-     * 
+     *
      * @param {Object} jsonObject The JSON representation to validate.
-     * 
-     * @return {Boolean} True if the provided JSON representation is valid representation of an 
-     *         {@link OAuth.AccessToken.ErrorResponse} or {@link OAuth.AccessToken.SuccessfulResponse} object, false 
+     *
+     * @return {Boolean} True if the provided JSON representation is valid representation of an
+     *         {@link OAuth.AccessToken.ErrorResponse} or {@link OAuth.AccessToken.SuccessfulResponse} object, false
      *         otherwise.
      */
     OAuth.AccessToken.AbstractResponse.isJsonValid = function(jsonObject) {
     
         // The parameter MUST BE an object
         var valid = OAuth.ObjectUtils.isObject(jsonObject);
-        
+    
         // If previous rules are valid
-        if(valid) { 
-        
+        if(valid) {
+    
             // Validates the 'jsonResponse' object property
-            if(OAuth.ObjectUtils.isObject(jsonObject.jsonResponse) && 
+            if(OAuth.ObjectUtils.isObject(jsonObject.jsonResponse) &&
                typeof jsonObject.jsonResponse.error === 'string') {
-                
+    
                 valid = valid && OAuth.AccessToken.ErrorResponse.isJsonResponseValid(jsonObject.jsonResponse);
-                
+    
             } else {
-                
+    
                 valid = valid && OAuth.AccessToken.SuccessfulResponse.isJsonResponseValid(jsonObject.jsonResponse);
-                
+    
             }
-            
+    
             // Validates the 'xhr' object property
             valid = valid && OAuth.AccessToken.AbstractResponse.isJsonXhrValid(jsonObject.xhr);
     
         }
-        
+    
         return valid;
     
     };
     
     /**
-     * Function used to check if a JSON object corresponds to a valid {@link XMLHttpRequest} JSON representation. A JSON 
-     * representation of the {@link XMLHttpRequest} is used by OAuth.JS to keep a description of the last request sent to 
+     * Function used to check if a JSON object corresponds to a valid {@link XMLHttpRequest} JSON representation. A JSON
+     * representation of the {@link XMLHttpRequest} is used by OAuth.JS to keep a description of the last request sent to
      * the server.
-     * 
+     *
      * @param {Object} jsonXhr The {@link XMLHttpRequest} JSON representation to validate.
-     * 
+     *
      * @return {Boolean} True if the provided {@link XMLHttpRequest} JSON representation is valid, false otherwise.
      */
     OAuth.AccessToken.AbstractResponse.isJsonXhrValid = function(jsonXhr) {
@@ -1610,27 +1624,27 @@
         // @see http://www.w3.org/TR/XMLHttpRequest/#interface-xmlhttprequest
         // @see http://www.w3.org/TR/XMLHttpRequest/#states
         valid = valid && typeof jsonXhr.readyState === 'number';
-        
+    
         // The object MUST HAVE a 'status' number property
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-status-attribute
         valid = valid && typeof jsonXhr.status === 'number';
-        
+    
         // The object MUST HAVE a 'statusText' string property
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-statustext-attribute
         valid = valid && typeof jsonXhr.statusText === 'string';
-        
+    
         // The object MUST HAVE a 'response' string property
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-response-attribute
         // FIXME: This is a "complexe" property and it is not already validated
-        
+    
         // The object MUST HAVE a 'responseText' string property
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsetext-attribute
         valid = valid && typeof jsonXhr.responseText === 'string';
-        
+    
         // The object MUST HAVE a 'responseXML' string property
         // @see http://www.w3.org/TR/XMLHttpRequest/#the-responsexml-attribute
         valid = valid && (jsonXhr.responseXML === null || typeof jsonXhr.responseXML === 'string');
-        
+    
         return valid;
     
     };
@@ -2388,31 +2402,9 @@
     
         },
     
-        /**
-         * Gets the last Access Token stored.
-         *
-         * @return {String} The last Access Token stored or null if no Access Token is stored.
-         */
-        getAccessToken : function() {
+        getAuthStatusKey : function() {
     
-            var accessTokenResponse = this.getAccessTokenResponse(),
-                accessToken = accessTokenResponse !== null ? accessTokenResponse.access_token : null;
-    
-            // Returns null or a valid token (undefined is always converted to null)
-            return accessToken === null || accessToken === undefined ? null : accessToken;
-    
-        },
-    
-        /**
-         * Gets the last Access Token Response stored.
-         *
-         * @param {AccessTokenResponse} The last Access Token Response stored.
-         */
-        getAccessTokenResponse : function() {
-    
-            var rawAccessTokenResponse = this._storage.getItem(this._storageKey + '.accessTokenResponse');
-    
-            return rawAccessTokenResponse !== null ? JSON.parse(rawAccessTokenResponse) : null;
+            return this._storageKey + '.authStatus';
     
         },
     
@@ -2423,7 +2415,7 @@
                 authStatusString = null;
     
             // Retrieve the AuthStatus string representation from the storage
-            authStatusString = this._storage.getItem(this._storageKey + '.authStatus');
+            authStatusString = this._storage.getItem(this.getAuthStatusKey());
     
             // If an AuthStatus string has been found on the storage
             if(authStatusString) {
@@ -2436,7 +2428,7 @@
             // Create a disconnected AuthStatus
             else {
     
-                authStatus = new OAuth.AuthStatus({ status : 'disconnected' });
+                authStatus = new OAuth.AuthStatus({ status : OAuth.AuthStatus.DISCONNECTED });
     
             }
     
@@ -2464,24 +2456,10 @@
     
         },
     
-        /**
-         * Persists the Raw Access Token Response.
-         *
-         * @param {String} rawAccessTokenResponse The raw Access Token Response returned from the server, this must be a raw
-         *        string.
-         */
-        persistRawAccessTokenResponse : function(rawAccessTokenResponse) {
-    
-            // TODO: Valider la réponse...
-    
-            this._storage.setItem(this._storageKey + '.accessTokenResponse', rawAccessTokenResponse);
-    
-        },
-    
         // TODO: A blinder, documenter et tester...
         persistAuthStatus : function(authStatus) {
     
-            this._storage.setItem(this._storageKey + '.authStatus', authStatus.toString());
+            this._storage.setItem(this.getAuthStatusKey(), authStatus.toString());
     
         },
     
@@ -2523,7 +2501,7 @@
             // Creates the AuthStatus object
             authStatus = new OAuth.AuthStatus(
                 {
-                    status : accessTokenResponse.isSuccessful() ? 'connected' : 'disconnected',
+                    status : accessTokenResponse.isSuccessful() ? OAuth.AuthStatus.CONNECTED : OAuth.AuthStatus.DISCONNECTED,
                     accessTokenResponse : accessTokenResponse
                 }
             );
@@ -2543,9 +2521,9 @@
      * @author Baptiste GAILLARD (baptiste.gaillard@gomoob.com)
      */
     /**
-     * @param configuration
+     * @param opts
      */
-    OAuth.Request.AbstractRequestManager = function(configuration) {
+    OAuth.Request.AbstractRequestManager = function(opts) {
     
         /**
          * A component used to parse server responses to requests on the OAuth 2.0 Token Endpoint.
@@ -2598,7 +2576,7 @@
          * @instance
          * @private
          */
-        this._transformDataFn = configuration && configuration.transformDataFn || function(data) { return data; };
+        this._transformDataFn = opts && opts.transformDataFn || function(data) { return data; };
     
         /**
          * Function used to determine if a user is logged in to your application.
@@ -3553,7 +3531,7 @@
                 loginFnCb(
                     {
                         status : jqXHR.responseJSON.error,
-                        authResponse : jqXHR.responseJSON
+                        accessTokenResponse : jqXHR.responseJSON
                     },
                     function() { deferred.resolve(); }
                 );
@@ -3564,7 +3542,7 @@
                     loginCb(
                         {
                             status : jqXHR.responseJSON.error,
-                            authResponse : jqXHR.responseJSON
+                            accessTokenResponse : jqXHR.responseJSON
                         }
                     );
     
@@ -3578,7 +3556,7 @@
                 loginCb(
                     {
                         status : jqXHR.responseJSON.error,
-                        authResponse : jqXHR.responseJSON
+                        accessTokenResponse : jqXHR.responseJSON
                     }
                 );
     
@@ -3596,17 +3574,15 @@
          */
         _onTokenEndpointPostSuccess : function(data, textStatus, jqXHR) {
     
-            var loginCb = this._loginContext.getLoginCb(),
+            var authStatus = null,
+                loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
     
             // TODO: Ici on suppose qu'une réponse HTTP OK du serveur est forcément bonne, hors ce n'est pas forcément le
             //       cas. On devrait vérifier ici que la réponse est compatible avec le standard OAuth 2.0.
     
-            // Store the refreshed OAuth 2.0 in the local storage
-            // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
-            //          response also contain a 'user_id' field which is specific to the project and
-            //          contains the technical identifier of the user on the platform
-            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+            // Persists the response as an OAuthStatus object
+            authStatus = this._storageManager.persistAccessTokenResponse(jqXHR);
     
             // If the 'loginFn' function has provided a callback to be called after a successful OAuth 2.0 Access Token
             // retrieval we call it
@@ -3614,23 +3590,12 @@
     
                 var deferred = $.Deferred();
     
-                loginFnCb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    },
-                    function() { deferred.resolve(); }
-                );
+                loginFnCb(authStatus, function() { deferred.resolve(); });
     
                 // When the callback function has ended
                 deferred.done(function() {
     
-                    loginCb(
-                        {
-                            status : 'connected',
-                            authResponse : data
-                        }
-                    );
+                    loginCb(authStatus);
     
                 });
     
@@ -3639,12 +3604,7 @@
             // Otherwise we call the 'login' function callback directly
             else {
     
-                loginCb(
-                    {
-                        status : 'connected',
-                        authResponse : data
-                    }
-                );
+                loginCb(authStatus);
     
             }
     
@@ -3732,7 +3692,7 @@
     
             // If no OAuth 2.0 Access Token response is stored on client side then the client is considered disconnected
             // So in this case we call the 'loginFn' function
-            if(this._storageManager.getAccessTokenResponse() === null) {
+            if(this._storageManager.getAuthStatus().isDisconnected()) {
     
                 // Calls the configured 'loginFn' method, this one will resolve the credentials promise by providing
                 // credentials
@@ -3747,12 +3707,7 @@
             // Otherwise we directly call the callback.
             else {
     
-                loginCb(
-                    {
-                        status : 'connected',
-                        authResponse : this._storageManager.getAccessTokenResponse()
-                    }
-                );
+                loginCb(this._storageManager.getAuthStatus());
     
             }
     
@@ -4019,11 +3974,12 @@
          */
         _updateAjaxArgumentsWithAccessToken : function(ajaxArguments) {
     
-            // Try to get an OAuth 2.0 Access Token from the client storage
-            var accessToken = this._storageManager.getAccessToken();
+            var authStatus = this._storageManager.getAuthStatus();
     
-            // Appends the 'access_token' URL parameter
-            if(accessToken) {
+            // If the user is considered connected (i.e the OAuth 2.0 Access Token is available)
+            if(authStatus.isConnected()) {
+    
+                var accessToken = authStatus.getAccessTokenResponse().getJsonResponse().access_token;
     
                 // The '$.ajax' method is called with a URL directly provided
                 if(typeof ajaxArguments[0] === 'string') {
@@ -4128,7 +4084,7 @@
             // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
             //          response also contain a 'user_id' field which is specific to the project and
             //          contains the technical identifier of the user on the platform
-            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+            this._storageManager.persistAccessTokenResponse(jqXHR);
     
             var overwittenAjaxArguments = this._cloneAjaxArguments(originalAjaxArguments);
             overwittenAjaxArguments[0].secured = true; // TODO: Ceci devrait être dans le RequestContext
@@ -4160,7 +4116,7 @@
             // WARNING: Please not that besides the standard OAuth 2.0 Access Token informations the
             //          response also contain a 'user_id' field which is specific to the project and
             //          contains the technical identifier of the user on the platform
-            this._storageManager.persistRawAccessTokenResponse(JSON.stringify(data));
+            this._storageManager.persistAccessTokenResponse(jqXHR);
     
             // Re-executes the orginial request
             var ajaxPromise = $.ajax(originalAjaxArguments);
@@ -4178,12 +4134,12 @@
          */
         _refreshAccessToken : function(originalAjaxArguments, oAuthPromise) {
     
-            // Try to get an OAuth 2.0 Refresh Token from the client storage
-            var refreshToken = this._storageManager.getRefreshToken();
+            // Gets the current authentication status
+            var authStatus = this._storageManager.getAuthStatus();
     
             // If a refresh token is stored on the client storage we try to refresh the access token using this refresh
             // token
-            if(refreshToken) {
+            if(authStatus.isConnected() && authStatus.getAccessTokenResponse().getJsonResponse().refresh_token !== null) {
     
                 var ajaxPromise = $.ajax(
                     {
@@ -4191,7 +4147,7 @@
                         data : this._transformDataFn(
                             {
                                 grant_type : 'refresh_token',
-                                refresh_token : refreshToken,
+                                refresh_token : authStatus.getAccessTokenResponse().getJsonResponse().refresh_token,
                                 client_id : this._clientId
                             }
                         ),
@@ -4270,6 +4226,12 @@
     
         },
     
+        /**
+         *
+         * @param originalAjaxArguments
+         * @param oauthPromise
+         * @param credentialsSettings
+         */
         _onCredentialsPromiseDone : function(originalAjaxArguments, oauthPromise, credentialsSettings) {
     
             switch(credentialsSettings.grant_type) {
