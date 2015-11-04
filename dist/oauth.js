@@ -37,11 +37,6 @@
           AccessToken : {},
 
           /**
-           * @namespace OAuth.Error
-           */
-          Error : {},
-
-          /**
            * @namespace OAuth.Request
            */
           Request : {},
@@ -3517,48 +3512,32 @@
          */
         _onTokenEndpointPostError : function(jqXHR, textStatus, errorThrown) {
     
-            var loginCb = this._loginContext.getLoginCb(),
+            var authStatus = null,
+                loginCb = this._loginContext.getLoginCb(),
                 loginFnCb = this._loginContext.getLoginFnCb();
     
             // TODO: On doit gérer le cas ou le serveur retourne une réponse qui ne correspond pas du tout au format
             //       spécifié par OAuth 2.0.
+    
+            // Persists the response as an OAuthStatus object
+            authStatus = this._storageManager.persistAccessTokenResponse(jqXHR);
     
             // If the 'loginFn' function has provided a callback 'loginFnCb' callback
             if(typeof loginFnCb === 'function') {
     
                 var deferred = $.Deferred();
     
-                loginFnCb(
-                    {
-                        status : jqXHR.responseJSON.error,
-                        accessTokenResponse : jqXHR.responseJSON
-                    },
-                    function() { deferred.resolve(); }
-                );
+                loginFnCb(authStatus, function() { deferred.resolve(); });
     
                 // When the callback function has ended
-                deferred.done(function() {
-    
-                    loginCb(
-                        {
-                            status : jqXHR.responseJSON.error,
-                            accessTokenResponse : jqXHR.responseJSON
-                        }
-                    );
-    
-                });
+                deferred.done(function() { loginCb(authStatus); });
     
             }
     
             // Otherwise we call the 'login' function callback directly
             else {
     
-                loginCb(
-                    {
-                        status : jqXHR.responseJSON.error,
-                        accessTokenResponse : jqXHR.responseJSON
-                    }
-                );
+                loginCb(authStatus);
     
             }
     
@@ -3593,11 +3572,7 @@
                 loginFnCb(authStatus, function() { deferred.resolve(); });
     
                 // When the callback function has ended
-                deferred.done(function() {
-    
-                    loginCb(authStatus);
-    
-                });
+                deferred.done(function() { loginCb(authStatus); });
     
             }
     

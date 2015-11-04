@@ -521,8 +521,21 @@ OAuth.init(
                 },
                 function(authStatus) {
                 
-                    // Check the AuthStatus object to see if login was successful
-                
+                    // The login was successful
+                    if(authStatus.isConnected() {
+                    
+                        // Now we can execute secured requests safely, OAuth.js will automatically manage our Acces 
+                        // Token and refresh it transparently when needed
+
+                    } 
+                    
+                    // An error was encountered during login
+                    else {
+                    
+                        // 
+                    
+                    }
+
                 }
             );
 
