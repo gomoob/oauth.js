@@ -523,14 +523,14 @@ OAuth.Request.BackboneRequestManager.prototype = {
 
                     // Refresh the Access Token, if the refresh is successful then the promise will be resolved,
                     // otherwise the promise will be rejected
-                    this._refreshAccessToken(originalAjaxArguments, oauthPromise);
+                    this._refreshAccessToken(originalAjaxArguments, oauthPromise, jqXHR);
                     break;
 
                 case 'reniew' :
 
                     // Reniew the Access Token, if the reniewal is successful then the promise will be resolved,
                     // otherwise the promise will be rejected
-                    this._reniewAccessToken(originalAjaxArguments, oauthPromise);
+                    this._reniewAccessToken(originalAjaxArguments, oauthPromise, jqXHR);
                     break;
 
                 default:
@@ -715,8 +715,10 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
      * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
      *        successful.
+     * @param {XMLHttpRequest} failedXhr The XML HTTP request object which was executed and failed and from which one
+     *        the library detected that an OAuth 2.0 Access Token refresh is necessary.
      */
-    _refreshAccessToken : function(originalAjaxArguments, oAuthPromise) {
+    _refreshAccessToken : function(originalAjaxArguments, oAuthPromise, failedXhr) {
 
         // Gets the current authentication status
         var authStatus = this._storageManager.getAuthStatus();
@@ -725,7 +727,7 @@ OAuth.Request.BackboneRequestManager.prototype = {
         // token
         if(authStatus.isConnected() && authStatus.getAccessTokenResponse().getJsonResponse().refresh_token !== null) {
 
-            var ajaxPromise = $.ajax(
+            var refreshXhr = $.ajax(
                 {
                     url : this._tokenEndpoint,
                     data : this._transformDataFn(
@@ -739,15 +741,15 @@ OAuth.Request.BackboneRequestManager.prototype = {
                     type: 'POST'
                 }
             );
-            ajaxPromise.fail($.proxy(this._reniewAccessToken, this, oAuthPromise));
-            ajaxPromise.done($.proxy(this._onRefreshAccessTokenSuccess, this, originalAjaxArguments, oAuthPromise));
+            refreshXhr.fail($.proxy(this._reniewAccessToken, this, originalAjaxArguments, oAuthPromise));
+            refreshXhr.done($.proxy(this._onRefreshAccessTokenSuccess, this, originalAjaxArguments, oAuthPromise));
 
         }
 
         // Otherwise we try to reniew the access token
         else {
 
-            this._reniewAccessToken(originalAjaxArguments, oAuthPromise);
+            this._reniewAccessToken(originalAjaxArguments, oAuthPromise, failedXhr);
 
         }
 
@@ -759,8 +761,22 @@ OAuth.Request.BackboneRequestManager.prototype = {
      * @param {array} originalAjaxArguments The arguments passed to the overwritten Backbone.ajax method.
      * @param {jQuery.Deferred} oAuthPromise A jQuery promise object resolved when the original Web Service request is
      *        successful.
+     * @param {XMLHttpRequest} failedXhr The XML HTTP request object which was executed and failed and from which one
+     *        the library detected that an OAuth 2.0 Access Token reniew is necessary. The XmlHttpRequest object
+     *        received here can have 2 different formats :
+     *          * If the function has been called following a failed POST to the token endpoint then the server response
+     *            should be a valid OAuth 2.0 response.
+     *          * If the function has been called following a failed Web Service request which is note a request on
+     *            the OAuth 2.0 token endpoint then the response can take any form because its a response from the
+     *            developer's Web Services.
      */
-    _reniewAccessToken : function(originalAjaxArguments, oAuthPromise) {
+    _reniewAccessToken : function(originalAjaxArguments, oAuthPromise, failedXhr) {
+
+        // In all cases when this function is called it is to force users to login manually to retrieve a new OAuth 2.0
+        // Access Token. So when we are here we are absolutly sure that on client side if an OAuth 2.0 Access Token or /
+        // and an OAuth 2.0 Refresh Token are stored those tokens are invalid or expired. This means that the library
+        // must provided a DISCONNECTED AuthStatus here.
+        var authStatus = this._storageManager.persistAccessTokenResponse(failedXhr);
 
         // If the Login Context is not initialized then it means that login has been done which is forbidden
         if(this._loginContext === null) {
@@ -768,8 +784,6 @@ OAuth.Request.BackboneRequestManager.prototype = {
             throw new Error('No login context found, did you miss to wrap your calls in \'OAuth.login\' ?');
 
         }
-
-        console.log('_reniewAccessToken');
 
         // TODO: Créer un modèle de récupération de login / mdp ou credentials
 
