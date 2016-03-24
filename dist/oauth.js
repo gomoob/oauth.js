@@ -89,40 +89,126 @@
             // Standard XMLHttpRequest elements
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             var This = this;
-            
+    
+            // Create an original XMLHttpRequest (i.e the XMLHttpRequest object implementation of the Browser in use) to
+            // delegate calls.
             this.oXMLHttpRequest = new OXMLHttpRequest(); 
-            
-            this.oXMLHttpRequest.onabort = function() {
+    
+            /**
+             * The 'onabort' callback wired on the modified XMLHttpRequest class is called when the 'onabort' callback of 
+             * the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onabort = function(progressEvent) {
+            	
+            	// If the 'onabort' callback is defined on the modified XMLHttpRequest class we call it
                 if(This.onabort) {
-                    This.onabort();
+                    This.onabort(progressEvent);
                 }
+    
             };
-            this.oXMLHttpRequest.onerror = function() {
+            
+            /**
+             * The 'onerror' callback wired on the modified XMLHttpRequest class is called when the 'onerror' callback of 
+             * the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onerror = function(progressEvent) {
+            	
+            	// If the 'onerror' callback is defined on the modified XMLHttpRequest class we call it
                 if(This.onerror) {
-                    This.onerror();
+                    This.onerror(progressEvent);
                 }
+    
             };
-            this.oXMLHttpRequest.onload = function() {
+            
+            /**
+             * The 'onload' callback wired on the modified XMLHttpRequest class is called when the 'onload' callback of 
+             * the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onload = function(progressEvent) {
+            	
+            	// If the 'onload' callback is defined on the modified XMLHttpRequest class we call it
                 if(This.onload) {
-                    This.onload();
+                    This.onload(progressEvent);
                 }
+    
             };
-            this.oXMLHttpRequest.onloadend = function() {
+            
+            /**
+             * The 'onloadend' callback wired on the modified XMLHttpRequest class is called when the 'onloadend' callback 
+             * of the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onloadend = function(progressEvent) {
+            	
+            	// If the 'onloadend' callback is defined on the modified XMLHttpRequest class we call it
                 if(This.onloadend) {
-                    This.onloadend();
+                    This.onloadend(progressEvent);
                 }
+    
             };
-            this.oXMLHttpRequest.onloadstart = function() {
+            
+            /**
+             * The 'onloadstart' callback wired on the modified XMLHttpRequest class is called when the 'onloadstart' 
+             * callback of the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onloadstart = function(progressEvent) {
+            	
+            	// If the 'onloadstart' callback is defined on the modified XMLHttpRequest class we call it
                 if(This.onloadstart) {
-                    This.onloadstart();
+                    This.onloadstart(progressEvent);
                 }
+    
             };
-            this.oXMLHttpRequest.onprogress = function() {
+            
+            /**
+             * The 'onprogress' callback wired on the modified XMLHttpRequest class is called when the 'onprogress' 
+             * callback of the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onprogress = function(progressEvent) {
                 if(This.onprogress) {
-                    This.onprogress();
+                    This.onprogress(progressEvent);
                 }
             };
-            this.oXMLHttpRequest.onreadystatechange = function() {
+    
+            /**
+             * The 'onreadystatechange' callback wired on the modified XMLHttpRequest class is called when the
+             * 'onreadystatechange' callback of the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.onreadystatechange = function(event) {
                 
                 This.readyState = this.readyState;
                 This.response = this.response;
@@ -137,14 +223,39 @@
                 This.withCredentials = this.withCredentials;
                 
                 if(This.onreadystatechange) {
-                    This.onreadystatechange();
+                    This.onreadystatechange(event);
                 }
             };
-            this.oXMLHttpRequest.ontimeout = function() {
+    
+            /**
+             * The 'ontimeout' callback wired on the modified XMLHttpRequest class is called when the
+             * 'ontimeout' callback of the original XMLHttpRequest object is called.
+             * 
+             * @param {ProgressEvent} progressEvent The encountered progress event.
+             * 
+             * @see https://xhr.spec.whatwg.org/#progressevent
+             * @see https://www.w3.org/TR/XMLHttpRequest/#events
+             */
+            this.oXMLHttpRequest.ontimeout = function(progressEvent) {
                 if(This.ontimeout) {
-                    This.ontimeout();
+                    This.ontimeout(progressEvent);
                 }
             };
+    
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Initial XMLHttpRequest state
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            this.readyState = 0;
+            this.response = '';
+            this.responseText = '';
+            this.responseType = '';
+            this.responseURL = '';
+            this.responseXML = null;
+            this.status = 0;
+            this.statusText = '';
+            this.timeout = 0;
+            this.withCredentials = false;
+            this.upload = this.oXMLHttpRequest.upload; // This is important otherwise upload progress will not work
     
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Specific OAuth.JS XMLHttpRequest elements
