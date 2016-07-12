@@ -162,10 +162,31 @@
             
             This.readyState = this.readyState;
             This.response = this.response;
-            This.responseText = this.responseText;
-            This.responseType = this.responseType;
+            
+            // We should only copy 'responseText' if 'responseType' is '' or 'text' otherwise the following error 
+            // will be thrown
+            //
+            //     Failed to read the 'responseText' property from 'XMLHttpRequest': The value is only accessible 
+            //     if the object's 'responseType' is '' or 'text' (was 'arraybuffer').
+            //
+            if(This.responseType === '' || This.responseType === 'text') {
+                This.responseText = this.responseText;
+            }
+
+            // The responseType is set if its not equal to the empty string which is the default value
+            This.responseType = This.responseType && This.responseType.length > 0 ? This.responseType : this.responseType;
             This.responseURL = this.responseURL;
-            This.responseXML = this.responseXML;
+            
+            // We should only copy 'responseText' if 'responseType' is '' or 'document' otherwise the following 
+            // error will be thrown
+            //
+            //     Failed to read the 'responseText' property from 'XMLHttpRequest': The value is only accessible 
+            //     if the object's 'responseType' is '' or 'document' (was 'arraybuffer').
+            //
+            if(This.responseType === '' || This.responseType === 'document') {
+                This.responseXML = this.responseXML;
+            }
+            
             This.status = this.status;
             This.statusText = this.statusText;
             This.timeout = this.timeout;
@@ -232,12 +253,18 @@
         return this.oXMLHttpRequest.abort();
     };
     XMLHttpRequest.prototype.open = function(sMethod, sUrl, bAsync, sUser, sPassword) {
-        return this.oXMLHttpRequest.open(sMethod, sUrl, bAsync, sUser, sPassword);
+    	// open(method, url [, async = true [, username = null [, password = null]]])
+        return this.oXMLHttpRequest.open(sMethod, sUrl, bAsync !== false ? true : false, sUser, sPassword);
     };
     XMLHttpRequest.prototype.overrideMimeType = function(mime) {
         return this.oXMLHttpRequest.overrideMimeType(mime);
     };
     XMLHttpRequest.prototype.send = function(data) {
+    	
+    	// The 'responseType' parameter could be manually configured by the developer before calling the send method, 
+    	// so we have to transmit this custom response type to the original XMLHttpRequest object
+    	this.oXMLHttpRequest.responseType = this.responseType;
+
         return this.oXMLHttpRequest.send(data);
     };
     XMLHttpRequest.prototype.getAllResponseHeaders = function() {

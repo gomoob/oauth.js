@@ -588,7 +588,7 @@ OAuth 2.0 [Authorization Grant](http://tools.ietf.org/html/rfc6749#section-1.3) 
 # Release history
 
 ## 0.2.0 (2015-11-XX)
- * **BREAKING CHANGE** Now the Backbone request manager use `AuthStatus` objects the same was as the Angular request 
+ * **BREAKING CHANGE** Now the Backbone request manager use `AuthStatus` objects the same way as the Angular request 
    manager. It implies that the structure of the object stored on the storage changes and is more detailed. Also it 
    means that now with Backbone the `OAuth.login(...)` method receives an `AuthStatus` object instead of a "raw" JSON 
    response object ;
